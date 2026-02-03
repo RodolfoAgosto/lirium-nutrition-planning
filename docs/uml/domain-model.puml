@@ -1,0 +1,106 @@
+@startuml
+' ============================
+' Professional Nutrition Domain Model
+' ============================
+
+hide empty methods
+skinparam shadowing false
+
+class User {
+    firstName
+    lastName
+    email
+    dateOfBirth
+    sex: Sex
+    activityLevel: ActivityLevel
+}
+
+class NutritionPlan {
+    name
+    description
+    startDate
+    endDate
+}
+
+class Meal {
+    name
+    type: MealType
+    calories
+}
+
+class Food {
+    name
+    protein
+    carbohydrates
+    fat
+    calories
+    portionSize
+}
+
+class NutritionRecord {
+    timestamp: LocalDateTime
+    caloriesConsumed
+    macros: MacroSnapshot
+    notes
+    type: MealType
+}
+
+class GoalHistory {
+    goal: Goal
+    startDate
+    endDate
+}
+
+class DietRestriction {
+    type: RestrictionType
+}
+
+' ======= Enums (The Business Rules) =======
+
+enum Sex {
+    MALE
+    FEMALE
+    OTHER
+}
+
+enum ActivityLevel {
+    SEDENTARY
+    MODERATE
+    ACTIVE
+    VERY_ACTIVE
+}
+
+enum Goal {
+    LOSE_WEIGHT
+    MAINTAIN_WEIGHT
+    GAIN_MASS
+}
+
+enum MealType {
+    BREAKFAST
+    LUNCH
+    DINNER
+    SNACK
+}
+
+enum RestrictionType {
+    VEGAN
+    VEGETARIAN
+    DIABETIC
+    HYPERTENSIVE
+    OTHER
+}
+
+' ======= Relationships =======
+
+User "1" *-- "0..*" NutritionPlan
+User "1" *-- "0..*" NutritionRecord
+User "1" *-- "0..*" GoalHistory
+User "1" o-- "0..*" DietRestriction
+
+NutritionPlan "1" *-- "1..*" Meal
+Meal "1" o-- "1..*" Food
+
+NutritionRecord "0..*" o-- "0..1" Meal : references >
+
+@enduml
