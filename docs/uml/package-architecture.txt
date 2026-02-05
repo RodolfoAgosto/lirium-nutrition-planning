@@ -1,0 +1,36 @@
+@startuml
+title Arquitectura de Paquetes - Lirium Nutricion Personalizada
+
+package "com.lirium.nutrition" {
+    
+    [controller] <<package>>
+    [dto] <<package>>
+    [service] <<package>>
+    [mapper] <<package>>
+    [model] <<package>>
+    [repository] <<package>>
+    [exception] <<package>>
+    
+    package "infrastructure" {
+        [config] <<package>>
+        [persistence] <<package>>
+    }
+}
+
+' Flujo de dependencias (quién conoce a quién)
+[controller] --> [dto]
+[controller] --> [service]
+
+[service] --> [model]
+[service] --> [repository]
+[service] --> [mapper]
+
+[mapper] --> [dto]
+[mapper] --> [model]
+
+[repository] --> [model]
+
+[infrastructure] ..> [model] : configura
+[exception] ..> [controller] : captura fallos
+
+@enduml
