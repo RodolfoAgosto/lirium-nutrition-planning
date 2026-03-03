@@ -53,6 +53,7 @@ public class PlanMeal {
         Objects.requireNonNull(planFoodPortion, "The food portion cannot be null");
         if (foods.contains(planFoodPortion)) return;
         foods.add(planFoodPortion);
+        planFoodPortion.assignToMeal(this);
 
     }
 

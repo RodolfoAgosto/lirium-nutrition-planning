@@ -19,7 +19,7 @@ import java.util.Set;
  */
 
 @Entity
-@Table(name = "plan_food_portions")
+@Table(name = "patient_profile_history")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")

@@ -1,5 +1,6 @@
 package com.lirium.nutrition.model.entity;
 
+import com.lirium.nutrition.dto.request.NutritionPlanUpdateRequestDTO;
 import com.lirium.nutrition.model.enums.GoalType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -104,6 +105,50 @@ public class NutritionPlan {
         if (s == null || s.isBlank()) {
             throw new IllegalArgumentException(msg);
         }
+    }
+
+    public void update(
+            String name,
+            String description,
+            LocalDate startDate,
+            LocalDate endDate,
+            GoalType targetGoal,
+            Integer dailyCalories,
+            Integer proteinGrams,
+            Integer carbGrams,
+            Integer fatGrams
+    ) {
+
+        if(name!=null) requireText(name,"Name required");
+        if(description!=null) requireText(description,"Description required");
+
+        LocalDate newStart = startDate!=null ? startDate : this.startDate;
+        LocalDate newEnd   = endDate!=null ? endDate : this.endDate;
+
+        if(newEnd!=null && newStart!=null && newEnd.isBefore(newStart))
+            throw new IllegalArgumentException("End date before start date");
+
+        if(dailyCalories!=null && dailyCalories<=0)
+            throw new IllegalArgumentException("Calories > 0");
+
+        if(proteinGrams!=null && proteinGrams<0)
+            throw new IllegalArgumentException("Macros >=0");
+
+        if(carbGrams!=null && carbGrams<0)
+            throw new IllegalArgumentException("Macros >=0");
+
+        if(fatGrams!=null && fatGrams<0)
+            throw new IllegalArgumentException("Macros >=0");
+
+        if(name!=null) this.name=name;
+        if(description!=null) this.description=description;
+        if(startDate!=null) this.startDate=startDate;
+        if(endDate!=null) this.endDate=endDate;
+        if(targetGoal!=null) this.targetGoal=targetGoal;
+        if(dailyCalories!=null) this.dailyCalories=dailyCalories;
+        if(proteinGrams!=null) this.proteinGrams=proteinGrams;
+        if(carbGrams!=null) this.carbGrams=carbGrams;
+        if(fatGrams!=null) this.fatGrams=fatGrams;
     }
 
 }

@@ -48,7 +48,7 @@ public class DailyPlan {
         this.day = day;
     }
 
-    static DailyPlan of(DayOfWeek day, NutritionPlan nutritionPlan) {
+    public static DailyPlan of(DayOfWeek day, NutritionPlan nutritionPlan) {
         return new DailyPlan(day, nutritionPlan);
     }
 

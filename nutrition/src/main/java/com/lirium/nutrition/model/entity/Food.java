@@ -67,6 +67,38 @@ public class Food {
         return new Food(name, caloriesPer100g, proteinPer100g, carbsPer100g, fatPer100g);
     }
 
+    public void changeName(String name) {
+        name = Objects.requireNonNull(name, "Name cannot be null");
+        if (name.isBlank()) throw new IllegalArgumentException("Name cannot be blank");
+        this.name = name;
+    }
+
+    public void changeCalories(Integer calories) {
+        this.caloriesPer100g = requireRange(calories, 0, 1000, "Calories");
+    }
+
+    public void changeProtein(Integer protein) {
+        this.proteinPer100g = requireRange(protein, 0, 100, "Protein");
+    }
+
+    public void changeCarbs(Integer carbs) {
+        this.carbsPer100g = requireRange(carbs, 0, 100, "Carbs");
+    }
+
+    public void changeFat(Integer fat) {
+        this.fatPer100g = requireRange(fat, 0, 100, "Fat");
+    }
+
+    public void replaceTags(Set<FoodTag> tags) {
+        foodTags.clear();
+        if (tags != null) {
+            tags.forEach(this::addTag);
+        }
+    }
+    public void clearTags() {
+        foodTags.clear();
+    }
+
     public Set<FoodTag> getFoodTags() {
         return Collections.unmodifiableSet(foodTags);
     }

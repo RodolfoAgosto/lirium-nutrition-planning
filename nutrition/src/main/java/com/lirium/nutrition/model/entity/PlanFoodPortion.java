@@ -43,4 +43,12 @@ public class PlanFoodPortion extends AbstractFoodPortion{
         return new PlanFoodPortion(mealPlan, food, grams);
     }
 
+    public void assignToMeal(PlanMeal planMeal) {
+        this.meal = planMeal;
+    }
+
+    public void changeGrams(Grams grams){
+        this.grams = Objects.requireNonNull(grams);
+    }
+
 }

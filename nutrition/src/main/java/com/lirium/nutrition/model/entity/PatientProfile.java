@@ -58,13 +58,47 @@ public class PatientProfile {
     @Enumerated(EnumType.STRING)
     private GoalType primaryGoal;
 
+    public PatientProfile(User user) {
+        this.user = Objects.requireNonNull(user);
+    }
+
     public void addRestriction(Restriction restriction) {
         Objects.requireNonNull(restriction);
         restrictions.add(restriction);
     }
 
-    public PatientProfile(User user) {
-        this.user = Objects.requireNonNull(user);
+    public void update(
+            Sex sex,
+            ActivityLevel activityLevel,
+            BigDecimal weight,
+            Integer height,
+            String medicalNotes,
+            Set<Restriction> restrictions,
+            List<PhysiologicalCondition> conditions,
+            GoalType primaryGoal
+    ) {
+
+        if (sex != null) this.sex = sex;
+
+        if (activityLevel != null) this.activityLevel = activityLevel;
+
+        if (weight != null) this.weight = weight;
+
+        if (height != null) this.height = height;
+
+        if (medicalNotes != null) this.medicalNotes = medicalNotes;
+
+        if (primaryGoal != null) this.primaryGoal = primaryGoal;
+
+        if (restrictions != null) {
+            this.restrictions.clear();
+            this.restrictions.addAll(restrictions);
+        }
+
+        if (conditions != null) {
+            this.physiologicalConditions.clear();
+            this.physiologicalConditions.addAll(conditions);
+        }
     }
 
 }
