@@ -19,11 +19,11 @@ public class DailyPlanMapper {
         List<PlanMealSummaryDTO> meals = entity.getMeals()
                 .stream()
                 .map(PlanMealMapper::toSummary)
-                .collect(Collectors.toList());
+                .toList();
 
         return new DailyPlanResponseDTO(
                 entity.getId(),
-                entity.getDay(),
+                entity.getDayOfWeek(),
                 entity.getNutritionPlan().getId(),
                 meals
         );
@@ -32,19 +32,19 @@ public class DailyPlanMapper {
     public static DailyPlanSummaryDTO toSummary(DailyPlan entity) {
         return new DailyPlanSummaryDTO(
                 entity.getId(),
-                entity.getDay()
+                entity.getDayOfWeek()
         );
     }
 
-    /* ===  CREATE DTO -> ENTITY === */
+    /* === CREATE DTO -> ENTITY === */
 
     public static DailyPlan toEntity(
             DailyPlanCreateRequestDTO dto,
             NutritionPlan nutritionPlan
     ) {
+
         DayOfWeek day = DayOfWeek.valueOf(dto.day().toUpperCase());
 
         return DailyPlan.of(day, nutritionPlan);
     }
-
 }

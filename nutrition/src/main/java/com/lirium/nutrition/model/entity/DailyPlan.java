@@ -27,7 +27,7 @@ public class DailyPlan {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private DayOfWeek day;
+    private DayOfWeek dayOfWeek;
 
     @OneToMany(
             mappedBy = "dailyPlan",
@@ -45,7 +45,7 @@ public class DailyPlan {
         Objects.requireNonNull(day, "Day cannot be null");
         Objects.requireNonNull(nutritionPlan, "Nutrition Plan cannot be null");
         this.nutritionPlan = nutritionPlan;
-        this.day = day;
+        this.dayOfWeek = day;
     }
 
     public static DailyPlan of(DayOfWeek day, NutritionPlan nutritionPlan) {

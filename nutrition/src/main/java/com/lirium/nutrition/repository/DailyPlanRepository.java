@@ -13,7 +13,7 @@ public interface DailyPlanRepository extends JpaRepository<DailyPlan, Long> {
 
     List<DailyPlan> findByNutritionPlan(NutritionPlan nutritionPlan);
 
-    Optional<DailyPlan> findByNutritionPlanAndDay(NutritionPlan nutritionPlan, DayOfWeek day);
+    Optional<DailyPlan> findByNutritionPlanAndDayOfWeek(NutritionPlan nutritionPlan, DayOfWeek day);
 
     void deleteByNutritionPlan(NutritionPlan nutritionPlan);
 

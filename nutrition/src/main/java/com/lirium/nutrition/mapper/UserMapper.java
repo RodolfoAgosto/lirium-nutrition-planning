@@ -33,4 +33,5 @@ public interface UserMapper {
     @Mapping(target = "enabled", ignore = true)
     @Mapping(target = "patientProfile", ignore = true)
     void updateUserFromDTO(UpdateUserRequestDTO dto, @MappingTarget User user);
+
 }

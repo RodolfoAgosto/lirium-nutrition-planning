@@ -3,7 +3,7 @@ package com.lirium.nutrition.model.valueobject;
 import jakarta.persistence.Embeddable;
 
 @Embeddable
-public record Weight(int gr) {
+public record Weight(int grams) {
 
     private static final int MIN_WEIGHT_GR = 300;
     private static final int MAX_WEIGHT_GR = 300_000;
@@ -13,7 +13,7 @@ public record Weight(int gr) {
     }
 
     public Weight {
-        if (gr < MIN_WEIGHT_GR || gr > MAX_WEIGHT_GR) {
+        if (grams < MIN_WEIGHT_GR || grams > MAX_WEIGHT_GR) {
             throw new IllegalArgumentException(
                     String.format(
                             "Weight must be between %d and %d grams",
@@ -25,7 +25,7 @@ public record Weight(int gr) {
     }
 
     public double toKg() {
-        return gr / 1000.0;
+        return grams / 1000.0;
     }
 
     public String toDisplayString() {

@@ -29,11 +29,9 @@ public class PatientProfile {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Sex sex;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private ActivityLevel activityLevel;
 
     private BigDecimal weight;

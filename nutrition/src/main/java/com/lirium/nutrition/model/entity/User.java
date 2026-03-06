@@ -9,7 +9,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "users")
 @Getter @Setter
-@AllArgsConstructor @NoArgsConstructor
+@AllArgsConstructor
 public class User {
 
     @Id
@@ -36,17 +36,21 @@ public class User {
     private Boolean emailValidated = false;
 
     @Builder.Default
-    private Boolean enabled = true;
+    private boolean enabled = true;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private PatientProfile patientProfile;
 
+    public User() {
+        this.patientProfile = new PatientProfile(this);
+    }
+
     public User(String email, String passwordHash, String firstName, String lastName) {
+        this();
         this.email = Objects.requireNonNull(email);
         this.passwordHash = Objects.requireNonNull(passwordHash);
         this.firstName = firstName;
         this.lastName = lastName;
-        this.patientProfile = new PatientProfile(this);
     }
 
 }
