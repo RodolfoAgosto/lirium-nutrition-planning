@@ -14,8 +14,9 @@ import java.util.*;
 @Entity
 @Table(name = "foods")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")
+@Builder
 public class Food {
 
     @Id

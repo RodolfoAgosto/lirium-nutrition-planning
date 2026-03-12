@@ -2,6 +2,7 @@ package com.lirium.nutrition.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.*;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +32,45 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(InvalidTagException.class)
+    public ResponseEntity<ApiError> handleInvalidTag(
+            InvalidTagException ex,
+            HttpServletRequest request) {
+        ApiError error = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                "Invalid Tag",
+                ex.getMessage(),
+                request.getRequestURI(),
+                LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(FoodInUseException.class)
+    public ResponseEntity<ApiError> handleFoodInUse(
+            FoodInUseException ex,
+            HttpServletRequest request) {
+        ApiError error = new ApiError(
+                HttpStatus.CONFLICT.value(),
+                "Food In Use",
+                ex.getMessage(),
+                request.getRequestURI(),
+                LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error); // 409
+    }
+
+    @ExceptionHandler(DuplicateFoodException.class)
+    public ResponseEntity<ApiError> handleDuplicateFood(
+            DuplicateFoodException ex,
+            HttpServletRequest request) {
+        ApiError error = new ApiError(
+                HttpStatus.CONFLICT.value(),
+                "Duplicate Food",
+                ex.getMessage(),
+                request.getRequestURI(),
+                LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)

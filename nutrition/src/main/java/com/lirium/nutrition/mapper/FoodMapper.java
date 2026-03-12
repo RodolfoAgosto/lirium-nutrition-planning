@@ -30,6 +30,7 @@ public class FoodMapper {
                 entity.getFatPer100g(),
                 tags
         );
+
     }
 
     public static FoodSummaryDTO toSummary(Food entity) {

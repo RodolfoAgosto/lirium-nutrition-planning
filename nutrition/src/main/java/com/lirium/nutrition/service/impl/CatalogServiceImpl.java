@@ -35,4 +35,5 @@ public class CatalogServiceImpl implements CatalogService {
             throw new CatalogException("Error retrieving physiological conditions catalog", ex);
         }
     }
+
 }

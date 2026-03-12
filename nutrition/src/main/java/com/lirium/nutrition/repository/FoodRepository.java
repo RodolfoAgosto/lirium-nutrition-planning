@@ -6,14 +6,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface FoodRepository extends JpaRepository<Food, Long> {
 
-    Optional<Food> findByName(String name);
+    Optional<Food> findAllByOrderByNameAsc(String name);
 
-    List<Food> findByFoodTags(FoodTag tag);
+    Set<Food> findByFoodTagsIn(Set<FoodTag> tags);
 
-    void deleteByName(String name);
-
+    boolean existsByName(String name);
 }
