@@ -1,10 +1,10 @@
 package com.lirium.nutrition.model.entity;
 
 import com.lirium.nutrition.model.enums.*;
+import com.lirium.nutrition.model.valueobject.*;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -34,9 +34,11 @@ public class PatientProfile {
     @Enumerated(EnumType.STRING)
     private ActivityLevel activityLevel;
 
-    private BigDecimal weight;
+    @Embedded
+    private Weight weight;
 
-    private Integer height;
+    @Embedded
+    private Height height;
 
     @Column(columnDefinition = "TEXT")
     private String medicalNotes;
@@ -49,12 +51,19 @@ public class PatientProfile {
     )
     private Set<Restriction> restrictions = new HashSet<>();
 
+    public Set<Restriction> getRestrictions() {
+        return Collections.unmodifiableSet(restrictions);
+    }
+
     @ElementCollection
     @Enumerated(EnumType.STRING)
-    private List<PhysiologicalCondition> physiologicalConditions = new ArrayList<>();
+    private Set<PhysiologicalCondition> physiologicalConditions = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     private GoalType primaryGoal;
+
+    @OneToMany(mappedBy = "patientProfile", cascade = CascadeType.ALL)
+    private List<NutritionPlan> nutritionPlans = new ArrayList<>();
 
     public PatientProfile(User user) {
         this.user = Objects.requireNonNull(user);
@@ -68,8 +77,8 @@ public class PatientProfile {
     public void update(
             Sex sex,
             ActivityLevel activityLevel,
-            BigDecimal weight,
-            Integer height,
+            Weight weight,
+            Height height,
             String medicalNotes,
             Set<Restriction> restrictions,
             List<PhysiologicalCondition> conditions,
@@ -97,6 +106,22 @@ public class PatientProfile {
             this.physiologicalConditions.clear();
             this.physiologicalConditions.addAll(conditions);
         }
+    }
+
+    public void updateNutritionProfile(
+            Height height,
+            Weight weight,
+            ActivityLevel activityLevel,
+            GoalType goal
+    ) {
+
+        if (height != null) this.height = height;
+
+        if (weight != null) this.weight = weight;
+
+        if (activityLevel != null) this.activityLevel = activityLevel;
+
+        if (goal != null) this.primaryGoal = goal;
     }
 
 }

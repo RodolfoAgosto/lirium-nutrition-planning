@@ -2,6 +2,8 @@ package com.lirium.nutrition.model.entity;
 
 import com.lirium.nutrition.model.enums.GoalType;
 import com.lirium.nutrition.model.enums.PhysiologicalCondition;
+import com.lirium.nutrition.model.valueobject.Height;
+import com.lirium.nutrition.model.valueobject.Weight;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -35,9 +37,9 @@ public class PatientProfileHistory {
 
     private LocalDate visitDate;
 
-    private BigDecimal weight;
+    private Weight weight;
 
-    private Integer height;
+    private Height height;
 
     @Column(columnDefinition = "TEXT")
     private String medicalNotes;

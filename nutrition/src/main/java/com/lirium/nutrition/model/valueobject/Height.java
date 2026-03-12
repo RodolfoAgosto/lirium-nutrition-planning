@@ -20,6 +20,11 @@ public record Height(int cm) {
         }
     }
 
+    public static Height of(int value) {
+        return new Height(value);
+    }
+
+
     public String toDisplayString() {
         return cm + " cm";
     }

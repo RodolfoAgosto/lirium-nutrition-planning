@@ -12,11 +12,11 @@ public record PatientProfileResponseDTO(
         Long userId,
         Sex sex,
         ActivityLevel activityLevel,
-        BigDecimal weight,
+        Integer weight,
         Integer height,
         String medicalNotes,
         Set<String> restrictions,
-        List<PhysiologicalCondition> physiologicalConditions,
+        Set<PhysiologicalCondition> physiologicalConditions,
         GoalType primaryGoal
 
 ) {}

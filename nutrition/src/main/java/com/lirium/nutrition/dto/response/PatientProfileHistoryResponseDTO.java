@@ -11,7 +11,7 @@ public record PatientProfileHistoryResponseDTO(
         Long id,
         Long patientProfileId,
         LocalDate visitDate,
-        BigDecimal weight,
+        Integer weight,
         Integer height,
         String medicalNotes,
         Set<String> restrictions,

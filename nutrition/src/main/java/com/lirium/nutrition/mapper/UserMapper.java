@@ -17,11 +17,19 @@ public interface UserMapper {
     // ---------- CREATE DTO → ENTITY ----------
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "passwordHash", ignore = true) // se setea en service
+    @Mapping(target = "passwordHash", ignore = true)
     @Mapping(target = "emailValidated", ignore = true)
     @Mapping(target = "enabled", ignore = true)
     @Mapping(target = "patientProfile", ignore = true)
     User toEntity(CreateUserRequestDTO dto);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "passwordHash", ignore = true)
+    @Mapping(target = "emailValidated", ignore = true)
+    @Mapping(target = "enabled", ignore = true)
+    @Mapping(target = "patientProfile", ignore = true)
+    User toEntity(CreatePatientRequestDTO dto);
+
 
     // ---------- UPDATE DTO → ENTITY ----------
 
@@ -32,6 +40,6 @@ public interface UserMapper {
     @Mapping(target = "emailValidated", ignore = true)
     @Mapping(target = "enabled", ignore = true)
     @Mapping(target = "patientProfile", ignore = true)
-    void updateUserFromDTO(UpdateUserRequestDTO dto, @MappingTarget User user);
+    void updateUserFromDTO(UserUpdateRequestDTO dto, @MappingTarget User user);
 
 }

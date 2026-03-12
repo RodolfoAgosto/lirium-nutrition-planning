@@ -14,8 +14,8 @@ public class PatientProfileHistoryMapper {
                 history.getId(),
                 history.getPatientProfile().getId(),
                 history.getVisitDate(),
-                history.getWeight(),
-                history.getHeight(),
+                history.getWeight().grams(),
+                history.getHeight().cm(),
                 history.getMedicalNotes(),
                 history.getRestrictions()
                         .stream()
@@ -31,7 +31,7 @@ public class PatientProfileHistoryMapper {
                 history.getId(),
                 history.getPatientProfile().getId(),
                 history.getVisitDate(),
-                history.getWeight()
+                history.getWeight().grams()
         );
     }
 }

@@ -18,7 +18,7 @@ public class PlanFoodPortionMapper {
                 entity.getMeal().getId(),
                 entity.getFood().getId(),
                 entity.getFood().getName(),
-                entity.getGrams().value()
+                entity.getGrams().amount()
         );
     }
 
@@ -27,7 +27,7 @@ public class PlanFoodPortionMapper {
         return new PlanFoodPortionSummaryDTO(
                 entity.getId(),
                 entity.getFood().getId(),
-                entity.getGrams().value()
+                entity.getGrams().amount()
         );
     }
 

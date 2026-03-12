@@ -12,9 +12,9 @@ public record PatientProfileUpdateRequestDTO(
         Sex sex,
         ActivityLevel activityLevel,
 
-        @DecimalMin("20.0")
-        @DecimalMax("400.0")
-        BigDecimal weight,
+        @Min(20)
+        @Max(400)
+        Integer weight,
 
         @Min(80)
         @Max(250)

@@ -1,6 +1,5 @@
 package com.lirium.nutrition.model.entity;
 
-import com.lirium.nutrition.dto.request.NutritionPlanUpdateRequestDTO;
 import com.lirium.nutrition.model.enums.GoalType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -47,6 +46,10 @@ public class NutritionPlan {
     private int carbGrams;
 
     private int fatGrams;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "patient_profile_id")
+    private PatientProfile patientProfile;
 
     @OneToMany(mappedBy = "nutritionPlan", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DailyPlan> week = new ArrayList<>();

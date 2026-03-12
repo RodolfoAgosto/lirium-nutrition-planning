@@ -1,8 +1,10 @@
 package com.lirium.nutrition.model.enums;
 
 public enum PhysiologicalCondition {
+
     PREGNANCY("Pregnancy"),
-    LACTATION("Lactation");
+    LACTATION("Lactation"),
+    MENOPAUSE("Menopause");
 
     private final String label;
     PhysiologicalCondition(String label) { this.label = label; }

@@ -5,6 +5,9 @@ package com.lirium.nutrition.mapper;
         import com.lirium.nutrition.model.entity.Restriction;
         import org.mapstruct.*;
 
+        import java.util.List;
+        import java.util.Set;
+
 @Mapper(componentModel = "spring")
 public interface RestrictionMapper {
 
@@ -16,9 +19,15 @@ public interface RestrictionMapper {
 
     // === DTO → ENTITY ===
 
-    Restriction toEntity(RestrictionCreateDTO dto);
+    Restriction toEntity(RestrictionCreateRequestDTO dto);
 
     // === UPDATE ===
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromDTO(RestrictionUpdateDTO dto, @MappingTarget Restriction entity);
+
+    // === Set<DTO> - Set<ENTITY>
+    Set<Restriction> toEntitySet(Set<RestrictionUpdateDTO> dtoSet);
+
+    Set<RestrictionSummaryDTO> toDTOSet(Set<Restriction> restrictions);
+
 }

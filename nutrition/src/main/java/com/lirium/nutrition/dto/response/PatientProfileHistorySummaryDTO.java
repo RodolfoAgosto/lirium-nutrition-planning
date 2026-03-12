@@ -8,6 +8,6 @@ public record PatientProfileHistorySummaryDTO(
         Long id,
         Long patientProfileId,
         LocalDate visitDate,
-        BigDecimal weight
+        Integer weight
 
 ) {}

@@ -22,7 +22,7 @@ public abstract class AbstractFoodPortion {
 
     @Embedded
     @AttributeOverride(
-            name = "grams",
+            name = "amount",
             column = @Column(name = "grams", nullable = false)
     )
     protected Grams grams;
@@ -35,19 +35,19 @@ public abstract class AbstractFoodPortion {
     }
 
     public Calories calories() {
-        return  new Calories(food.getCaloriesPer100g() * grams.value() / 100);
+        return  new Calories(food.getCaloriesPer100g() * grams.amount() / 100);
     }
 
     public Carbs carbs() {
-        return  new Carbs(food.getCarbsPer100g() * grams.value() / 100);
+        return  new Carbs(food.getCarbsPer100g() * grams.amount() / 100);
     }
 
     public Fat fat() {
-        return  new Fat(food.getFatPer100g() * grams.value() / 100);
+        return  new Fat(food.getFatPer100g() * grams.amount() / 100);
     }
 
     public Protein protein() {
-        return  new Protein(food.getProteinPer100g() * grams.value() / 100);
+        return  new Protein(food.getProteinPer100g() * grams.amount() / 100);
     }
 
 }

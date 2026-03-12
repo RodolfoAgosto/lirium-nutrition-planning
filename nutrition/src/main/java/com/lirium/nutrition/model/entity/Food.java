@@ -95,6 +95,7 @@ public class Food {
             tags.forEach(this::addTag);
         }
     }
+
     public void clearTags() {
         foodTags.clear();
     }

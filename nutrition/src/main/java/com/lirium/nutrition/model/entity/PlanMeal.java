@@ -30,7 +30,7 @@ public class PlanMeal {
     @Enumerated(EnumType.STRING)
     private MealType type;
 
-    @OneToMany(mappedBy = "meal", fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(mappedBy = "meal", fetch = FetchType.LAZY, orphanRemoval = true , cascade = CascadeType.ALL)
     private List<PlanFoodPortion> foods = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)

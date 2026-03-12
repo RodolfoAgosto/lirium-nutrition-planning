@@ -1,7 +1,7 @@
 package com.lirium.nutrition.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
+
 public record RestrictionUpdateDTO(
-        String name,
-        String category,
-        String description
+        @NotBlank String code
 ) {}

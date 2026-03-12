@@ -16,7 +16,7 @@ public class FoodPortionRecordMapper {
                 entity.getId(),
                 entity.getMeal().getId(),
                 FoodMapper.toSummary(entity.getFood()),
-                entity.getGrams().value()
+                entity.getGrams().amount()
         );
     }
 
@@ -25,7 +25,7 @@ public class FoodPortionRecordMapper {
         return new FoodPortionRecordSummaryDTO(
                 entity.getId(),
                 entity.getFood().getId(),
-                entity.getGrams().value()
+                entity.getGrams().amount()
         );
     }
 

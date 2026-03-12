@@ -3,10 +3,14 @@ package com.lirium.nutrition.mapper;
 import com.lirium.nutrition.dto.request.*;
 import com.lirium.nutrition.dto.response.*;
 import com.lirium.nutrition.model.entity.*;
+import com.lirium.nutrition.model.valueobject.Height;
+import com.lirium.nutrition.model.valueobject.Weight;
+import org.springframework.stereotype.Component;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Component
 public final class PatientProfileMapper {
 
     private PatientProfileMapper() {}
@@ -23,8 +27,8 @@ public final class PatientProfileMapper {
         profile.update(
                 dto.sex(),
                 dto.activityLevel(),
-                dto.weight(),
-                dto.height(),
+                Weight.of(dto.weight()),
+                Height.of(dto.height()),
                 dto.medicalNotes(),
                 restrictions,
                 dto.physiologicalConditions(),
@@ -44,8 +48,8 @@ public final class PatientProfileMapper {
         entity.update(
                 dto.sex(),
                 dto.activityLevel(),
-                dto.weight(),
-                dto.height(),
+                Weight.of(dto.weight()),
+                Height.of(dto.height()),
                 dto.medicalNotes(),
                 restrictions,
                 dto.physiologicalConditions(),
@@ -66,8 +70,8 @@ public final class PatientProfileMapper {
                 entity.getUser().getId(),
                 entity.getSex(),
                 entity.getActivityLevel(),
-                entity.getWeight(),
-                entity.getHeight(),
+                entity.getWeight().grams(),
+                entity.getHeight().cm(),
                 entity.getMedicalNotes(),
                 restrictionNames,
                 entity.getPhysiologicalConditions(),

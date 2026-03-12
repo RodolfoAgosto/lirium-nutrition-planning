@@ -9,6 +9,7 @@ import com.lirium.nutrition.mapper.UserMapper;
 import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.repository.UserRepository;
 import com.lirium.nutrition.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +36,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponseDTO registerPatient(CreateUserRequestDTO request) {
+    public UserResponseDTO registerUser(CreateUserRequestDTO request) {
 
         if (userRepository.existsByEmail(request.email())) {
             throw new EmailAlreadyExistsException(request.email());
@@ -45,6 +46,19 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
         return userMapper.toResponseDTO(savedUser);
     }
+
+    @Override
+    @Transactional
+    public UserResponseDTO registerPatient(CreatePatientRequestDTO request) {
+
+        if (userRepository.existsByEmail(request.email())) {
+            throw new EmailAlreadyExistsException(request.email());
+        }
+        User user = userMapper.toEntity(request);
+        User savedUser = userRepository.save(user);
+        return userMapper.toResponseDTO(savedUser);
+    }
+
 
     @Override
     public UserResponseDTO findById(Long id) {
@@ -69,7 +83,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponseDTO updateBasicInfo(Long id, UpdateUserRequestDTO request) {
+    public UserResponseDTO updateBasicInfo(Long id, UserUpdateRequestDTO request) {
         User user = getUserOrThrow(id);
         userMapper.updateUserFromDTO(request, user);
         return userMapper.toResponseDTO(user);

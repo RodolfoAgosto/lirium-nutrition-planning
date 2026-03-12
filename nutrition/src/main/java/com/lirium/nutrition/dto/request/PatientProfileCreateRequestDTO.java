@@ -20,7 +20,7 @@ public record PatientProfileCreateRequestDTO(
 
         @DecimalMin("20.0")
         @DecimalMax("400.0")
-        BigDecimal weight,
+        Integer weight,
 
         @Min(80)
         @Max(250)

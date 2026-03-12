@@ -1,10 +1,13 @@
 package com.lirium.nutrition.controller;
 
+import com.lirium.nutrition.dto.request.CreatePatientRequestDTO;
 import com.lirium.nutrition.dto.request.CreateUserRequestDTO;
-import com.lirium.nutrition.dto.request.UpdateUserRequestDTO;
+import com.lirium.nutrition.dto.request.UserUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.UserResponseDTO;
 import com.lirium.nutrition.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,12 +24,22 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserResponseDTO> registerPatient(
+    public ResponseEntity<UserResponseDTO> registerUser(
             @Valid @RequestBody CreateUserRequestDTO request) {
+
+        UserResponseDTO response = userService.registerUser(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(response);
+    }
+
+    @PostMapping("/patient")
+    public ResponseEntity<UserResponseDTO> registerPatient(
+            @Valid @RequestBody CreatePatientRequestDTO request) {
 
         UserResponseDTO response = userService.registerPatient(request);
         return ResponseEntity.ok(response);
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDTO> findById(@PathVariable Long id) {
@@ -46,7 +59,7 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateBasicInfo(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateUserRequestDTO request) {
+            @Valid @RequestBody UserUpdateRequestDTO request) {
 
         return ResponseEntity.ok(userService.updateBasicInfo(id, request));
     }

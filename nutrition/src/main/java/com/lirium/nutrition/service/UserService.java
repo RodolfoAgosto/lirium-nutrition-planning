@@ -7,7 +7,9 @@ import java.util.List;
 
 public interface UserService {
 
-    UserResponseDTO registerPatient(CreateUserRequestDTO userCreate);
+    UserResponseDTO registerUser(CreateUserRequestDTO userCreate);
+
+    UserResponseDTO registerPatient(CreatePatientRequestDTO userCreate);
 
     UserResponseDTO findById(Long id);
 
@@ -15,7 +17,7 @@ public interface UserService {
 
     List<UserResponseDTO> findAll();
 
-    UserResponseDTO updateBasicInfo(Long id, UpdateUserRequestDTO request);
+    UserResponseDTO updateBasicInfo(Long id, UserUpdateRequestDTO request);
 
     UserResponseDTO setEnabled(Long id, boolean enabled);
 
