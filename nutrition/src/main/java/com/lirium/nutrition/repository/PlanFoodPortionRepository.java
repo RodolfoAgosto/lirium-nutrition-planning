@@ -13,10 +13,10 @@ public interface PlanFoodPortionRepository extends JpaRepository<PlanFoodPortion
 
     List<PlanFoodPortion> findByMeal(PlanMeal meal);
 
+    List<PlanFoodPortion> findByMealId(Long mealId);
+
     List<PlanFoodPortion> findByFood(Food food);
 
     List<PlanFoodPortion> findByMealAndFood(PlanMeal meal, Food food);
-
-    List<PlanFoodPortion> findByPlanMealId(Long planMealId);
 
 }

@@ -24,7 +24,7 @@ public class PlanFoodPortionServiceImpl implements PlanFoodPortionService {
     @Override
     public List<PlanFoodPortionResponseDTO> getByPlanMeal(Long planMealId) {
 
-        return repository.findByPlanMealId(planMealId)
+        return repository.findByMealId(planMealId)
                 .stream()
                 .map(PlanFoodPortionMapper::toResponse)
                 .toList();

@@ -13,6 +13,8 @@ public interface PlanMealRepository extends JpaRepository<PlanMeal, Long> {
 
     List<PlanMeal> findByDailyPlan(DailyPlan dailyPlan);
 
+    List<PlanMeal> findByDailyPlanId(Long dailyPlanId);
+
     List<PlanMeal> findByDailyPlanAndType(DailyPlan dailyPlan, MealType type);
 
 }

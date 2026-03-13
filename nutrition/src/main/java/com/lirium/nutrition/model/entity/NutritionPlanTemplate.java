@@ -88,4 +88,14 @@ public class NutritionPlanTemplate {
             throw new IllegalArgumentException(msg);
     }
 
+    public void updateMacros(int protein, int carb, int fat) {
+        if (protein < 0 || carb < 0 || fat < 0)
+            throw new IllegalArgumentException("Percentages cannot be negative");
+        if (protein + carb + fat != 100)
+            throw new IllegalArgumentException("Macro percentages must sum 100");
+        this.proteinPercentage = protein;
+        this.carbPercentage = carb;
+        this.fatPercentage = fat;
+    }
+
 }
