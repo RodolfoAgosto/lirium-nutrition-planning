@@ -16,4 +16,7 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
     Set<Food> findByFoodTagsIn(Set<FoodTag> tags);
 
     boolean existsByName(String name);
+
+    Optional<Food> findByName(String name);
+
 }

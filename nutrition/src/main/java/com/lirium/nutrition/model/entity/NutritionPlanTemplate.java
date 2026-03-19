@@ -88,6 +88,24 @@ public class NutritionPlanTemplate {
             throw new IllegalArgumentException(msg);
     }
 
+    public void update(
+            String name,
+            String description,
+            GoalType targetGoal,
+            Set<FoodTag> excludedTags
+    ) {
+        if (name != null) requireText(name, "Name required");
+        if (description != null) requireText(description, "Description required");
+
+        if (name != null) this.name = name;
+        if (description != null) this.description = description;
+        if (targetGoal != null) this.targetGoal = targetGoal;
+        if (excludedTags != null) {
+            this.excludedTags.clear();
+            this.excludedTags.addAll(excludedTags);
+        }
+    }
+
     public void updateMacros(int protein, int carb, int fat) {
         if (protein < 0 || carb < 0 || fat < 0)
             throw new IllegalArgumentException("Percentages cannot be negative");

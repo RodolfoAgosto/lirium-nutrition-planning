@@ -1,9 +1,13 @@
 package com.lirium.nutrition.model.entity;
 
+import com.lirium.nutrition.model.enums.FoodCategory;
 import com.lirium.nutrition.model.enums.FoodTag;
+import com.lirium.nutrition.model.enums.MealType;
+import com.lirium.nutrition.model.enums.MeasureUnit;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -14,17 +18,25 @@ import java.util.*;
 @Entity
 @Table(name = "foods")
 @Getter
-@AllArgsConstructor @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")
-@Builder
 public class Food {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @SequenceGenerator(
+            name = "food_seq",
+            sequenceName = "food_seq",
+            allocationSize = 1
+    )
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "food_seq")
     private Long id;
 
     @Column(nullable = false, unique = true, length = 120)
     private String name;
+
+    private Double density;
+
+    private Double unitWeight;
 
     @Column(nullable = false)
     private Integer caloriesPer100g;
@@ -38,14 +50,37 @@ public class Food {
     @Column(nullable = false)
     private Integer fatPer100g;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private FoodCategory category;
+
     @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "food_tags", joinColumns = @JoinColumn(name = "food_id"), uniqueConstraints = @UniqueConstraint(columnNames = {"food_id","tag"}))
+    @CollectionTable(
+            name = "food_suitable_for",
+            joinColumns = @JoinColumn(name = "food_id")
+    )
+    @Enumerated(EnumType.STRING)
+    @Column(name = "meal_type")
+    private Set<MealType> suitableFor = new HashSet<>();
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(
+            name = "food_tags",
+            joinColumns = @JoinColumn(name = "food_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"food_id", "tag"})
+    )
     @Enumerated(EnumType.STRING)
     @Column(name = "tag")
     private Set<FoodTag> foodTags = new HashSet<>();
 
-    private Food(String name, Integer caloriesPer100g, Integer proteinPer100g, Integer carbsPer100g, Integer fatPer100g){
-
+    private Food(
+            String name,
+            Integer caloriesPer100g,
+            Integer proteinPer100g,
+            Integer carbsPer100g,
+            Integer fatPer100g,
+            FoodCategory category
+    ) {
         name = Objects.requireNonNull(name, "Name cannot be null");
         if (name.isBlank()) throw new IllegalArgumentException("Name cannot be blank");
         this.name = name;
@@ -53,19 +88,70 @@ public class Food {
         this.proteinPer100g  = requireRange(proteinPer100g, 0, 100, "Protein");
         this.carbsPer100g    = requireRange(carbsPer100g, 0, 100, "Carbs");
         this.fatPer100g      = requireRange(fatPer100g, 0, 100, "Fat");
+        this.category        = Objects.requireNonNull(category, "Category cannot be null");
+    }
 
+    public static Food of(
+            String name,
+            Integer caloriesPer100g,
+            Integer proteinPer100g,
+            Integer carbsPer100g,
+            Integer fatPer100g,
+            FoodCategory category,
+            Set<MealType> suitableFor
+    ) {
+        Food food = new Food(name, caloriesPer100g, proteinPer100g, carbsPer100g, fatPer100g, category);
+        if (suitableFor != null) food.suitableFor.addAll(suitableFor);
+        return food;
     }
 
     private static Integer requireRange(Integer value, int min, int max, String field) {
         Objects.requireNonNull(value, field + " cannot be null");
-        if (value < min || value > max) {
-            throw new IllegalArgumentException(field + " value must be between " + min + " and " + max);
-        }
+        if (value < min || value > max)
+            throw new IllegalArgumentException(field + " must be between " + min + " and " + max);
         return value;
     }
 
-    public static Food of(String name, Integer caloriesPer100g, Integer proteinPer100g, Integer carbsPer100g, Integer fatPer100g){
-        return new Food(name, caloriesPer100g, proteinPer100g, carbsPer100g, fatPer100g);
+    public void setDensity(Double density) {
+        if (density != null && density <= 0)
+            throw new IllegalArgumentException("Density must be positive");
+        this.density = density;
+    }
+
+    public void setUnitWeight(Double unitWeight) {
+        if (unitWeight != null && unitWeight <= 0)
+            throw new IllegalArgumentException("Unit weight must be positive");
+        this.unitWeight = unitWeight;
+    }
+
+    public Double toGrams(Double quantity, MeasureUnit unit) {
+        return switch (unit) {
+            case GRAM -> quantity;
+            case MILLILITER -> {
+                if (density == null)
+                    throw new IllegalStateException("Food '" + name + "' has no density defined");
+                yield quantity * density;
+            }
+            case UNIT -> {
+                if (unitWeight == null)
+                    throw new IllegalStateException("Food '" + name + "' has no unit weight defined");
+                yield quantity * unitWeight;
+            }
+        };
+    }
+
+    public Set<MealType> getSuitableFor() {
+        return Collections.unmodifiableSet(suitableFor);
+    }
+
+    public void addSuitableFor(MealType mealType) {
+        Objects.requireNonNull(mealType, "MealType cannot be null");
+        suitableFor.add(mealType);
+    }
+
+    public void removeSuitableFor(MealType mealType) {
+        Objects.requireNonNull(mealType, "MealType cannot be null");
+        suitableFor.remove(mealType);
     }
 
     public void changeName(String name) {
@@ -92,9 +178,7 @@ public class Food {
 
     public void replaceTags(Set<FoodTag> tags) {
         foodTags.clear();
-        if (tags != null) {
-            tags.forEach(this::addTag);
-        }
+        if (tags != null) tags.forEach(this::addTag);
     }
 
     public void clearTags() {
@@ -114,5 +198,4 @@ public class Food {
         Objects.requireNonNull(tag, "Tag cannot be null");
         foodTags.remove(tag);
     }
-
 }

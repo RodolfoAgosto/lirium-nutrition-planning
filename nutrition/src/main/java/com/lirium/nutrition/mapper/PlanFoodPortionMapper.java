@@ -3,6 +3,7 @@ package com.lirium.nutrition.mapper;
 import com.lirium.nutrition.dto.request.*;
 import com.lirium.nutrition.dto.response.*;
 import com.lirium.nutrition.model.entity.*;
+import com.lirium.nutrition.model.enums.MeasureUnit;
 import com.lirium.nutrition.model.valueobject.Grams;
 
 public class PlanFoodPortionMapper {
@@ -18,7 +19,8 @@ public class PlanFoodPortionMapper {
                 entity.getMeal().getId(),
                 entity.getFood().getId(),
                 entity.getFood().getName(),
-                entity.getGrams().amount()
+                entity.getQuantity(),
+                entity.getUnit()
         );
     }
 
@@ -27,8 +29,9 @@ public class PlanFoodPortionMapper {
         return new PlanFoodPortionSummaryDTO(
                 entity.getId(),
                 entity.getFood().getId(),
-                entity.getGrams().amount()
-        );
+                entity.getQuantity(),
+                entity.getUnit()
+                );
     }
 
     /* === CREATE DTO -> ENTITY === */
@@ -38,10 +41,7 @@ public class PlanFoodPortionMapper {
             PlanMeal meal,
             Food food
     ) {
-
-        Grams grams = new Grams(dto.grams());
-
-        return PlanFoodPortion.of(meal, food, grams);
+        return PlanFoodPortion.of(meal,food, dto.quantity(), dto.unit());
     }
 
     /* === UPDATE DTO -> ENTITY ==== */
@@ -51,8 +51,8 @@ public class PlanFoodPortionMapper {
             PlanFoodPortionUpdateRequestDTO dto
     ) {
 
-        if (dto.grams() != null) {
-            entity.changeGrams(new Grams(dto.grams()));
+        if (dto.quantity() != null) {
+            entity.changeQuantity(dto.quantity());
         }
     }
 }

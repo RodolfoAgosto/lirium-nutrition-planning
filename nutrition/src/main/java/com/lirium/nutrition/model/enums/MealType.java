@@ -4,7 +4,8 @@ public enum MealType {
     BREAKFAST("Breakfast"),
     LUNCH("Lunch"),
     SNACK("Snack"),
-    DINNER("Dinner");
+    DINNER("Dinner"),
+    DESSERT("Dessert");
 
 
     private final String label;

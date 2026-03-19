@@ -9,7 +9,6 @@ import com.lirium.nutrition.mapper.UserMapper;
 import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.repository.UserRepository;
 import com.lirium.nutrition.service.UserService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;

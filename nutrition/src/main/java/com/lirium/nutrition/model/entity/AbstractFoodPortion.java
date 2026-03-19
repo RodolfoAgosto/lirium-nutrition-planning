@@ -1,7 +1,10 @@
 package com.lirium.nutrition.model.entity;
+import com.lirium.nutrition.model.enums.MeasureUnit;
 import com.lirium.nutrition.model.valueobject.*;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
@@ -20,34 +23,39 @@ public abstract class AbstractFoodPortion {
     @JoinColumn(name = "food_id", nullable = false)
     protected Food food;
 
-    @Embedded
-    @AttributeOverride(
-            name = "amount",
-            column = @Column(name = "grams", nullable = false)
-    )
-    protected Grams grams;
+    @Column(nullable = false)
+    protected Double quantity;
+
+    @Enumerated(EnumType.STRING)
+    protected MeasureUnit unit;
 
     protected AbstractFoodPortion() {}
 
-    public AbstractFoodPortion(Food food, Grams grams) {
-        this.food = Objects.requireNonNull(food);
-        this.grams = Objects.requireNonNull(grams);
+    protected AbstractFoodPortion(Food food, Double quantity, MeasureUnit unit) {
+        this.food = Objects.requireNonNull(food, "Food cannot be null");
+        this.quantity = Objects.requireNonNull(quantity, "Quantity cannot be null");
+        this.unit = Objects.requireNonNull(unit, "Unit cannot be null");
+        if (quantity.compareTo(0.0) <= 0)
+            throw new IllegalArgumentException("Quantity must be positive");
+    }
+
+    private Double grams() {
+        return food.toGrams(quantity, unit);
     }
 
     public Calories calories() {
-        return  new Calories(food.getCaloriesPer100g() * grams.amount() / 100);
+        return  new Calories((int)(food.getCaloriesPer100g() * food.toGrams(this.getQuantity(), this.getUnit()) / 100));
     }
 
     public Carbs carbs() {
-        return  new Carbs(food.getCarbsPer100g() * grams.amount() / 100);
+        return  new Carbs((int)(food.getCarbsPer100g() * food.toGrams(this.getQuantity(), this.getUnit()) / 100));
     }
 
     public Fat fat() {
-        return  new Fat(food.getFatPer100g() * grams.amount() / 100);
+        return  new Fat((int)(food.getFatPer100g() * food.toGrams(this.getQuantity(), this.getUnit()) / 100));
     }
-
     public Protein protein() {
-        return  new Protein(food.getProteinPer100g() * grams.amount() / 100);
+        return  new Protein((int)(food.getProteinPer100g() * food.toGrams(this.getQuantity(), this.getUnit()) / 100));
     }
 
 }

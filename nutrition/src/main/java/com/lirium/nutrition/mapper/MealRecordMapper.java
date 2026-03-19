@@ -63,7 +63,7 @@ public class MealRecordMapper {
                 FoodPortionCreateDTO portionDTO = dto.foods().get(i);
                 Food food = foodsFromDB.get(i); // mismo orden
 
-                meal.addFoodPortion(food, new Grams(portionDTO.grams()));
+                meal.addFoodPortion(food, portionDTO.quantity(), portionDTO.unit());
             }
         }
 

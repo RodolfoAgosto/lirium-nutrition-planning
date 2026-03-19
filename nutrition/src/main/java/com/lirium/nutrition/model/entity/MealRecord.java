@@ -1,6 +1,7 @@
 package com.lirium.nutrition.model.entity;
 
 import com.lirium.nutrition.model.enums.MealType;
+import com.lirium.nutrition.model.enums.MeasureUnit;
 import com.lirium.nutrition.model.valueobject.Grams;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -55,7 +56,7 @@ public class MealRecord {
         this.type = planMeal.getType();
         this.eatenAt = eatenAt;
         this.foods = planMeal.getFoods().stream()
-                .map(food -> FoodPortionRecord.of(this, food.getFood(), food.grams))
+                .map(food -> FoodPortionRecord.of(this, food.getFood(), food.getQuantity(), food.getUnit() ))
                 .collect(Collectors.toList());
     }
 
@@ -77,14 +78,15 @@ public class MealRecord {
     public static MealRecord fromPlan(PlanMeal planMeal, LocalDateTime eatenAt){
         return new MealRecord(planMeal, eatenAt);
     }
-    public void addFoodPortion(Food food, Grams grams) {
+    public void addFoodPortion(Food food, Double quantity , MeasureUnit unit) {
         Objects.requireNonNull(food);
-        Objects.requireNonNull(grams);
-        FoodPortionRecord foodPortionRecord = FoodPortionRecord.of(this, food, grams);
+        Objects.requireNonNull(quantity);
+        Objects.requireNonNull(unit);
+        FoodPortionRecord foodPortionRecord = FoodPortionRecord.of(this, food, quantity, unit);
         boolean exists = foods.stream()
                 .anyMatch(fp ->
                         fp.getFood().equals(food) &&
-                                fp.getGrams().equals(grams)
+                                fp.getQuantity().equals(quantity)
                 );
 
         if (!exists) {

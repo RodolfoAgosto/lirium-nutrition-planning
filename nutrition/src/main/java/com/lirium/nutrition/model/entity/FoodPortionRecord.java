@@ -1,5 +1,6 @@
 package com.lirium.nutrition.model.entity;
 
+import com.lirium.nutrition.model.enums.MeasureUnit;
 import com.lirium.nutrition.model.valueobject.Grams;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -33,14 +34,16 @@ public class FoodPortionRecord extends AbstractFoodPortion{
     @JoinColumn(name = "meal_id", nullable = false)
     private MealRecord meal;
 
-    private FoodPortionRecord(MealRecord meal, Food food, Grams grams) {
+
+    private FoodPortionRecord(MealRecord meal, Food food, Double quantity , MeasureUnit unit) {
+        super(Objects.requireNonNull(food, "Food cannot be null"),
+                Objects.requireNonNull(quantity, "Cuantity cannot be null"),
+                Objects.requireNonNull(unit, "Grams cannot be null"));
         this.meal = Objects.requireNonNull(meal, "Meal cannot be null");
-        this.food = Objects.requireNonNull(food, "Food cannot be null");
-        this.grams = Objects.requireNonNull(grams, "Grams cannot be null");
     }
 
-    public static FoodPortionRecord of(MealRecord mealPlan, Food food, Grams grams){
-        return new FoodPortionRecord(mealPlan, food, grams);
+    public static FoodPortionRecord of(MealRecord mealPlan, Food food, Double quantity , MeasureUnit unit) {
+        return new FoodPortionRecord(mealPlan, food, quantity , unit);
     }
 
 }

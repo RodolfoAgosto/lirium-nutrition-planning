@@ -14,6 +14,8 @@ public interface NutritionPlanTemplateRepository extends JpaRepository<Nutrition
 
     Optional<NutritionPlanTemplate> findByName(String name);
 
+    Boolean existsByName(String name);
+
     List<NutritionPlanTemplate> findByTargetGoal(GoalType targetGoal);
 
     List<NutritionPlanTemplate> findByExcludedTags(FoodTag tag);

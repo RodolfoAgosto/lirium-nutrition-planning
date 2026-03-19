@@ -132,16 +132,14 @@ public class NutritionPlan {
             throw new IllegalArgumentException("End date before start date");
 
         if(dailyCalories!=null && dailyCalories<=0)
-            throw new IllegalArgumentException("Calories > 0");
+            throw new IllegalArgumentException("Daily calories must be greater than zero");
 
         if(proteinGrams!=null && proteinGrams<0)
-            throw new IllegalArgumentException("Macros >=0");
-
+            throw new IllegalArgumentException("Protein grams cannot be negative");
         if(carbGrams!=null && carbGrams<0)
-            throw new IllegalArgumentException("Macros >=0");
-
+            throw new IllegalArgumentException("Carb grams cannot be negative");
         if(fatGrams!=null && fatGrams<0)
-            throw new IllegalArgumentException("Macros >=0");
+            throw new IllegalArgumentException("Fat grams cannot be negative");
 
         if(name!=null) this.name=name;
         if(description!=null) this.description=description;

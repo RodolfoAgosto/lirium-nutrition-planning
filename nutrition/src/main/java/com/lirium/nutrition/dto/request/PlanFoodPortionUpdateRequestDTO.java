@@ -6,6 +6,6 @@ public record PlanFoodPortionUpdateRequestDTO(
 
         @Min(1)
         @Max(5000)
-        Integer grams
+        Double quantity
 
 ) {}

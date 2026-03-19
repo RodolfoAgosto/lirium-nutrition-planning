@@ -3,7 +3,9 @@ package com.lirium.nutrition.mapper;
 import com.lirium.nutrition.dto.request.*;
 import com.lirium.nutrition.dto.response.*;
 import com.lirium.nutrition.model.entity.Food;
+import com.lirium.nutrition.model.enums.FoodCategory;
 import com.lirium.nutrition.model.enums.FoodTag;
+import com.lirium.nutrition.model.enums.MealType;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,7 +30,9 @@ public class FoodMapper {
                 entity.getProteinPer100g(),
                 entity.getCarbsPer100g(),
                 entity.getFatPer100g(),
-                tags
+                entity.getCategory(),
+                entity.getSuitableFor(),
+                entity.getFoodTags()
         );
 
     }
@@ -49,7 +53,9 @@ public class FoodMapper {
                 dto.caloriesPer100g(),
                 dto.proteinPer100g(),
                 dto.carbsPer100g(),
-                dto.fatPer100g()
+                dto.fatPer100g(),
+                dto.category(),
+                dto.suitableFor()
         );
 
         if (dto.tags() != null) {

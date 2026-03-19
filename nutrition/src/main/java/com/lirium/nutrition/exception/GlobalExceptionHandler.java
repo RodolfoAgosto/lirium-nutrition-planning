@@ -73,6 +73,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
+    @ExceptionHandler(DuplicateTemplateException.class)
+    public ResponseEntity<ApiError> handleDuplicateTemplate(
+            DuplicateTemplateException ex,
+            HttpServletRequest request) {
+        ApiError error = new ApiError(
+                HttpStatus.CONFLICT.value(),
+                "Duplicate Template",
+                ex.getMessage(),
+                request.getRequestURI(),
+                LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiError> handleNotFound(
             ResourceNotFoundException ex,

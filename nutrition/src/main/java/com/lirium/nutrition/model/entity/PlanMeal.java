@@ -25,6 +25,11 @@ public class PlanMeal {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @SequenceGenerator(
+            name = "plan_meal_seq",
+            sequenceName = "plan_meal_seq",
+            allocationSize = 1
+    )
     private Long id;
 
     @Enumerated(EnumType.STRING)
