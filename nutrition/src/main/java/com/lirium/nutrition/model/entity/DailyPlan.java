@@ -1,5 +1,6 @@
 package com.lirium.nutrition.model.entity;
 
+import com.lirium.nutrition.model.enums.MealType;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.DayOfWeek;
@@ -22,7 +23,12 @@ import java.util.*;
 public class DailyPlan {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @SequenceGenerator(
+            name = "daily_plan_seq",
+            sequenceName = "daily_plan_seq",
+            allocationSize = 1
+    )
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "daily_plan_seq")
     private Long id;
 
     @Enumerated(EnumType.STRING)
@@ -52,15 +58,19 @@ public class DailyPlan {
         return new DailyPlan(day, nutritionPlan);
     }
 
-    public void addMeal(PlanMeal meal) {
+    public PlanMeal addMeal(MealType mealType) {
+        Objects.requireNonNull(mealType, "MealType cannot be null");
 
-        Objects.requireNonNull(meal, "Meal cannot be null");
+        boolean alreadyExists = meals.stream()
+                .anyMatch(m -> m.getType() == mealType);
 
-        if (meals.contains(meal)) return;
+        if (alreadyExists)
+            throw new IllegalArgumentException(
+                    "A meal of type " + mealType + " already exists for this day");
 
+        PlanMeal meal = PlanMeal.of(mealType, this);
         meals.add(meal);
-        meal.assignToPlan(this);
-
+        return meal;
     }
 
     public void removeMeal(PlanMeal meal) {

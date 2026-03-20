@@ -2,6 +2,7 @@ package com.lirium.nutrition.repository;
 
 import com.lirium.nutrition.model.entity.NutritionPlan;
 import com.lirium.nutrition.model.enums.GoalType;
+import com.lirium.nutrition.model.enums.PlanStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -19,4 +20,11 @@ public interface NutritionPlanRepository extends JpaRepository<NutritionPlan, Lo
     List<NutritionPlan> findByTargetGoal(GoalType goalType);
 
     void deleteByEndDateBefore(LocalDate date);
+
+    Optional<NutritionPlan> findByPatientProfileIdAndStatus(Long patientId, PlanStatus status);
+
+    List<NutritionPlan> findByPatientProfileIdOrderByStartDateDesc(Long patientId);
+
+    boolean existsByPatientProfileIdAndStatus(Long patientId, PlanStatus status);
+
 }

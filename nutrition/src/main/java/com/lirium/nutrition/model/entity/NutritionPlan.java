@@ -1,6 +1,7 @@
 package com.lirium.nutrition.model.entity;
 
 import com.lirium.nutrition.model.enums.GoalType;
+import com.lirium.nutrition.model.enums.PlanStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.*;
@@ -14,8 +15,10 @@ import java.util.Objects;
  */
 
 @Entity
+@Table(name = "nutrition_plans")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EqualsAndHashCode(of = "id")
 public class NutritionPlan {
 
     @Id
@@ -32,6 +35,10 @@ public class NutritionPlan {
 
     @Column(name = "description", nullable = false)
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PlanStatus status;
 
     private LocalDate startDate;
 
@@ -150,6 +157,28 @@ public class NutritionPlan {
         if(proteinGrams!=null) this.proteinGrams=proteinGrams;
         if(carbGrams!=null) this.carbGrams=carbGrams;
         if(fatGrams!=null) this.fatGrams=fatGrams;
+    }
+
+    public boolean isDraft() {
+        return status == PlanStatus.DRAFT;
+    }
+
+    public boolean isActive() {
+        return status == PlanStatus.ACTIVE;
+    }
+
+    public void activate() {
+        if (status != PlanStatus.DRAFT)
+            throw new IllegalStateException(
+                    "Only DRAFT plans can be activated. Current status: " + status);
+        this.status      = PlanStatus.ACTIVE;
+    }
+
+    public void deactivate() {
+        if (status != PlanStatus.ACTIVE)
+            throw new IllegalStateException(
+                    "Only ACTIVE plans can be deactivated. Current status: " + status);
+        this.status = PlanStatus.INACTIVE;
     }
 
 }

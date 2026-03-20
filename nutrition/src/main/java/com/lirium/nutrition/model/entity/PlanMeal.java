@@ -69,7 +69,7 @@ public class PlanMeal {
 
     }
 
-    public void clearFoods() {
+    void clearFoods() {
         foods.clear();
     }
 
