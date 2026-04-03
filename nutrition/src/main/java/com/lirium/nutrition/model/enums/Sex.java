@@ -7,8 +7,7 @@ package com.lirium.nutrition.model.enums;
 public enum Sex {
 
     MALE("Male"),
-    FEMALE("Female"),
-    OTHER("Other");
+    FEMALE("Female");
 
     private final String label;
 

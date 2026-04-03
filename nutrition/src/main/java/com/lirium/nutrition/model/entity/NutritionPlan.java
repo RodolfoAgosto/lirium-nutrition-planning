@@ -30,10 +30,10 @@ public class NutritionPlan {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "nutrition_plan_seq")
     private Long id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name")
     private String name;
 
-    @Column(name = "description", nullable = false)
+    @Column(name = "description")
     private String description;
 
     @Enumerated(EnumType.STRING)
@@ -61,49 +61,37 @@ public class NutritionPlan {
     @OneToMany(mappedBy = "nutritionPlan", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DailyPlan> week = new ArrayList<>();
 
-    public static NutritionPlan of(
-            String name,
-            String description,
-            LocalDate startDate,
-            LocalDate endDate,
+    // The system generates the minimum required fields
+    public static NutritionPlan generate(
             GoalType targetGoal,
             int dailyCalories,
             int proteinGrams,
             int carbGrams,
-            int fatGrams
-    ) {
-
-        requireText(name, "Name is required");
-        requireText(description, "Description is required");
-
-        Objects.requireNonNull(startDate, "Start date is required");
-        Objects.requireNonNull(endDate, "End date is required");
-        Objects.requireNonNull(targetGoal, "Goal type is required");
-
-        if (endDate.isBefore(startDate)) {
-            throw new IllegalArgumentException("End date cannot be before start date");
-        }
-
-        if (dailyCalories <= 0) {
-            throw new IllegalArgumentException("Daily calories must be greater than zero");
-        }
-
-        if (proteinGrams < 0 || carbGrams < 0 || fatGrams < 0) {
-            throw new IllegalArgumentException("Macro grams cannot be negative");
-        }
+            int fatGrams,
+            PatientProfile patient) {
 
         NutritionPlan plan = new NutritionPlan();
-        plan.name = name;
-        plan.description = description;
-        plan.startDate = startDate;
-        plan.endDate = endDate;
         plan.targetGoal = targetGoal;
         plan.dailyCalories = dailyCalories;
         plan.proteinGrams = proteinGrams;
         plan.carbGrams = carbGrams;
         plan.fatGrams = fatGrams;
-
+        plan.patientProfile = patient;
+        plan.status = PlanStatus.DRAFT;  // Always starts as a draft
         return plan;
+    }
+
+    // The nutritionist completes the draft
+    public void completeBasic(String name, String description) {
+
+        requireText(name, "Name is required");
+        requireText(description, "Description is required");
+
+        if (this.status != PlanStatus.DRAFT)
+            throw new IllegalStateException("Only DRAFT plans can be completed");
+
+        this.name = name;
+        this.description = description;
     }
 
     public void addDailyPlan(DailyPlan dailyPlan) {
@@ -167,12 +155,18 @@ public class NutritionPlan {
         return status == PlanStatus.ACTIVE;
     }
 
-    public void activate() {
+    public void activate(LocalDate startDate) {
+
+        Objects.requireNonNull(startDate, "Start date is required");
+
         if (status != PlanStatus.DRAFT)
             throw new IllegalStateException(
                     "Only DRAFT plans can be activated. Current status: " + status);
-        this.status      = PlanStatus.ACTIVE;
+
+        this.status = PlanStatus.ACTIVE;
+        this.startDate = startDate;
     }
+
 
     public void deactivate() {
         if (status != PlanStatus.ACTIVE)

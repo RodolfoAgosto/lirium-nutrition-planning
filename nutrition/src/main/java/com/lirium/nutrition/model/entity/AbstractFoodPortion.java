@@ -39,7 +39,7 @@ public abstract class AbstractFoodPortion {
             throw new IllegalArgumentException("Quantity must be positive");
     }
 
-    private Double grams() {
+    public Double grams() {
         return food.toGrams(quantity, unit);
     }
 

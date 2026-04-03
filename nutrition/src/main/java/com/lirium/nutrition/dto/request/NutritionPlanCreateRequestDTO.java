@@ -31,6 +31,8 @@ public record NutritionPlanCreateRequestDTO(
         int carbGrams,
 
         @Min(0) @Max(300)
-        int fatGrams
+        int fatGrams,
+
+        Long patientID
 
 ) {}

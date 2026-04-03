@@ -58,19 +58,18 @@ public class DailyPlan {
         return new DailyPlan(day, nutritionPlan);
     }
 
-    public PlanMeal addMeal(MealType mealType) {
-        Objects.requireNonNull(mealType, "MealType cannot be null");
+    public PlanMeal addMeal(PlanMeal planMeal) {
+        Objects.requireNonNull(planMeal, "PlanMeal cannot be null");
 
         boolean alreadyExists = meals.stream()
-                .anyMatch(m -> m.getType() == mealType);
+                .anyMatch(m -> m.getType() == planMeal.getType());
 
         if (alreadyExists)
             throw new IllegalArgumentException(
-                    "A meal of type " + mealType + " already exists for this day");
+                    "A meal of type " + planMeal.getType() + " already exists for this day");
 
-        PlanMeal meal = PlanMeal.of(mealType, this);
-        meals.add(meal);
-        return meal;
+        meals.add(planMeal);
+        return planMeal;
     }
 
     public void removeMeal(PlanMeal meal) {

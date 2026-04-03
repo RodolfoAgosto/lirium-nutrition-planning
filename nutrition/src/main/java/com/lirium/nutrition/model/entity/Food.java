@@ -54,6 +54,8 @@ public class Food {
     @Column(nullable = false)
     private FoodCategory category;
 
+    private MeasureUnit defaultUnit;
+
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "food_suitable_for",
@@ -102,8 +104,42 @@ public class Food {
     ) {
         Food food = new Food(name, caloriesPer100g, proteinPer100g, carbsPer100g, fatPer100g, category);
         if (suitableFor != null) food.suitableFor.addAll(suitableFor);
+        food.defaultUnit = MeasureUnit.GRAM;
         return food;
     }
+
+    public static Food ofLiquid(
+            String name,
+            Integer caloriesPer100g,
+            Integer proteinPer100g,
+            Integer carbsPer100g,
+            Integer fatPer100g,
+            FoodCategory category,
+            Set<MealType> suitableFor,
+            Double density) {
+        Food food = new Food(name, caloriesPer100g, proteinPer100g, carbsPer100g, fatPer100g, category);
+        if (suitableFor != null) food.suitableFor.addAll(suitableFor);
+        food.defaultUnit = MeasureUnit.MILLILITER;
+        food.setDensity(density);
+        return food;
+    }
+
+    public static Food ofUnit(
+            String name,
+            Integer caloriesPer100g,
+            Integer proteinPer100g,
+            Integer carbsPer100g,
+            Integer fatPer100g,
+            FoodCategory category,
+            Set<MealType> suitableFor,
+            Double unitWeight) {
+        Food food = new Food(name, caloriesPer100g, proteinPer100g, carbsPer100g, fatPer100g, category);
+        if (suitableFor != null) food.suitableFor.addAll(suitableFor);
+        food.defaultUnit = MeasureUnit.UNIT;
+        food.setUnitWeight(unitWeight);
+        return food;
+    }
+
 
     private static Integer requireRange(Integer value, int min, int max, String field) {
         Objects.requireNonNull(value, field + " cannot be null");

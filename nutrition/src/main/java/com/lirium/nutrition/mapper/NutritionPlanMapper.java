@@ -2,74 +2,63 @@ package com.lirium.nutrition.mapper;
 
 import com.lirium.nutrition.dto.request.*;
 import com.lirium.nutrition.dto.response.*;
-import com.lirium.nutrition.model.entity.NutritionPlan;
+import com.lirium.nutrition.model.entity.*;
+import com.lirium.nutrition.model.enums.GoalType;
+import org.springframework.stereotype.Component;
 
+@Component
 public class NutritionPlanMapper {
 
-    private NutritionPlanMapper() {}
+    public NutritionPlanMapper() {
 
-    // === CREATE ===
-    public static NutritionPlan toEntity(NutritionPlanCreateRequestDTO dto) {
-
-        return NutritionPlan.of(
-                dto.name(),
-                dto.description(),
-                dto.startDate(),
-                dto.endDate(),
-                dto.targetGoal(),
-                dto.dailyCalories(),
-                dto.proteinGrams(),
-                dto.carbGrams(),
-                dto.fatGrams()
-        );
     }
 
-    // === UPDATE ===
-    public static void updateEntity(
-            NutritionPlan plan,
-            NutritionPlanUpdateRequestDTO dto
-    ){
-        plan.update(
-                dto.name(),
-                dto.description(),
-                dto.startDate(),
-                dto.endDate(),
-                dto.targetGoal(),
-                dto.dailyCalories(),
-                dto.proteinGrams(),
-                dto.carbGrams(),
-                dto.fatGrams()
-        );
-    }
-
-    // ========= RESPONSE =========
-    public static NutritionPlanResponseDTO toResponse(NutritionPlan plan) {
-
-        return new NutritionPlanResponseDTO(
+    public static NutritionPlanDetailDTO toDetail(NutritionPlan plan) {
+        return new NutritionPlanDetailDTO(
                 plan.getId(),
                 plan.getName(),
                 plan.getDescription(),
-                plan.getStartDate(),
-                plan.getEndDate(),
+                plan.getStatus(),
                 plan.getTargetGoal(),
                 plan.getDailyCalories(),
                 plan.getProteinGrams(),
                 plan.getCarbGrams(),
                 plan.getFatGrams(),
-                plan.getWeek().size()
+                plan.getWeek().stream()
+                        .map(NutritionPlanMapper::toDailyPlanDetail)
+                        .toList()
         );
     }
 
-    // ========= SUMMARY =========
-    public static NutritionPlanSummaryDTO toSummary(NutritionPlan plan) {
-
-        return new NutritionPlanSummaryDTO(
-                plan.getId(),
-                plan.getName(),
-                plan.getStartDate(),
-                plan.getEndDate(),
-                plan.getTargetGoal(),
-                plan.getDailyCalories()
+    private static DailyPlanDetailDTO toDailyPlanDetail(DailyPlan dailyPlan) {
+        return new DailyPlanDetailDTO(
+                dailyPlan.getDayOfWeek(),
+                dailyPlan.getMeals().stream()
+                        .map(NutritionPlanMapper::toPlanMealDetail)
+                        .toList()
         );
     }
+
+    private static PlanMealDetailDTO toPlanMealDetail(PlanMeal meal) {
+        return new PlanMealDetailDTO(
+                meal.getType(),
+                meal.getFoodPortions().stream()
+                        .map(NutritionPlanMapper::toPlanFoodPortionDetail)
+                        .toList()
+        );
+    }
+
+    private static PlanFoodPortionDetailDTO toPlanFoodPortionDetail(PlanFoodPortion portion) {
+        double grams = portion.getFood().toGrams(portion.getQuantity(), portion.getUnit());
+        return new PlanFoodPortionDetailDTO(
+                portion.getFood().getName(),
+                portion.getQuantity(),
+                portion.getUnit(),
+                (int)(portion.getFood().getCaloriesPer100g() * grams / 100),
+                (int)(portion.getFood().getProteinPer100g()  * grams / 100),
+                (int)(portion.getFood().getCarbsPer100g()    * grams / 100),
+                (int)(portion.getFood().getFatPer100g()      * grams / 100)
+        );
+    }
+
 }

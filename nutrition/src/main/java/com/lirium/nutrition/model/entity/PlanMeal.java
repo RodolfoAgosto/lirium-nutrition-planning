@@ -21,6 +21,7 @@ import java.util.Objects;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")
+@Table(name = "plan_meals")
 public class PlanMeal {
 
     @Id
@@ -56,7 +57,9 @@ public class PlanMeal {
     public void addFoodPortion(PlanFoodPortion planFoodPortion) {
 
         Objects.requireNonNull(planFoodPortion, "The food portion cannot be null");
-        if (foods.contains(planFoodPortion)) return;
+        boolean alreadyExists = foods.stream()
+                .anyMatch(p -> p.getFood().getId().equals(planFoodPortion.getFood().getId()));
+        if (alreadyExists) return;
         foods.add(planFoodPortion);
         planFoodPortion.assignToMeal(this);
 

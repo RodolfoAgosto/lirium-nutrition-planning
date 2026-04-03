@@ -41,10 +41,6 @@ public class FoodDataLoader implements CommandLineRunner {
                         FoodCategory.PROTEIN,
                         Set.of(MealType.LUNCH, MealType.DINNER)),
 
-                Food.of("Scrambled Eggs", 155, 13, 1, 11,
-                        FoodCategory.PROTEIN,
-                        Set.of(MealType.BREAKFAST, MealType.LUNCH)),
-
                 Food.of("Tuna in Water", 116, 26, 0, 1,
                         FoodCategory.PROTEIN,
                         Set.of(MealType.LUNCH, MealType.DINNER)),
@@ -53,19 +49,35 @@ public class FoodDataLoader implements CommandLineRunner {
                         FoodCategory.PROTEIN,
                         Set.of(MealType.LUNCH, MealType.DINNER)),
 
+                Food.of("Tofu", 76, 8, 2, 5,
+                        FoodCategory.PROTEIN,
+                        Set.of(MealType.LUNCH, MealType.DINNER)),
+
+                // Huevo con UNIT — 1 huevo = 60g
+                Food.ofUnit("Egg", 155, 13, 1, 11,
+                        FoodCategory.PROTEIN,
+                        Set.of(MealType.BREAKFAST, MealType.LUNCH),
+                        60.0),
+
                 // ── DAIRY ─────────────────────────────────────────────────
 
                 Food.of("Whole Milk Yogurt", 61, 3, 5, 3,
                         FoodCategory.DAIRY,
-                        Set.of(MealType.BREAKFAST, MealType.SNACK)),
+                        Set.of(MealType.BREAKFAST, MealType.SNACK, MealType.MID_MORNING)),
 
                 Food.of("Cottage Cheese", 98, 11, 3, 4,
                         FoodCategory.DAIRY,
-                        Set.of(MealType.BREAKFAST, MealType.SNACK)),
+                        Set.of(MealType.BREAKFAST, MealType.SNACK, MealType.MID_MORNING)),
 
-                Food.of("Whole Milk", 61, 3, 5, 3,
+                Food.of("Greek Yogurt", 100, 10, 4, 5,
                         FoodCategory.DAIRY,
-                        Set.of(MealType.BREAKFAST, MealType.SNACK)),
+                        Set.of(MealType.BREAKFAST, MealType.SNACK, MealType.MID_MORNING)),
+
+                // Leche con MILLILITER — densidad 1.03
+                Food.ofLiquid("Whole Milk", 61, 3, 5, 3,
+                        FoodCategory.DAIRY,
+                        Set.of(MealType.BREAKFAST, MealType.SNACK),
+                        1.03),
 
                 // ── CARBS ─────────────────────────────────────────────────
 
@@ -89,6 +101,10 @@ public class FoodDataLoader implements CommandLineRunner {
                         FoodCategory.CARB,
                         Set.of(MealType.BREAKFAST, MealType.SNACK)),
 
+                Food.of("Quinoa", 120, 4, 22, 2,
+                        FoodCategory.CARB,
+                        Set.of(MealType.LUNCH, MealType.DINNER)),
+
                 // ── VEGETABLES ────────────────────────────────────────────
 
                 Food.of("Broccoli", 34, 3, 7, 0,
@@ -111,29 +127,34 @@ public class FoodDataLoader implements CommandLineRunner {
                         FoodCategory.VEGETABLE,
                         Set.of(MealType.LUNCH, MealType.DINNER)),
 
+                Food.of("Bell Pepper", 31, 1, 6, 0,
+                        FoodCategory.VEGETABLE,
+                        Set.of(MealType.LUNCH, MealType.DINNER)),
+
                 // ── FRUITS ────────────────────────────────────────────────
 
-                Food.of("Apple", 52, 0, 14, 0,
+                // Frutas con UNIT — peso promedio por unidad
+                Food.ofUnit("Apple", 52, 0, 14, 0,
                         FoodCategory.FRUIT,
-                        Set.of(MealType.BREAKFAST, MealType.SNACK)),
+                        Set.of(MealType.BREAKFAST, MealType.SNACK, MealType.MID_MORNING, MealType.DINNER),
+                        150.0),
 
-                Food.of("Banana", 89, 1, 23, 0,
+                Food.ofUnit("Banana", 89, 1, 23, 0,
                         FoodCategory.FRUIT,
-                        Set.of(MealType.BREAKFAST, MealType.SNACK)),
+                        Set.of(MealType.BREAKFAST, MealType.SNACK, MealType.MID_MORNING, MealType.DINNER),
+                        120.0),
 
-                Food.of("Orange", 47, 1, 12, 0,
+                Food.ofUnit("Orange", 47, 1, 12, 0,
                         FoodCategory.FRUIT,
-                        Set.of(MealType.BREAKFAST, MealType.SNACK)),
+                        Set.of(MealType.BREAKFAST, MealType.SNACK, MealType.MID_MORNING, MealType.DINNER),
+                        130.0),
 
-                Food.of("Strawberries", 32, 1, 8, 0,
+                Food.ofUnit("Pear", 57, 0, 15, 0,
                         FoodCategory.FRUIT,
-                        Set.of(MealType.BREAKFAST, MealType.SNACK, MealType.DESSERT)),
+                        Set.of(MealType.BREAKFAST, MealType.SNACK, MealType.MID_MORNING, MealType.DINNER),
+                        140.0),
 
                 // ── FATS ──────────────────────────────────────────────────
-
-                Food.of("Olive Oil", 884, 0, 0, 100,
-                        FoodCategory.FAT,
-                        Set.of(MealType.LUNCH, MealType.DINNER)),
 
                 Food.of("Avocado", 160, 2, 9, 15,
                         FoodCategory.FAT,
@@ -147,44 +168,48 @@ public class FoodDataLoader implements CommandLineRunner {
                         FoodCategory.FAT,
                         Set.of(MealType.BREAKFAST, MealType.SNACK)),
 
-                // ── SOY ───────────────────────────────────────────────────
-
-                Food.of("Tofu", 76, 8, 2, 5,
-                        FoodCategory.PROTEIN,
-                        Set.of(MealType.LUNCH, MealType.DINNER)),
-
-                Food.of("Soy Milk", 54, 3, 6, 2,
-                        FoodCategory.BEVERAGE,
-                        Set.of(MealType.BREAKFAST, MealType.SNACK)),
+                // Aceite con MILLILITER — densidad 0.92
+                Food.ofLiquid("Olive Oil", 884, 0, 0, 100,
+                        FoodCategory.FAT,
+                        Set.of(MealType.LUNCH, MealType.DINNER),
+                        0.92),
 
                 // ── SWEETS ────────────────────────────────────────────────
 
                 Food.of("Honey Granola", 471, 10, 64, 20,
                         FoodCategory.SWEET,
-                        Set.of(MealType.BREAKFAST, MealType.SNACK)),
+                        Set.of(MealType.BREAKFAST, MealType.LUNCH, MealType.SNACK)),
 
-                Food.of("Dark Chocolate", 598, 5, 46, 43,
+                Food.of("Dark Chocolate", 546, 5, 60, 31,
                         FoodCategory.SWEET,
-                        Set.of(MealType.SNACK, MealType.DESSERT)),
+                        Set.of(MealType.LUNCH, MealType.DINNER, MealType.SNACK)),
 
-                Food.of("Flan", 130, 5, 20, 4,
+                Food.of("Rice Pudding", 130, 3, 22, 4,
                         FoodCategory.SWEET,
-                        Set.of(MealType.DESSERT)),
+                        Set.of(MealType.LUNCH, MealType.DINNER)),
 
                 // ── BEVERAGES ─────────────────────────────────────────────
 
-                Food.of("Water", 0, 0, 0, 0,
+                Food.ofLiquid("Water", 0, 0, 0, 0,
                         FoodCategory.BEVERAGE,
                         Set.of(MealType.BREAKFAST, MealType.LUNCH,
-                                MealType.SNACK, MealType.DINNER)),
+                                MealType.SNACK, MealType.DINNER, MealType.MID_MORNING),
+                        1.0),
 
-                Food.of("Green Tea", 1, 0, 0, 0,
+                Food.ofLiquid("Green Tea", 1, 0, 0, 0,
                         FoodCategory.BEVERAGE,
-                        Set.of(MealType.BREAKFAST, MealType.SNACK)),
+                        Set.of(MealType.BREAKFAST, MealType.SNACK, MealType.MID_MORNING),
+                        1.0),
 
-                Food.of("Orange Juice", 45, 1, 10, 0,
+                Food.ofLiquid("Orange Juice", 45, 1, 10, 0,
                         FoodCategory.BEVERAGE,
-                        Set.of(MealType.BREAKFAST))
+                        Set.of(MealType.BREAKFAST),
+                        1.04),
+
+                Food.ofLiquid("Soy Milk", 54, 3, 6, 2,
+                        FoodCategory.BEVERAGE,
+                        Set.of(MealType.BREAKFAST, MealType.SNACK),
+                        1.02)
         ));
 
         applyFoodTags(foodRepository);

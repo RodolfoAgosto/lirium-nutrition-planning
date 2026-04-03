@@ -1,83 +1,68 @@
 package com.lirium.nutrition.service.impl;
 
+import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequest;
+import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
+import com.lirium.nutrition.mapper.NutritionPlanMapper;
 import com.lirium.nutrition.model.entity.NutritionPlan;
-import com.lirium.nutrition.model.entity.NutritionPlanTemplate;
-import com.lirium.nutrition.model.entity.PatientProfile;
 import com.lirium.nutrition.repository.NutritionPlanRepository;
-import com.lirium.nutrition.repository.NutritionPlanTemplateRepository;
-import com.lirium.nutrition.repository.PatientProfileRepository;
 import com.lirium.nutrition.service.NutritionPlanService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
-public class NutritionPlanServiceImpl{
+@Transactional(readOnly = true)
+public class NutritionPlanServiceImpl implements NutritionPlanService {
 
-        //implements NutritionPlanService {
+    private final NutritionPlanRepository repository;
+    private final NutritionPlanMapper mapper;
 
-    /*
-    private final NutritionPlanRepository planRepository;
-    private final PatientProfileRepository patientRepository;
-    private final NutritionPlanTemplateRepository templateRepository;
+    @Transactional
+    public NutritionPlanDetailDTO complete(Long id, CompleteNutritionPlanRequest request) {
+
+        NutritionPlan plan = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("NutritionPlan not found"));
+
+        plan.completeBasic(request.getName(), request.getDescription());
+
+        return mapper.toDetail(plan);
+    }
 
     @Override
-    @Transactional
     public NutritionPlan createFromTemplate(Long patientId, Long templateId) {
-
-        PatientProfile patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Patient not found: " + patientId));
-
-        NutritionPlanTemplate template = templateRepository.findById(templateId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Template not found: " + templateId));
-
-        //NutritionPlan plan = NutritionPlan.of(patient, template);
-        //return planRepository.save(plan);
+        return null;
     }
 
     @Override
     @Transactional
-    public NutritionPlan activatePlan(Long planId) {
+    public NutritionPlanDetailDTO activatePlan(Long planId){
 
-        NutritionPlan plan = findById(planId);
+        NutritionPlan plan = repository.findById(planId)
+                .orElseThrow(() -> new RuntimeException("NutritionPlan not found"));
 
-        // Desactiva el plan activo anterior si existe
+        plan.activate(LocalDate.now());
 
-        planRepository
-                .findByPatientIdAndStatus(
-                        plan.getPatient().getId(), PlanStatus.ACTIVE)
-                .ifPresent(active -> {
-                    active.deactivate();
-                    planRepository.save(active);
-                });
-
-        plan.activate();
-        return planRepository.save(plan);
+        return mapper.toDetail(plan);
     }
+
 
     @Override
     public NutritionPlan findById(Long planId) {
-        return planRepository.findById(planId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Plan not found: " + planId));
+        return null;
     }
 
     @Override
     public List<NutritionPlan> findByPatient(Long patientId) {
-        return planRepository
-                .findByPatientIdOrderByCreatedAtDesc(patientId);
+        return null;
     }
 
     @Override
     public Optional<NutritionPlan> findActivePlan(Long patientId) {
-        return planRepository
-                .findByPatientIdAndStatus(patientId, PlanStatus.ACTIVE);
+        return Optional.empty();
     }
-
- */
-
 }
