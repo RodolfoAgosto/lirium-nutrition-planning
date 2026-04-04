@@ -2,6 +2,7 @@ package com.lirium.nutrition.service.impl;
 
 import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequest;
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
+import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.NutritionPlanMapper;
 import com.lirium.nutrition.model.entity.NutritionPlan;
 import com.lirium.nutrition.repository.NutritionPlanRepository;
@@ -52,8 +53,10 @@ public class NutritionPlanServiceImpl implements NutritionPlanService {
 
 
     @Override
-    public NutritionPlan findById(Long planId) {
-        return null;
+    public NutritionPlanDetailDTO findById(Long id) {
+        NutritionPlan plan = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("NutritionPlan", id));
+        return NutritionPlanMapper.toDetail(plan);
     }
 
     @Override

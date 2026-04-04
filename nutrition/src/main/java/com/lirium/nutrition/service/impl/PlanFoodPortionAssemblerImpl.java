@@ -63,11 +63,16 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
 
     @Override
     public void assemble(PlanMeal planMeal, PatientProfile patient, Calories calories, Fat fat, Carbs carbs, Protein protein) {
+        assemble(planMeal, patient, Collections.emptySet(), calories, fat, carbs, protein);
+    }
 
+    @Override
+    public void assemble(PlanMeal planMeal, PatientProfile patient, Set<FoodTag> additionalExcludedTags, Calories calories, Fat fat, Carbs carbs, Protein protein) {
         // Restricciones (tags): SQL — es un filtro de exclusión simple
         // Tipo de comida: SQL — food_suitable_for ya existe
         List<Food> foods;
-        Set<FoodTag> excludedTags = resolveExcludedTags(patient.getRestrictions());
+        Set<FoodTag> excludedTags = new HashSet<>(resolveExcludedTags(patient.getRestrictions()));
+        excludedTags.addAll(additionalExcludedTags);
         foods = foodRepository.findSuitableFoods(planMeal.getType(), excludedTags);
         Collections.shuffle(foods);
 
@@ -105,6 +110,7 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
             remProt -= food.getProteinPer100g()   * actualGrams / 100;
 
         }
+
     }
 
     private double calculateGrams(Food food, double targetCal, double targetCarb, double targetFat, double targetProt) {

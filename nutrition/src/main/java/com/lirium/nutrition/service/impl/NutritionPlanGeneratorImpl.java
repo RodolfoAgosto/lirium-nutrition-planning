@@ -5,11 +5,13 @@ import com.lirium.nutrition.dto.response.NutritionPlanResponseDTO;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.NutritionPlanMapper;
 import com.lirium.nutrition.model.entity.NutritionPlan;
+import com.lirium.nutrition.model.entity.NutritionPlanTemplate;
 import com.lirium.nutrition.model.entity.PatientProfile;
 import com.lirium.nutrition.model.enums.PlanStatus;
 import com.lirium.nutrition.model.valueobject.Calories;
 import com.lirium.nutrition.model.valueobject.MacroDistribution;
 import com.lirium.nutrition.repository.NutritionPlanRepository;
+import com.lirium.nutrition.repository.NutritionPlanTemplateRepository;
 import com.lirium.nutrition.repository.PatientProfileRepository;
 import com.lirium.nutrition.service.CalorieCalculator;
 import com.lirium.nutrition.service.MacroDistributor;
@@ -29,6 +31,7 @@ public class NutritionPlanGeneratorImpl implements NutritionPlanGenerator {
     private final PatientProfileRepository repository;
     private final NutritionPlanAssembler nutritionPlanAssembler;
     private final NutritionPlanRepository nutritionPlanRepository;
+    private final NutritionPlanTemplateRepository templateRepository;
 
     @Transactional
     public NutritionPlanDetailDTO generate(Long patientId) {
@@ -54,8 +57,30 @@ public class NutritionPlanGeneratorImpl implements NutritionPlanGenerator {
     }
 
     @Override
-    public NutritionPlanDetailDTO generateFromTemplate(Long userId, Long templateId) {
-        return null;
+    @Transactional
+    public NutritionPlanDetailDTO generateFromTemplate(Long patientId, Long templateId) {
+
+        PatientProfile patient = repository.findById(patientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Patient", patientId));
+
+        if (nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT) ||
+                nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE)) {
+            throw new IllegalStateException("Patient already has an active or draft plan");
+        }
+
+        NutritionPlanTemplate template = templateRepository.findById(templateId)
+                .orElseThrow(() -> new ResourceNotFoundException("Template", templateId));
+
+        Calories calories = calorieCalculator.calculate(patient);
+
+        MacroDistribution macros = macroDistributor.distributeFromTemplate(calories, template);
+
+        NutritionPlan plan = nutritionPlanAssembler.assemble(patient, calories, macros, template.getExcludedTags());
+
+        nutritionPlanRepository.save(plan);
+
+        return NutritionPlanMapper.toDetail(plan);
     }
+
 
 }

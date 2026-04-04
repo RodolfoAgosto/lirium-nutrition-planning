@@ -36,11 +36,16 @@ public class NutritionPlanController {
         return ResponseEntity.noContent().build();
     }
 
-
     @PostMapping("/generate-from-template/{patientId}/{templateId}")
     public NutritionPlanDetailDTO generateFromTemplate(
             @PathVariable Long patientId,
             @PathVariable Long templateId) {
         return nutritionPlanGenerator.generateFromTemplate(patientId, templateId);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<NutritionPlanDetailDTO> findById(@PathVariable Long id) {
+        return ResponseEntity.ok(nutritionPlanService.findById(id));
+    }
+
 }

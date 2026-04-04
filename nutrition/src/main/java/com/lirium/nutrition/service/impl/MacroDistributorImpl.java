@@ -1,5 +1,6 @@
 package com.lirium.nutrition.service.impl;
 
+import com.lirium.nutrition.model.entity.NutritionPlanTemplate;
 import com.lirium.nutrition.model.entity.PatientProfile;
 import com.lirium.nutrition.model.valueobject.Calories;
 import com.lirium.nutrition.model.valueobject.MacroDistribution;
@@ -38,4 +39,14 @@ public class MacroDistributorImpl implements MacroDistributor {
                 (int) Math.round(fatGrams)
         );
     }
+
+    @Override
+    public MacroDistribution distributeFromTemplate(Calories calories, NutritionPlanTemplate template) {
+        int totalCal = calories.amount();
+        int proteinGrams = (int)((totalCal * template.getProteinPercentage() / 100.0) / 4);
+        int carbGrams    = (int)((totalCal * template.getCarbPercentage()    / 100.0) / 4);
+        int fatGrams     = (int)((totalCal * template.getFatPercentage()     / 100.0) / 9);
+        return new MacroDistribution(proteinGrams, carbGrams, fatGrams);
+    }
+
 }
