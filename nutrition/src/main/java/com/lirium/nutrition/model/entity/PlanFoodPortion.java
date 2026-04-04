@@ -53,4 +53,7 @@ public class PlanFoodPortion extends AbstractFoodPortion{
         this.quantity = Objects.requireNonNull(quantity);
     }
 
+    public void changeFood(Food food) {
+        this.food = Objects.requireNonNull(food, "Food cannot be null");
+    }
 }

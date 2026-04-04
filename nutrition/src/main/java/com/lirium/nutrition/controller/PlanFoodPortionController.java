@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api//plan-food-portions")
+@RequestMapping("/api/plan-food-portions")
 @RequiredArgsConstructor
 public class PlanFoodPortionController {
 
@@ -39,6 +39,13 @@ public class PlanFoodPortionController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build(); // 204
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<PlanFoodPortionResponseDTO> update(
+            @PathVariable Long id,
+            @RequestBody UpdatePlanFoodPortionRequestDTO request) {
+        return ResponseEntity.ok(service.update(id, request));
     }
 
 }

@@ -14,4 +14,7 @@ public interface PlanFoodPortionService {
     PlanFoodPortionResponseDTO create(PlanFoodPortionCreateRequestDTO dto);
 
     void delete(Long id);
+
+    PlanFoodPortionResponseDTO update(Long id, UpdatePlanFoodPortionRequestDTO request);
+
 }
