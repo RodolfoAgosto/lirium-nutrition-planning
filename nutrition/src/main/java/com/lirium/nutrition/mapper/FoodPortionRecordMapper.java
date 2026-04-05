@@ -14,10 +14,13 @@ public class FoodPortionRecordMapper {
     public static FoodPortionRecordResponseDTO toResponse(FoodPortionRecord entity) {
         return new FoodPortionRecordResponseDTO(
                 entity.getId(),
-                entity.getMeal().getId(),
-                FoodMapper.toSummary(entity.getFood()),
+                entity.getFood().getName(),
                 entity.getQuantity(),
-                entity.getUnit()
+                entity.getFood().getDefaultUnit(),
+                entity.calories().amount(),
+                entity.protein().grams(),
+                entity.carbs().amount(),
+                entity.fat().amount()
         );
     }
 

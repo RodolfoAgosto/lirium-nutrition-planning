@@ -112,4 +112,11 @@ public class FoodServiceImpl implements FoodService {
                 })
                 .collect(Collectors.toSet());
     }
+
+    @Override
+    public Food findEntityById(Long id) {
+        return foodRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Food", id));
+    }
+
 }

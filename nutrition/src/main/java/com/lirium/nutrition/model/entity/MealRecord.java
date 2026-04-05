@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -46,38 +47,46 @@ public class MealRecord {
     private LocalDateTime eatenAt;
 
     // Creates a record linked to a plan. Initially, 'overriden' is false as it follows the prescription.
-    private MealRecord(PlanMeal planMeal, LocalDateTime eatenAt){
+    private MealRecord(PlanMeal planMeal, LocalDateTime eatenAt, DailyRecord dailyRecord){
         Objects.requireNonNull(planMeal, "PlanMeal must be provided");
         Objects.requireNonNull(eatenAt, "Date must be provided.");
+        Objects.requireNonNull(dailyRecord, "DailyRecord must be provided");
         Objects.requireNonNull(planMeal.getFoods(), "PlanMeal foods null");
         Objects.requireNonNull(planMeal.getType(), "Meal type null");
-        if (eatenAt.isAfter(LocalDateTime.now()))
+        if (eatenAt.toLocalDate().isAfter(LocalDate.now()))
             throw new IllegalArgumentException("Meal cannot be in the future");
         this.type = planMeal.getType();
         this.eatenAt = eatenAt;
+        this.dailyRecord = dailyRecord;
+        this.overridden = false;
         this.foods = planMeal.getFoods().stream()
-                .map(food -> FoodPortionRecord.of(this, food.getFood(), food.getQuantity(), food.getUnit() ))
+                .map(food -> FoodPortionRecord.of(this, food.getFood(), food.getQuantity(), food.getUnit()))
                 .collect(Collectors.toList());
     }
 
+
     // Creates a spontaneous record. Marked as 'modified' because it deviates from the original plan.
-    private MealRecord(MealType mealType, LocalDateTime eatenAt){
+    private MealRecord(MealType mealType, LocalDateTime eatenAt, DailyRecord dailyRecord){
         Objects.requireNonNull(mealType, "Meal type must be provided");
         Objects.requireNonNull(eatenAt, "DateTime must be provided.");
-        if (eatenAt.isAfter(LocalDateTime.now()))
+        Objects.requireNonNull(dailyRecord, "DailyRecord must be provided");
+        if (eatenAt.toLocalDate().isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("Meal cannot be in the future");
+        }
         this.type = mealType;
-        this.overridden = true;
         this.eatenAt = eatenAt;
+        this.dailyRecord = dailyRecord;
+        this.overridden = true;
     }
 
-    public static MealRecord of(MealType mealType, LocalDateTime eatenAt){
-        return new MealRecord(mealType, eatenAt);
+    public static MealRecord of(MealType mealType, LocalDateTime eatenAt, DailyRecord dailyRecord){
+        return new MealRecord(mealType, eatenAt, dailyRecord);
     }
 
-    public static MealRecord fromPlan(PlanMeal planMeal, LocalDateTime eatenAt){
-        return new MealRecord(planMeal, eatenAt);
+    public static MealRecord fromPlan(PlanMeal planMeal, LocalDateTime eatenAt, DailyRecord dailyRecord){
+        return new MealRecord(planMeal, eatenAt, dailyRecord);
     }
+
     public void addFoodPortion(Food food, Double quantity , MeasureUnit unit) {
         Objects.requireNonNull(food);
         Objects.requireNonNull(quantity);
@@ -129,5 +138,9 @@ public class MealRecord {
     private static void requireText(String s, String msg) {
         if (s == null || s.isBlank()) throw new IllegalArgumentException(msg);
     }
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "daily_record_id", nullable = false)
+    private DailyRecord dailyRecord;
 
 }

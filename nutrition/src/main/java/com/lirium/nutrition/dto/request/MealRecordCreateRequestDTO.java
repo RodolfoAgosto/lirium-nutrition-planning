@@ -8,7 +8,7 @@ public record MealRecordCreateRequestDTO(
 
         @NotBlank
         @Pattern(
-                regexp = "BREAKFAST|LUNCH|DINNER|SNACK",
+                regexp = "BREAKFAST|LUNCH|DINNER|SNACK|MID_MORNING",
                 message = "Invalid meal type"
         )
         String type,

@@ -26,9 +26,9 @@ public class MealRecordMapper {
         return new MealRecordResponseDTO(
                 entity.getId(),
                 entity.getType(),
-                entity.getEatenAt(),
                 entity.isOverridden(),
                 entity.getNotes(),
+                entity.getEatenAt(),
                 foods
         );
     }
@@ -46,12 +46,13 @@ public class MealRecordMapper {
 
     public static MealRecord toEntity(
             MealRecordCreateRequestDTO dto,
-            List<Food> foodsFromDB
+            List<Food> foodsFromDB,
+            DailyRecord dailyRecord
     ) {
 
         MealType type = MealType.valueOf(dto.type().toUpperCase());
 
-        MealRecord meal = MealRecord.of(type, dto.eatenAt());
+        MealRecord meal = MealRecord.of(type, dto.eatenAt(), dailyRecord);
 
         if (dto.notes() != null && !dto.notes().isBlank()) {
             meal.updateNotes(dto.notes());

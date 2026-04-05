@@ -6,11 +6,12 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 
 public record FoodPortionRecordResponseDTO(
-
         Long id,
-        Long mealId,
-        FoodSummaryDTO food,
+        String foodName,
         Double quantity,
-        MeasureUnit unit
-
+        MeasureUnit unit,
+        int calories,
+        int protein,
+        int carbs,
+        int fat
 ) {}

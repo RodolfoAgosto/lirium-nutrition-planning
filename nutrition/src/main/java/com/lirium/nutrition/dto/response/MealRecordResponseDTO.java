@@ -7,8 +7,8 @@ import java.util.List;
 public record MealRecordResponseDTO(
         Long id,
         MealType type,
-        LocalDateTime eatenAt,
         boolean overridden,
         String notes,
-        List<FoodPortionRecordResponseDTO> foods
+        LocalDateTime eatenAt,
+        List<FoodPortionRecordResponseDTO> portions
 ) {}

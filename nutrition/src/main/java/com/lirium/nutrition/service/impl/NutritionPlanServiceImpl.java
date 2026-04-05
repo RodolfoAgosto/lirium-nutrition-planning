@@ -5,6 +5,7 @@ import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.NutritionPlanMapper;
 import com.lirium.nutrition.model.entity.NutritionPlan;
+import com.lirium.nutrition.model.enums.PlanStatus;
 import com.lirium.nutrition.repository.NutritionPlanRepository;
 import com.lirium.nutrition.service.NutritionPlanService;
 import lombok.RequiredArgsConstructor;
@@ -66,6 +67,8 @@ public class NutritionPlanServiceImpl implements NutritionPlanService {
 
     @Override
     public Optional<NutritionPlan> findActivePlan(Long patientId) {
-        return Optional.empty();
+        return repository.findByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE);
     }
+
+
 }
