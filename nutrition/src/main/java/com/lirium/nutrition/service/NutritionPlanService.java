@@ -2,6 +2,7 @@ package com.lirium.nutrition.service;
 
 import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequest;
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
+import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
 import com.lirium.nutrition.model.entity.NutritionPlan;
 
 import java.util.List;
@@ -17,7 +18,7 @@ public interface NutritionPlanService {
 
     NutritionPlanDetailDTO findById(Long id);
 
-    List<NutritionPlan> findByPatient(Long patientId);
+    List<NutritionPlanSummaryDTO> findByPatient(Long patientId);
 
     Optional<NutritionPlan> findActivePlan(Long patientId);
 

@@ -1,15 +1,16 @@
 package com.lirium.nutrition.dto.response;
 
 import com.lirium.nutrition.model.enums.GoalType;
+import com.lirium.nutrition.model.enums.PlanStatus;
+
 import java.time.LocalDate;
 
 public record NutritionPlanSummaryDTO(
-
         Long id,
         String name,
-        LocalDate startDate,
-        LocalDate endDate,
+        PlanStatus status,
         GoalType targetGoal,
-        int dailyCalories
-
+        int dailyCalories,
+        LocalDate startDate,
+        LocalDate endDate
 ) {}

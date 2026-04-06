@@ -2,6 +2,7 @@ package com.lirium.nutrition.service.impl;
 
 import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequest;
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
+import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.NutritionPlanMapper;
 import com.lirium.nutrition.model.entity.NutritionPlan;
@@ -22,7 +23,6 @@ import java.util.Optional;
 public class NutritionPlanServiceImpl implements NutritionPlanService {
 
     private final NutritionPlanRepository repository;
-    private final NutritionPlanMapper mapper;
 
     @Transactional
     public NutritionPlanDetailDTO complete(Long id, CompleteNutritionPlanRequest request) {
@@ -32,7 +32,7 @@ public class NutritionPlanServiceImpl implements NutritionPlanService {
 
         plan.completeBasic(request.getName(), request.getDescription());
 
-        return mapper.toDetail(plan);
+        return NutritionPlanMapper.toDetail(plan);
     }
 
     @Override
@@ -42,14 +42,26 @@ public class NutritionPlanServiceImpl implements NutritionPlanService {
 
     @Override
     @Transactional
-    public NutritionPlanDetailDTO activatePlan(Long planId){
+    public NutritionPlanDetailDTO activatePlan(Long planId) {
 
-        NutritionPlan plan = repository.findById(planId)
-                .orElseThrow(() -> new RuntimeException("NutritionPlan not found"));
+        NutritionPlan newPlan = repository.findById(planId)
+                .orElseThrow(() -> new ResourceNotFoundException("NutritionPlan", planId));
 
-        plan.activate(LocalDate.now());
+        Long patientId = newPlan.getPatientProfile().getId();
 
-        return mapper.toDetail(plan);
+        // Cierra el plan anterior si existe
+        repository
+                .findByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE)
+                .ifPresent(previousPlan -> {
+                    previousPlan.close(LocalDate.now().minusDays(1));
+                    repository.save(previousPlan);
+                });
+
+        // Activa el nuevo
+        newPlan.activate(LocalDate.now());
+        repository.save(newPlan);
+
+        return NutritionPlanMapper.toDetail(newPlan);
     }
 
 
@@ -61,14 +73,17 @@ public class NutritionPlanServiceImpl implements NutritionPlanService {
     }
 
     @Override
-    public List<NutritionPlan> findByPatient(Long patientId) {
-        return null;
+    public List<NutritionPlanSummaryDTO> findByPatient(Long patientId) {
+        return repository
+                .findByPatientProfileIdOrderByStartDateDesc(patientId)
+                .stream()
+                .map(NutritionPlanMapper::toSummary)
+                .toList();
     }
 
     @Override
     public Optional<NutritionPlan> findActivePlan(Long patientId) {
         return repository.findByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE);
     }
-
 
 }

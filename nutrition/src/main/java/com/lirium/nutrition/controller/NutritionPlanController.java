@@ -2,10 +2,13 @@ package com.lirium.nutrition.controller;
 
 import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequest;
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
+import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
 import com.lirium.nutrition.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -46,6 +49,11 @@ public class NutritionPlanController {
     @GetMapping("/{id}")
     public ResponseEntity<NutritionPlanDetailDTO> findById(@PathVariable Long id) {
         return ResponseEntity.ok(nutritionPlanService.findById(id));
+    }
+
+    @GetMapping("/patient/{patientId}")
+    public ResponseEntity<List<NutritionPlanSummaryDTO>> findByPatient(@PathVariable Long patientId) {
+        return ResponseEntity.ok(nutritionPlanService.findByPatient(patientId));
     }
 
 }

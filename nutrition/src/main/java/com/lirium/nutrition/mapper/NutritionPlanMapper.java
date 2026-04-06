@@ -61,4 +61,16 @@ public class NutritionPlanMapper {
         );
     }
 
+    public static NutritionPlanSummaryDTO toSummary(NutritionPlan plan) {
+        return new NutritionPlanSummaryDTO(
+                plan.getId(),
+                plan.getName(),
+                plan.getStatus(),
+                plan.getTargetGoal(),
+                plan.getDailyCalories(),
+                plan.getStartDate(),
+                plan.getEndDate()
+        );
+    }
+
 }

@@ -39,8 +39,7 @@ public class NutritionPlanGeneratorImpl implements NutritionPlanGenerator {
             PatientProfile patient = repository.findById(patientId)
                     .orElseThrow(() -> new ResourceNotFoundException("Patient", patientId));
 
-           if (nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT) ||
-               nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE)) {
+           if (nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT)) {
               throw new IllegalStateException("Patient already has an active or draft plan");
            }
 

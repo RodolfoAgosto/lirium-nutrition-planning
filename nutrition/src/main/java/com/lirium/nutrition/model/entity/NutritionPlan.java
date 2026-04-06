@@ -175,4 +175,12 @@ public class NutritionPlan {
         this.status = PlanStatus.INACTIVE;
     }
 
+    public void close(LocalDate endDate) {
+        Objects.requireNonNull(endDate, "End date required");
+        if (status != PlanStatus.ACTIVE)
+            throw new IllegalStateException("Only ACTIVE plans can be closed");
+        this.endDate = endDate;
+        this.status = PlanStatus.INACTIVE;
+    }
+
 }
