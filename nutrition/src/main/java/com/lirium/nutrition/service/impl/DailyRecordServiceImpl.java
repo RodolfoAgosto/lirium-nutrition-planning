@@ -2,8 +2,10 @@ package com.lirium.nutrition.service.impl;
 
 import com.lirium.nutrition.dto.request.AddFoodPortionRequestDTO;
 import com.lirium.nutrition.dto.request.MealRecordUpdateRequestDTO;
+import com.lirium.nutrition.dto.response.DailyNutritionComparisonDTO;
 import com.lirium.nutrition.dto.response.DailyRecordResponseDTO;
 import com.lirium.nutrition.dto.response.MealRecordResponseDTO;
+import com.lirium.nutrition.dto.response.NutritionComparisonReportDTO;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.DailyRecordMapper;
 import com.lirium.nutrition.model.entity.*;
@@ -157,4 +159,63 @@ public class DailyRecordServiceImpl implements DailyRecordService {
         meal.removeFoodPortion(portion);
         dailyRecordRepository.save(dailyRecord);
     }
+
+    @Override
+    public NutritionComparisonReportDTO getNutritionComparison(
+            Long patientId, LocalDate from, LocalDate to) {
+
+        // Targets del plan activo
+        NutritionPlan activePlan = nutritionPlanService.findActivePlan(patientId)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Patient has no active plan"));
+
+        int targetCal  = activePlan.getDailyCalories();
+        int targetProt = activePlan.getProteinGrams();
+        int targetCarb = activePlan.getCarbGrams();
+        int targetFat  = activePlan.getFatGrams();
+
+        // Registros del rango
+        List<DailyRecord> records = dailyRecordRepository
+                .findByPatientIdAndDateBetween(patientId, from, to);
+
+        List<DailyNutritionComparisonDTO> days = from.datesUntil(to.plusDays(1))
+                .map(date -> {
+                    Optional<DailyRecord> record = records.stream()
+                            .filter(r -> r.getDate().equals(date))
+                            .findFirst();
+
+                    int consumedCal  = 0;
+                    int consumedProt = 0;
+                    int consumedCarb = 0;
+                    int consumedFat  = 0;
+
+                    if (record.isPresent()) {
+                        for (MealRecord meal : record.get().getMeals()) {
+                            for (FoodPortionRecord portion : meal.getFoodPortions()) {
+                                consumedCal  += portion.calories().amount();
+                                consumedProt += portion.protein().grams();
+                                consumedCarb += portion.carbs().amount();
+                                consumedFat  += portion.fat().amount();
+                            }
+                        }
+                    }
+
+                    double adherence = targetCal > 0
+                            ? Math.min(100.0, consumedCal * 100.0 / targetCal)
+                            : 0.0;
+
+                    return new DailyNutritionComparisonDTO(
+                            date,
+                            targetCal,  consumedCal,
+                            targetProt, consumedProt,
+                            targetCarb, consumedCarb,
+                            targetFat,  consumedFat,
+                            Math.round(adherence * 10.0) / 10.0
+                    );
+                })
+                .toList();
+
+        return new NutritionComparisonReportDTO(from, to, days);
+    }
+
 }

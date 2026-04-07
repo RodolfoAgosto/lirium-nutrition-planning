@@ -5,6 +5,7 @@ import com.lirium.nutrition.dto.request.MealRecordUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.AdherenceReportDTO;
 import com.lirium.nutrition.dto.response.DailyRecordResponseDTO;
 import com.lirium.nutrition.dto.response.MealRecordResponseDTO;
+import com.lirium.nutrition.dto.response.NutritionComparisonReportDTO;
 import com.lirium.nutrition.service.AdherenceReportService;
 import com.lirium.nutrition.service.DailyRecordService;
 import lombok.RequiredArgsConstructor;
@@ -66,6 +67,15 @@ public class DailyRecordController {
             @RequestParam LocalDate from,
             @RequestParam LocalDate to) {
         return ResponseEntity.ok(adherenceReportService.getAdherence(patientId, from, to));
+    }
+
+    @GetMapping("/patient/{patientId}/nutrition-comparison")
+    public ResponseEntity<NutritionComparisonReportDTO> getNutritionComparison(
+            @PathVariable Long patientId,
+            @RequestParam LocalDate from,
+            @RequestParam LocalDate to) {
+        return ResponseEntity.ok(
+                dailyRecordService.getNutritionComparison(patientId, from, to));
     }
 
 }
