@@ -2,13 +2,16 @@ package com.lirium.nutrition.controller;
 
 import com.lirium.nutrition.dto.request.AddFoodPortionRequestDTO;
 import com.lirium.nutrition.dto.request.MealRecordUpdateRequestDTO;
+import com.lirium.nutrition.dto.response.AdherenceReportDTO;
 import com.lirium.nutrition.dto.response.DailyRecordResponseDTO;
 import com.lirium.nutrition.dto.response.MealRecordResponseDTO;
+import com.lirium.nutrition.service.AdherenceReportService;
 import com.lirium.nutrition.service.DailyRecordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -17,6 +20,7 @@ import java.util.List;
 public class DailyRecordController {
 
     private final DailyRecordService dailyRecordService;
+    private final AdherenceReportService adherenceReportService;
 
     @GetMapping("/today/{patientId}")
     public ResponseEntity<DailyRecordResponseDTO> getOrCreateToday(@PathVariable Long patientId) {
@@ -54,6 +58,14 @@ public class DailyRecordController {
             @PathVariable Long portionId) {
         dailyRecordService.removePortion(dailyRecordId, mealRecordId, portionId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/patient/{patientId}/adherence")
+    public ResponseEntity<AdherenceReportDTO> getAdherence(
+            @PathVariable Long patientId,
+            @RequestParam LocalDate from,
+            @RequestParam LocalDate to) {
+        return ResponseEntity.ok(adherenceReportService.getAdherence(patientId, from, to));
     }
 
 }
