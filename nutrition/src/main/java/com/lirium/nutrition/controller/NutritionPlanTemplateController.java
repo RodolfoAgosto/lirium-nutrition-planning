@@ -49,6 +49,4 @@ public class NutritionPlanTemplateController {
         return service.update(id, dto);
     }
 
-
 }
-

@@ -11,10 +11,12 @@ import com.lirium.nutrition.repository.DailyPlanRepository;
 import com.lirium.nutrition.repository.PlanMealRepository;
 import com.lirium.nutrition.service.PlanMealService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PlanMealServiceImpl implements PlanMealService {
@@ -44,16 +46,29 @@ public class PlanMealServiceImpl implements PlanMealService {
     @Override
     public PlanMealResponseDTO create(PlanMealCreateRequestDTO dto) {
 
+        log.info("Creating plan meal dailyPlanId={} type={}", dto.dailyPlanId(), dto.type());
+
         DailyPlan dailyPlan = dailyPlanRepository.findById(dto.dailyPlanId())  // ← faltaba ) acá
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Daily Plan not found", dto.dailyPlanId())
-                );
+                .orElseThrow(() -> {
+                    log.warn("Daily plan not found id={}", dto.dailyPlanId());
+                    return new ResourceNotFoundException("Daily Plan", dto.dailyPlanId());
+                });
+
+        if (log.isDebugEnabled()) {
+            log.debug("Plan meal payload dailyPlanId={} type={}",
+                    dto.dailyPlanId(),
+                    dto.type()
+            );
+        }
 
         PlanMeal   entity = PlanMealMapper.toEntity(dto, dailyPlan);
 
         PlanMeal saved = repository.save(entity);
 
+        log.info("Plan meal created successfully id={} dailyPlanId={}", saved.getId(), dto.dailyPlanId());
+
         return PlanMealMapper.toResponse(saved);
+
     }
 
     @Override

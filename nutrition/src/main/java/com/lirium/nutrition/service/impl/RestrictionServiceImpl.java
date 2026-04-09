@@ -10,12 +10,14 @@ import com.lirium.nutrition.model.enums.RestrictionCategory;
 import com.lirium.nutrition.repository.RestrictionRepository;
 import com.lirium.nutrition.service.RestrictionService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -45,6 +47,8 @@ public class RestrictionServiceImpl implements RestrictionService {
     @Transactional
     public RestrictionSummaryDTO create(RestrictionCreateRequestDTO dto) {
 
+        log.info("Creating restriction code={} name={}", dto.code(), dto.name());
+
         Restriction restriction = new Restriction();
 
         restriction.setCode(dto.code());
@@ -52,9 +56,12 @@ public class RestrictionServiceImpl implements RestrictionService {
         restriction.setDescription(dto.description());
         restriction.setCategory(RestrictionCategory.valueOf(dto.category()));
 
-        restriction = restrictionRepository.save(restriction);
+        Restriction saved = restrictionRepository.save(restriction);
 
-        return restrictionMapper.toSummaryDTO(restriction);
+        log.info("Restriction created successfully id={} code={}",
+                saved.getId(), saved.getCode());
+
+        return restrictionMapper.toSummaryDTO(saved);
 
     }
 
@@ -62,8 +69,18 @@ public class RestrictionServiceImpl implements RestrictionService {
     @Transactional
     public RestrictionSummaryDTO update(Long id, RestrictionCatalogUpdateDTO dto) {
 
+        log.info("Updating restriction id={}", id);
+
         Restriction restriction = restrictionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Restriction not found", id));
+                .orElseThrow(() -> {
+                    log.warn("Restriction not found id={}", id);
+                    return new ResourceNotFoundException("Restriction", id);
+                });
+
+        if (log.isDebugEnabled()) {
+            log.debug("Update payload id={} code={} category={}",
+                    id, dto.code(), dto.category());
+        }
 
         restriction.setCode(dto.code());
         restriction.setName(dto.name());
@@ -71,6 +88,8 @@ public class RestrictionServiceImpl implements RestrictionService {
         restriction.setCategory(RestrictionCategory.valueOf(dto.category()));
 
         restrictionRepository.save(restriction);
+
+        log.info("Restriction updated successfully id={}", id);
 
         return restrictionMapper.toSummaryDTO(restriction);
 

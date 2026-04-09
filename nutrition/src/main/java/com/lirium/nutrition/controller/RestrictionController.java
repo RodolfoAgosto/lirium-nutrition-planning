@@ -5,11 +5,13 @@ import com.lirium.nutrition.dto.response.*;
 import com.lirium.nutrition.service.RestrictionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/restrictions")
 @RequiredArgsConstructor
@@ -26,9 +28,13 @@ public class RestrictionController {
     @PostMapping
     public ResponseEntity<RestrictionSummaryDTO> create(@Valid @RequestBody RestrictionCreateRequestDTO request) {
 
+        log.info("Creating restriction name={}", request.name());
+        if (log.isDebugEnabled()) {
+            log.debug("Restriction create payload={}", request.toString());
+        }
         RestrictionSummaryDTO response = restrictionService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(response);
+        log.info("Restriction created successfully name={}", request.name());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
     }
 
@@ -42,7 +48,14 @@ public class RestrictionController {
             @PathVariable Long id,
             @Valid @RequestBody RestrictionCatalogUpdateDTO request) {
 
-        return ResponseEntity.ok(restrictionService.update(id, request));
+        log.info("Updating restriction id={}", id);
+        if (log.isDebugEnabled()) {
+            log.debug("Restriction update payload={}", request.toString());
+        }
+        RestrictionSummaryDTO response = restrictionService.update(id, request);
+        log.info("Restriction updated successfully id={}", id);
+        return ResponseEntity.ok(response);
+
     }
 
 }

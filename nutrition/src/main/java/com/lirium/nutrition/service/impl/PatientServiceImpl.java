@@ -12,6 +12,7 @@ import com.lirium.nutrition.repository.*;
 import com.lirium.nutrition.service.PatientProfileService;
 import com.lirium.nutrition.service.PatientService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -42,9 +44,14 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public PatientDetailsDTO getPatientDetail(Long patientId) {
 
+        log.info("Fetching patient detail patientId={}", patientId);
+
         PatientProfile profile = patientProfileRepository
                 .findByIdWithUser(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Patient not found", patientId));
+                .orElseThrow(() -> {
+                    log.warn("Patient not found id={}", patientId);
+                    return new ResourceNotFoundException("Patient not found", patientId);
+                });
 
         User user = profile.getUser();
         // Restriction List
@@ -54,6 +61,8 @@ public class PatientServiceImpl implements PatientService {
 
         // Physiological Condition List
         Set<PhysiologicalCondition> physiologicalConditions = profile.getPhysiologicalConditions();
+
+        log.info("Patient detail fetched successfully patientId={}", patientId);
 
         return new PatientDetailsDTO(
                 profile.getId(),
@@ -78,6 +87,8 @@ public class PatientServiceImpl implements PatientService {
     public PatientDetailsDTO updatePatient(Long patientId, PatientUpdateRequestDTO request) {
 
         Objects.requireNonNull(request, "PatientUpdateRequestDTO must not be null");
+
+        log.info("Updating patient patientId={}", patientId);
 
         PatientProfile profile = patientProfileService.findByUserId(patientId);
         Set<Restriction> restrictions = resolveRestrictions(request.restrictions());
@@ -105,6 +116,8 @@ public class PatientServiceImpl implements PatientService {
                 physiologicalConditions,
                 request.goal()
         );
+
+        log.info("Patient updated successfully patientId={}", patientId);
 
         return new PatientDetailsDTO(
                 user.getId(),

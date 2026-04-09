@@ -1,6 +1,7 @@
 package com.lirium.nutrition.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -22,6 +24,8 @@ public class GlobalExceptionHandler {
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .findFirst()
                 .orElse("Validation error");
+
+        log.warn("Validation error path={} message={}", request.getRequestURI(), message);
 
         ApiError error = new ApiError(
                 HttpStatus.BAD_REQUEST.value(),
@@ -38,6 +42,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleInvalidTag(
             InvalidTagException ex,
             HttpServletRequest request) {
+
+        log.warn("Invalid tag path={} message={}", request.getRequestURI(), ex.getMessage());
+
         ApiError error = new ApiError(
                 HttpStatus.BAD_REQUEST.value(),
                 "Invalid Tag",
@@ -51,6 +58,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleFoodInUse(
             FoodInUseException ex,
             HttpServletRequest request) {
+
+        log.warn("Food in use path={} message={}", request.getRequestURI(), ex.getMessage());
+
         ApiError error = new ApiError(
                 HttpStatus.CONFLICT.value(),
                 "Food In Use",
@@ -64,6 +74,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleDuplicateFood(
             DuplicateFoodException ex,
             HttpServletRequest request) {
+
+        log.warn("Duplicate food path={} message={}", request.getRequestURI(), ex.getMessage());
+
         ApiError error = new ApiError(
                 HttpStatus.CONFLICT.value(),
                 "Duplicate Food",
@@ -77,6 +90,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleDuplicateTemplate(
             DuplicateTemplateException ex,
             HttpServletRequest request) {
+
+        log.warn("Duplicate template path={} message={}", request.getRequestURI(), ex.getMessage());
+
         ApiError error = new ApiError(
                 HttpStatus.CONFLICT.value(),
                 "Duplicate Template",
@@ -90,6 +106,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleNotFound(
             ResourceNotFoundException ex,
             HttpServletRequest request) {
+
+        log.warn("Resource not found path={} message={}", request.getRequestURI(), ex.getMessage());
 
         ApiError error = new ApiError(
                 HttpStatus.NOT_FOUND.value(),
@@ -106,6 +124,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleEmailExists(
             EmailAlreadyExistsException ex,
             HttpServletRequest request) {
+
+        log.warn("Email already exists path={} message={}", request.getRequestURI(), ex.getMessage());
 
         ApiError error = new ApiError(
                 HttpStatus.CONFLICT.value(),
@@ -127,6 +147,8 @@ public class GlobalExceptionHandler {
             RuntimeException ex,
             HttpServletRequest request) {
 
+        log.warn("Unauthorized operation path={} message={}", request.getRequestURI(), ex.getMessage());
+
         ApiError error = new ApiError(
                 HttpStatus.FORBIDDEN.value(),
                 "Unauthorized operation",
@@ -146,6 +168,8 @@ public class GlobalExceptionHandler {
             RuntimeException ex,
             HttpServletRequest request) {
 
+        log.warn("Bad request path={} message={}", request.getRequestURI(), ex.getMessage());
+
         ApiError error = new ApiError(
                 HttpStatus.BAD_REQUEST.value(),
                 "Invalid request",
@@ -155,6 +179,24 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError> handleGeneric(
+            Exception ex,
+            HttpServletRequest request) {
+
+        log.error("Unexpected error path={}", request.getRequestURI(), ex);
+
+        ApiError error = new ApiError(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Internal server error",
+                "Unexpected error occurred",
+                request.getRequestURI(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
 }
