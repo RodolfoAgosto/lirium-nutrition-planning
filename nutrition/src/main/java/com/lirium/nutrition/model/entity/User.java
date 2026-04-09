@@ -10,7 +10,7 @@ import java.util.Objects;
 @Table(name = "users")
 @Getter @Setter
 @AllArgsConstructor
-public class User {
+public class User extends Auditable{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

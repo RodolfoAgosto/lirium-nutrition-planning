@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")
-public class MealRecord {
+public class MealRecord extends DateAuditable {
 
     @Id
     @SequenceGenerator(

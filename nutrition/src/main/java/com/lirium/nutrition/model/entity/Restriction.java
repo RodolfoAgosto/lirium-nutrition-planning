@@ -18,7 +18,7 @@ import java.util.Set;
 @AllArgsConstructor @NoArgsConstructor
 @Builder
 @EqualsAndHashCode(of = "id") // asegura consistencia en colecciones
-public class Restriction {
+public class Restriction extends DateAuditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

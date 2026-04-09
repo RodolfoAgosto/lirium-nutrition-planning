@@ -20,7 +20,7 @@ import java.util.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")
-public class Food {
+public class Food extends DateAuditable{
 
     @Id
     @SequenceGenerator(

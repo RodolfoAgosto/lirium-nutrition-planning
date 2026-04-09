@@ -18,7 +18,7 @@ import java.util.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")
-public class PatientProfile {
+public class PatientProfile extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)

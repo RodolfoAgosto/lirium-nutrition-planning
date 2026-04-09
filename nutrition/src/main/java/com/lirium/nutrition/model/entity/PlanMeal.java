@@ -22,7 +22,7 @@ import java.util.Objects;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")
 @Table(name = "plan_meals")
-public class PlanMeal {
+public class PlanMeal extends DateAuditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

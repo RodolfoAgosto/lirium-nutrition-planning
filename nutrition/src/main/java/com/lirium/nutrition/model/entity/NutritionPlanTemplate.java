@@ -16,7 +16,7 @@ import java.util.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")
-public class NutritionPlanTemplate {
+public class NutritionPlanTemplate extends Auditable {
 
     @Id
     @SequenceGenerator(
