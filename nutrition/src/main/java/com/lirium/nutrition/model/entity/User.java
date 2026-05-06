@@ -1,16 +1,23 @@
 package com.lirium.nutrition.model.entity;
 
+import com.lirium.nutrition.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
+import org.jspecify.annotations.Nullable;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
 @Table(name = "users")
 @Getter @Setter
 @AllArgsConstructor
-public class User extends Auditable{
+public class User extends Auditable implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,22 +41,58 @@ public class User extends Auditable{
 
     private Boolean emailValidated = false;
 
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
     @Builder.Default
     private boolean enabled = true;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private PatientProfile patientProfile;
 
-    public User() {
-        this.patientProfile = new PatientProfile(this);
-    }
+    public User() {}
 
-    public User(String email, String passwordHash, String firstName, String lastName) {
+
+    public User(String email, String passwordHash, String firstName, String lastName, Role role) {
         this();
+        if(role == Role.PATIENT) {
+            this.setPatientProfile(new PatientProfile(this));
+        }
         this.email = Objects.requireNonNull(email);
         this.passwordHash = Objects.requireNonNull(passwordHash);
         this.firstName = firstName;
         this.lastName = lastName;
+        this.role = role;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
+    }
+
+    @Override
+    public @Nullable String getPassword() {
+        return this.passwordHash;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
     }
 
 }
