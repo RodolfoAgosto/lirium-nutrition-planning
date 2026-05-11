@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -54,7 +55,6 @@ public class UserController {
 
     }
 
-
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDTO> findById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.findById(id));
@@ -86,6 +86,7 @@ public class UserController {
     }
 
     @PatchMapping("/{id}/enabled")
+    @PreAuthorize("hasAuthority('user.enable')")
     public ResponseEntity<UserResponseDTO> setEnabled(
             @PathVariable Long id,
             @RequestParam boolean enabled) {
@@ -112,6 +113,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('user.delete')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
 
         log.info("Deleting user id={}", id);

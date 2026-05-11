@@ -86,4 +86,11 @@ public class NutritionPlanServiceImpl implements NutritionPlanService {
         return repository.findByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE);
     }
 
+    public boolean belongsToPatient(Long planId, Long patientId) {
+        return repository.findById(planId)
+                .map(plan -> plan.getPatientProfile()
+                        .getUser().getId().equals(patientId))
+                .orElse(false);
+    }
+
 }

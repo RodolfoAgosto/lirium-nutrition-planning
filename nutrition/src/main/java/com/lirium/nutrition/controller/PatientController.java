@@ -6,6 +6,7 @@ import com.lirium.nutrition.service.PatientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,12 +33,15 @@ public class PatientController {
 
     }
 
+
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#id, authentication)")
     public ResponseEntity<PatientDetailsDTO> getPatient(@PathVariable Long id) {
         return ResponseEntity.ok(patientService.getPatientDetail(id));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or " + "#id == authentication.principal.id")
     public ResponseEntity<PatientDetailsDTO> updateProfile(
             @PathVariable Long id,
             @RequestBody PatientUpdateRequestDTO requestDTO) {

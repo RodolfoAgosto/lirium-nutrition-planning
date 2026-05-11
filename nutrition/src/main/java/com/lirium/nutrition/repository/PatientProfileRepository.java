@@ -50,7 +50,7 @@ public interface PatientProfileRepository extends JpaRepository<PatientProfile, 
         SELECT p
         FROM PatientProfile p
         JOIN FETCH p.user
-        WHERE p.id = :id
+        WHERE p.user.id = :id
     """)
     Optional<PatientProfile> findByIdWithUser(Long id);
 

@@ -7,6 +7,8 @@ import com.lirium.nutrition.dto.response.FoodSummaryDTO;
 import com.lirium.nutrition.service.FoodService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
@@ -30,7 +32,7 @@ public class FoodController {
     }
 
     @PostMapping
-    public FoodSummaryDTO create(@RequestBody FoodCreateRequestDTO dto) {
+    public ResponseEntity<FoodSummaryDTO> create(@RequestBody FoodCreateRequestDTO dto) {
 
         log.info("Creating food name={}", dto.name());
         if (log.isDebugEnabled()) {
@@ -38,7 +40,7 @@ public class FoodController {
         }
         FoodSummaryDTO response = foodService.create(dto);
         log.info("Food created successfully name={}", dto.name());
-        return response;
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
     }
 

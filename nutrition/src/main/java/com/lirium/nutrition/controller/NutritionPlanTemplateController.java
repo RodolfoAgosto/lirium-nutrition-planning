@@ -30,6 +30,7 @@ public class NutritionPlanTemplateController {
         return service.getById(id);
     }
 
+    @PostMapping
     public ResponseEntity<NutritionPlanTemplateResponseDTO> create(
             @Valid @RequestBody NutritionPlanTemplateCreateRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(dto));

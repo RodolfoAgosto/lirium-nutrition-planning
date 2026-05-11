@@ -10,6 +10,7 @@ import com.lirium.nutrition.service.AdherenceReportService;
 import com.lirium.nutrition.service.DailyRecordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -26,6 +27,7 @@ public class DailyRecordController {
     private final AdherenceReportService adherenceReportService;
 
     @GetMapping("/today/{patientId}")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or #patientId == authentication.principal.id")
     public ResponseEntity<DailyRecordResponseDTO> getOrCreateToday(@PathVariable Long patientId) {
 
         log.info("Fetching or creating daily record for patientId={}", patientId);
@@ -41,6 +43,7 @@ public class DailyRecordController {
     }
 
     @GetMapping("/patient/{patientId}")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or #patientId == authentication.principal.id")
     public ResponseEntity<List<DailyRecordResponseDTO>> getByPatient(@PathVariable Long patientId) {
         return ResponseEntity.ok(dailyRecordService.getByPatient(patientId));
     }
@@ -89,6 +92,7 @@ public class DailyRecordController {
     }
 
     @GetMapping("/patient/{patientId}/adherence")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or #patientId == authentication.principal.id")
     public ResponseEntity<AdherenceReportDTO> getAdherence(
             @PathVariable Long patientId,
             @RequestParam LocalDate from,
@@ -102,6 +106,7 @@ public class DailyRecordController {
     }
 
     @GetMapping("/patient/{patientId}/nutrition-comparison")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or #patientId == authentication.principal.id")
     public ResponseEntity<NutritionComparisonReportDTO> getNutritionComparison(
             @PathVariable Long patientId,
             @RequestParam LocalDate from,

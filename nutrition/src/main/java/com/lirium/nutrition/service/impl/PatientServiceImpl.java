@@ -42,15 +42,15 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-    public PatientDetailsDTO getPatientDetail(Long patientId) {
+    public PatientDetailsDTO getPatientDetail(Long patientProfileId) {
 
-        log.info("Fetching patient detail patientId={}", patientId);
+        log.info("Fetching patient detail patientId={}", patientProfileId);
 
         PatientProfile profile = patientProfileRepository
-                .findByIdWithUser(patientId)
+                .findById(patientProfileId)
                 .orElseThrow(() -> {
-                    log.warn("Patient not found id={}", patientId);
-                    return new ResourceNotFoundException("Patient not found", patientId);
+                    log.warn("Patient not found id={}", patientProfileId);
+                    return new ResourceNotFoundException("Patient not found", patientProfileId);
                 });
 
         User user = profile.getUser();
@@ -62,7 +62,7 @@ public class PatientServiceImpl implements PatientService {
         // Physiological Condition List
         Set<PhysiologicalCondition> physiologicalConditions = profile.getPhysiologicalConditions();
 
-        log.info("Patient detail fetched successfully patientId={}", patientId);
+        log.info("Patient detail fetched successfully patientId={}", patientProfileId);
 
         return new PatientDetailsDTO(
                 profile.getId(),

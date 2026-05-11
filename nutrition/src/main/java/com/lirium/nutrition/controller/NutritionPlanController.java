@@ -7,6 +7,7 @@ import com.lirium.nutrition.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -68,11 +69,14 @@ public class NutritionPlanController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @nutritionPlanService.belongsToPatient(#id, authentication.principal.id)")
     public ResponseEntity<NutritionPlanDetailDTO> findById(@PathVariable Long id) {
         return ResponseEntity.ok(nutritionPlanService.findById(id));
     }
 
     @GetMapping("/patient/{patientId}")
+    //In the case where the PATIENT accesses by plan ID (not by PatientId)
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or #patientId == authentication.principal.id")
     public ResponseEntity<List<NutritionPlanSummaryDTO>> findByPatient(@PathVariable Long patientId) {
         return ResponseEntity.ok(nutritionPlanService.findByPatient(patientId));
     }

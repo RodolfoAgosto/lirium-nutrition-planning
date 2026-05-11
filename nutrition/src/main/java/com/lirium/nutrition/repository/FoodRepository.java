@@ -14,7 +14,7 @@ import java.util.Set;
 @Repository
 public interface FoodRepository extends JpaRepository<Food, Long> {
 
-    Optional<Food> findAllByOrderByNameAsc(String name);
+    List<Food> findAllByOrderByNameAsc();
 
     Set<Food> findByFoodTagsIn(Set<FoodTag> tags);
 

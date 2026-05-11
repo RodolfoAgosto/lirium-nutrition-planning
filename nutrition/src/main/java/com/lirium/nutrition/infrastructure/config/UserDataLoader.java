@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -18,6 +19,7 @@ import java.util.List;
 @Order(1)
 public class UserDataLoader implements CommandLineRunner {
 
+    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
     @Override
@@ -25,18 +27,20 @@ public class UserDataLoader implements CommandLineRunner {
 
         if (userRepository.count() > 0) return;
 
-        User u1 = new User("ana@test.com", "1234", "Ana", "Lopez", Role.PATIENT);
+        User u1 = new User("ana@test.com", passwordEncoder.encode("1234"), "Ana", "Lopez", Role.PATIENT);
         u1.setBirthDate(LocalDate.of(1990, 5, 10));
         u1.setDni("30111222");
 
-        User u2 = new User("juan@test.com", "1234", "Juan", "Perez", Role.PATIENT);
+        User u2 = new User("juan@test.com", passwordEncoder.encode("1234"), "Juan", "Perez", Role.PATIENT);
         u2.setBirthDate(LocalDate.of(1985, 3, 22));
         u2.setDni("28999111");
 
-        User u3 = new User("maria@test.com", "1234", "Maria", "Gomez", Role.PATIENT);
+        User u3 = new User("maria@test.com", passwordEncoder.encode("1234"), "Maria", "Gomez", Role.PATIENT);
         u3.setBirthDate(LocalDate.of(2000, 1, 15));
         u3.setDni("40123456");
 
-        userRepository.saveAll(List.of(u1, u2, u3));
+        User u4 = new User("admin@lirium.com", passwordEncoder.encode("1234"), "Admin","Lirium",Role.ADMIN);
+
+        userRepository.saveAll(List.of(u1, u2, u3, u4));
     }
 }
