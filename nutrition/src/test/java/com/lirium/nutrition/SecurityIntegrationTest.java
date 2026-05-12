@@ -1,11 +1,13 @@
 package com.lirium.nutrition;
 
+import com.jayway.jsonpath.JsonPath;
 import com.lirium.nutrition.infrastructure.security.JwtService;
 import com.lirium.nutrition.model.entity.PatientProfile;
 import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.model.enums.Role;
 import com.lirium.nutrition.repository.FoodRepository;
 import com.lirium.nutrition.repository.PatientProfileRepository;
+import com.lirium.nutrition.repository.RefreshTokenRepository;
 import com.lirium.nutrition.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,9 +15,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.*;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+
+import java.util.List;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -42,6 +51,8 @@ class SecurityIntegrationTest {
     PatientProfileRepository patientRepository;
     @Autowired
     FoodRepository foodRepository;
+    @Autowired
+    RefreshTokenRepository refreshTokenRepository;
 
     private String adminToken;
     private String nutritionistToken;
@@ -50,16 +61,17 @@ class SecurityIntegrationTest {
     private Long otherPatientId;
     private PatientProfile patientProfile;
     private PatientProfile otherPatientProfile;
+    private UserDetails admin;
 
     @BeforeEach
     void setup() {
 
+        refreshTokenRepository.deleteAll();
         patientRepository.deleteAll();
         userRepository.deleteAll();
         foodRepository.deleteAll();
 
-
-        User admin = userRepository.save(new User(
+        admin = userRepository.save(new User(
                 "admin@test.com",
                 passwordEncoder.encode("1234"),
                 "Admin", "Test", Role.ADMIN));
@@ -88,6 +100,7 @@ class SecurityIntegrationTest {
         adminToken = "Bearer " + jwtService.generateToken(admin);
         nutritionistToken = "Bearer " + jwtService.generateToken(nutritionist);
         patientToken = "Bearer " + jwtService.generateToken(patient);
+
     }
 
     // Tests de Autenticación
@@ -317,6 +330,67 @@ class SecurityIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated());
+    }
+
+    @Test
+    @DisplayName("Token expirado devuelve 401 con JSON")
+    void expiredTokenReturnsJsonError() throws Exception {
+        // Generás un token con expiración en el pasado
+        String expiredToken = "Bearer " + jwtService
+                .generateExpiredToken(admin);
+
+        mockMvc.perform(get("/api/users")
+                        .header("Authorization", expiredToken))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.error").value("Unauthorized"));
+    }
+
+    @Test
+    @DisplayName("Acceso denegado devuelve 403 con JSON")
+    void accessDeniedReturnsJsonError() throws Exception {
+        mockMvc.perform(delete("/api/users/" + patientId)
+                        .header("Authorization", patientToken))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.error").value("Forbidden"));
+    }
+
+    @Test
+    @DisplayName("Refresh token válido devuelve nuevo access token")
+    void validRefreshTokenReturnsNewAccessToken() throws Exception {
+        // Primero login para obtener refresh token
+        MvcResult result = mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                {"email": "admin@test.com", "password": "1234"}
+            """))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String refreshToken = JsonPath.read(
+                result.getResponse().getContentAsString(),
+                "$.refreshToken");
+
+        // Usar refresh token
+        mockMvc.perform(post("/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                {"refreshToken": "%s"}
+            """.formatted(refreshToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").isNotEmpty());
+    }
+
+    @Test
+    @DisplayName("Refresh token inválido devuelve 401")
+    void invalidRefreshTokenReturns401() throws Exception {
+        mockMvc.perform(post("/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                {"refreshToken": "tokenfalso"}
+            """))
+                .andExpect(status().isUnauthorized());
     }
 
 }

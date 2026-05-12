@@ -1,6 +1,7 @@
 package com.lirium.nutrition.controller;
 
 import com.lirium.nutrition.dto.request.LoginRequestDTO;
+import com.lirium.nutrition.dto.request.RefreshRequestDTO;
 import com.lirium.nutrition.dto.response.AuthResponseDTO;
 import com.lirium.nutrition.infrastructure.security.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,11 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginRequestDTO request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponseDTO> refresh(@RequestBody RefreshRequestDTO request) {
+        return ResponseEntity.ok(authService.refresh(request.refreshToken()));
     }
 
 }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/lirium-nutrition-planning.iml" filepath="$PROJECT_DIR$/.idea/lirium-nutrition-planning.iml" />
+      <module fileurl="file://$PROJECT_DIR$/nutrition/nutrition.iml" filepath="$PROJECT_DIR$/nutrition/nutrition.iml" />
+    </modules>
+  </component>
+</project>
