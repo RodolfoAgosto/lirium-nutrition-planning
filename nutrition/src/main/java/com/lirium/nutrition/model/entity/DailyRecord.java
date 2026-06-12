@@ -48,4 +48,5 @@ public class DailyRecord extends Auditable {
     public List<MealRecord> getMeals() {
         return Collections.unmodifiableList(meals);
     }
+
 }

@@ -76,7 +76,7 @@ public class MealRecord extends DateAuditable {
         this.type = mealType;
         this.eatenAt = eatenAt;
         this.dailyRecord = dailyRecord;
-        this.overridden = true;
+        this.overridden = false;
     }
 
     public static MealRecord of(MealType mealType, LocalDateTime eatenAt, DailyRecord dailyRecord){
@@ -118,12 +118,17 @@ public class MealRecord extends DateAuditable {
         return Collections.unmodifiableList(foods);
     }
 
+    public void markAsOverridden() {
+        this.overridden = true;
+    }
+
     public void markAsOverridden(String reason) {
         Objects.requireNonNull(reason);
         requireText(reason, "Reason required");
         this.notes = reason;
         this.overridden = true;
     }
+
 
     public void updateNotes(String notes) {
         this.requireText(notes, "Notes required");

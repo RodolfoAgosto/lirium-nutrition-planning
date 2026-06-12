@@ -55,14 +55,12 @@ public class NutritionPlanGeneratorImpl implements NutritionPlanGenerator {
 
         MacroDistribution macros = macroDistributor.distribute(patient, calories);
 
-        if (log.isDebugEnabled()) {
-            log.debug("Calculated values patientId={} calories={} protein={} carbs={} fat={}",
+       log.debug("Calculated values patientId={} calories={} protein={} carbs={} fat={}",
                     patientId,
                     calories.amount(),
                     macros.proteinGrams(),
                     macros.carbGrams(),
                     macros.fatGrams());
-        }
 
         NutritionPlan plan = nutritionPlanAssembler.assemble(patient, calories, macros);
 

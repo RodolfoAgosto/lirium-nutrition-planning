@@ -29,7 +29,7 @@ public class PlanMealServiceImpl implements PlanMealService {
     public PlanMealResponseDTO getById(Long id) {
 
         PlanMeal meal = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Plan meal not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Plan Meal not found", id));
 
         return PlanMealMapper.toResponse(meal);
     }
@@ -48,18 +48,16 @@ public class PlanMealServiceImpl implements PlanMealService {
 
         log.info("Creating plan meal dailyPlanId={} type={}", dto.dailyPlanId(), dto.type());
 
-        DailyPlan dailyPlan = dailyPlanRepository.findById(dto.dailyPlanId())  // ← faltaba ) acá
+        DailyPlan dailyPlan = dailyPlanRepository.findById(dto.dailyPlanId())
                 .orElseThrow(() -> {
                     log.warn("Daily plan not found id={}", dto.dailyPlanId());
                     return new ResourceNotFoundException("Daily Plan", dto.dailyPlanId());
                 });
 
-        if (log.isDebugEnabled()) {
             log.debug("Plan meal payload dailyPlanId={} type={}",
                     dto.dailyPlanId(),
                     dto.type()
             );
-        }
 
         PlanMeal   entity = PlanMealMapper.toEntity(dto, dailyPlan);
 

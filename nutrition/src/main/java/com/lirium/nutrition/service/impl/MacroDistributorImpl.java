@@ -23,26 +23,26 @@ public class MacroDistributorImpl implements MacroDistributor {
 
         log.info("Distributing macros for patientId={} calories={}", patient.getUser().getId(), dailyCalories);
 
-        if (log.isDebugEnabled()) { log.debug("Input data weightKg={} sex={} activityLevel={}", weightKg, sex, activityLevel); }
+        log.debug("Input data weightKg={} sex={} activityLevel={}", weightKg, sex, activityLevel);
 
         // proteinGrams → grams per kg according to Sex + Activity Level × weight
         double proteinFactor = activityLevel.proteinFactor(sex);
         double proteinGrams = weightKg * proteinFactor;
 
-        if (log.isDebugEnabled()) { log.debug("Protein calculation factor={} grams={}", proteinFactor, proteinGrams); }
+        log.debug("Protein calculation factor={} grams={}", proteinFactor, proteinGrams);
 
         // fatGrams → percentage based on Sex + ActivityLevel × dailyCalories
         double fatPercentage = activityLevel.fatPercentage(sex);
         double fatCalories = dailyCalories * fatPercentage;
         double fatGrams = fatCalories / 9;
 
-        if (log.isDebugEnabled()) { log.debug("Fat calculation percentage={} grams={}", fatPercentage, fatGrams); }
+        log.debug("Fat calculation percentage={} grams={}", fatPercentage, fatGrams);
 
         // carbGrams → dailyCalories - (protein*4 + fat*9) / 4
         double remainingCalories = dailyCalories - (proteinGrams * 4 + fatGrams * 9);
         double carbGrams = remainingCalories / 4;
 
-        if (log.isDebugEnabled()) { log.debug("Carbs calculation remainingCalories={} grams={}", remainingCalories, carbGrams); }
+        log.debug("Carbs calculation remainingCalories={} grams={}", remainingCalories, carbGrams);
 
         int protein = (int) Math.round(proteinGrams);
         int carbs = (int) Math.round(carbGrams);
@@ -60,7 +60,7 @@ public class MacroDistributorImpl implements MacroDistributor {
 
         log.info("Distributing macros from template templateId={} calories={}", template.getId(), totalCal);
 
-        if (log.isDebugEnabled()) { log.debug("Template percentages protein={} carb={} fat={}", template.getProteinPercentage(), template.getCarbPercentage(), template.getFatPercentage()); }
+        log.debug("Template percentages protein={} carb={} fat={}", template.getProteinPercentage(), template.getCarbPercentage(), template.getFatPercentage());
 
         int proteinGrams = (int)((totalCal * template.getProteinPercentage() / 100.0) / 4);
         int carbGrams    = (int)((totalCal * template.getCarbPercentage()    / 100.0) / 4);

@@ -1,10 +1,7 @@
 package com.lirium.nutrition.service.impl;
 
 import com.lirium.nutrition.model.entity.*;
-import com.lirium.nutrition.model.enums.FoodCategory;
-import com.lirium.nutrition.model.enums.FoodTag;
-import com.lirium.nutrition.model.enums.MealType;
-import com.lirium.nutrition.model.enums.MeasureUnit;
+import com.lirium.nutrition.model.enums.*;
 import com.lirium.nutrition.model.valueobject.*;
 import com.lirium.nutrition.repository.FoodRepository;
 import com.lirium.nutrition.service.PlanFoodPortionAssembler;

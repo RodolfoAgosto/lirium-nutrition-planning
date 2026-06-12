@@ -26,7 +26,7 @@ public class AdherenceReportServiceImpl implements AdherenceReportService {
     public AdherenceReportDTO getAdherence(Long patientId, LocalDate from, LocalDate to) {
 
         List<DailyRecord> records = dailyRecordRepository
-                .findByPatientIdAndDateBetween(patientId, from, to);
+                .findByPatient_IdAndDateBetweenWithMeals(patientId, from, to);
 
         long totalDays = ChronoUnit.DAYS.between(from, to) + 1;
         int expectedMealsPerDay = MealType.values().length; // 5
@@ -39,7 +39,10 @@ public class AdherenceReportServiceImpl implements AdherenceReportService {
                             .findFirst();
 
                     int recorded = record
-                            .map(r -> r.getMeals().size())
+                            .map(r -> (int) r.getMeals()
+                                    .stream()
+                                    .filter(mr -> !mr.isOverridden())
+                                    .count())
                             .orElse(0);
 
                     return new DailyAdherenceDTO(

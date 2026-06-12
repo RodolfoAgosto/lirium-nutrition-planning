@@ -85,9 +85,22 @@ public class NutritionPlanTemplateServiceImpl implements NutritionPlanTemplateSe
 
         template.update(dto.name(), dto.description(), dto.targetGoal(), dto.excludedTags());
 
+        if ((dto.proteinPercentage() == null)
+                != (dto.carbPercentage() == null)
+                || (dto.proteinPercentage() == null)
+                != (dto.fatPercentage() == null)) {
+
+            throw new IllegalArgumentException(
+                    "All macro percentages must be provided together"
+            );
+        }
+
         if (dto.proteinPercentage() != null) {
-            template.updateMacros(dto.proteinPercentage(),
-                    dto.carbPercentage(), dto.fatPercentage());
+            template.updateMacros(
+                    dto.proteinPercentage(),
+                    dto.carbPercentage(),
+                    dto.fatPercentage()
+            );
         }
 
         log.info("Template updated successfully id={}", id);

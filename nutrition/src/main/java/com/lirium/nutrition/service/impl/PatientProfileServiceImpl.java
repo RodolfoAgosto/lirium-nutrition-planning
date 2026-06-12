@@ -21,7 +21,7 @@ public class PatientProfileServiceImpl implements PatientProfileService {
     @Override
     public PatientProfile findByUserId(Long userId) {
 
-        return patientProfileRepository.findByUserId(userId)
+        return patientProfileRepository.findByUserIdFetchUser(userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Patient profile not found", userId)
                 );

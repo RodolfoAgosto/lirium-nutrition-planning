@@ -41,7 +41,7 @@ public class DailyRecordServiceImpl implements DailyRecordService {
     public DailyRecordResponseDTO getOrCreateToday(Long patientId) {
         LocalDate today = LocalDate.now();
         return dailyRecordRepository
-                .findByPatientIdAndDate(patientId, today)
+                .findByPatient_IdAndDate(patientId, today)
                 .map(DailyRecordMapper::toResponse)
                 .orElseGet(() -> createTodayRecord(patientId, today));
     }
@@ -95,7 +95,7 @@ public class DailyRecordServiceImpl implements DailyRecordService {
     @Override
     public List<DailyRecordResponseDTO> getByPatient(Long patientId) {
         return dailyRecordRepository
-                .findByPatientIdOrderByDateDesc(patientId)
+                .findByPatient_IdOrderByDateDesc(patientId)
                 .stream()
                 .map(DailyRecordMapper::toResponse)
                 .toList();
@@ -136,6 +136,7 @@ public class DailyRecordServiceImpl implements DailyRecordService {
         Food food = foodService.findEntityById(request.foodId());
         meal.addFoodPortion(food, request.quantity(), request.unit());
 
+
         dailyRecordRepository.save(dailyRecord);
         return DailyRecordMapper.toMealResponse(meal);
     }
@@ -155,7 +156,7 @@ public class DailyRecordServiceImpl implements DailyRecordService {
                 .filter(p -> p.getId().equals(portionId))
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("FoodPortionRecord", portionId));
-
+      //  meal.markAsOverridden();
         meal.removeFoodPortion(portion);
         dailyRecordRepository.save(dailyRecord);
     }
@@ -176,7 +177,7 @@ public class DailyRecordServiceImpl implements DailyRecordService {
 
         // Registros del rango
         List<DailyRecord> records = dailyRecordRepository
-                .findByPatientIdAndDateBetween(patientId, from, to);
+                .findByPatient_IdAndDateBetween(patientId, from, to);
 
         List<DailyNutritionComparisonDTO> days = from.datesUntil(to.plusDays(1))
                 .map(date -> {

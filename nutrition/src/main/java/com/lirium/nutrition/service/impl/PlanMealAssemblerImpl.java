@@ -29,7 +29,8 @@ public class PlanMealAssemblerImpl implements PlanMealAssembler {
     }
 
     @Override
-    public void assemble(DailyPlan dailyPlan, PatientProfile patient, Calories calories, MacroDistribution macros, Set<FoodTag> additionalExcludedTags) {
+    public void assemble(DailyPlan dailyPlan, PatientProfile patient, Calories calories,
+                         MacroDistribution macros, Set<FoodTag> additionalExcludedTags) {
         for (MealType meal : MealType.values()) {
             PlanMeal planMeal = PlanMeal.of(meal, dailyPlan);
             Calories mealCalories = new Calories((int)(calories.amount() * meal.getCalorieRatio()));

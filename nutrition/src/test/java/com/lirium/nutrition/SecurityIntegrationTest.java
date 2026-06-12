@@ -2,6 +2,7 @@ package com.lirium.nutrition;
 
 import com.jayway.jsonpath.JsonPath;
 import com.lirium.nutrition.infrastructure.security.JwtService;
+import com.lirium.nutrition.infrastructure.security.OAuth2LoginSuccessHandler;
 import com.lirium.nutrition.model.entity.PatientProfile;
 import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.model.enums.Role;
@@ -14,10 +15,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.*;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,7 +33,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.List;
+import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -38,6 +49,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 class SecurityIntegrationTest {
+
+    @MockBean
+    ClientRegistrationRepository clientRegistrationRepository;
 
     @Autowired
     MockMvc mockMvc;
@@ -53,6 +67,8 @@ class SecurityIntegrationTest {
     FoodRepository foodRepository;
     @Autowired
     RefreshTokenRepository refreshTokenRepository;
+    @Autowired
+    OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     private String adminToken;
     private String nutritionistToken;
@@ -391,6 +407,37 @@ class SecurityIntegrationTest {
                 {"refreshToken": "tokenfalso"}
             """))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Usuario nuevo con Google se crea en DB")
+    void newGoogleUserGetsCreated() throws Exception {
+
+        // Simular un OAuth2User de Google
+        OAuth2User mockOAuth2User = new DefaultOAuth2User(
+                List.of(new SimpleGrantedAuthority("ROLE_USER")),
+                Map.of(
+                        "email", "nuevo@gmail.com",
+                        "given_name", "Juan",
+                        "family_name", "Perez",
+                        "email_verified", true,
+                        "sub", "google123"
+                ),
+                "email"
+        );
+
+        // Este test verifica que el handler crea el usuario
+        assertFalse(userRepository.findByEmail("nuevo@gmail.com").isPresent());
+
+        MockHttpServletRequest mockRequest = new MockHttpServletRequest();
+        MockHttpServletResponse mockResponse = new MockHttpServletResponse();
+        oAuth2LoginSuccessHandler.onAuthenticationSuccess(
+                mockRequest, mockResponse,
+                new OAuth2AuthenticationToken(mockOAuth2User,
+                        mockOAuth2User.getAuthorities(), "google")
+        );
+
+        assertTrue(userRepository.findByEmail("nuevo@gmail.com").isPresent());
     }
 
 }

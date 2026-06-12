@@ -12,11 +12,17 @@ import java.util.Optional;
 
 @Repository
 public interface DailyRecordRepository extends JpaRepository<DailyRecord, Long> {
-    Optional<DailyRecord> findByPatientIdAndDate(Long patientId, LocalDate date);
-    List<DailyRecord> findByPatientIdOrderByDateDesc(Long patientId);
-    List<DailyRecord> findByPatientIdAndDateBetween(Long patientId, LocalDate from, LocalDate to);
 
-    // Nuevo — para navegar desde meal al aggregate root
+    Optional<DailyRecord> findByPatient_IdAndDate(Long patientId, LocalDate date);
+
+    List<DailyRecord> findByPatient_IdOrderByDateDesc(Long patientId);
+
+    List<DailyRecord> findByPatient_IdAndDateBetween(Long patientId, LocalDate from, LocalDate to);
+
+    @Query("SELECT DISTINCT dr FROM DailyRecord dr LEFT JOIN FETCH dr.meals WHERE dr.patient.id = :patientId AND dr.date BETWEEN :from AND :to")
+    List<DailyRecord> findByPatient_IdAndDateBetweenWithMeals(@Param("patientId") Long patientId, @Param("from") LocalDate from, @Param("to") LocalDate to);
+
+    // Para navegar desde meal al aggregate root
     @Query("SELECT dr FROM DailyRecord dr JOIN dr.meals m WHERE m.id = :mealRecordId")
     Optional<DailyRecord> findByMealRecordId(@Param("mealRecordId") Long mealRecordId);
 

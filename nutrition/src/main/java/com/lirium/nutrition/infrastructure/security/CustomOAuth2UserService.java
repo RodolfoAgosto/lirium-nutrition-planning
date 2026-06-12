@@ -1,0 +1,31 @@
+package com.lirium.nutrition.infrastructure.security;
+
+import com.lirium.nutrition.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+
+    private final UserRepository userRepository;
+
+    @Override
+    public OAuth2User loadUser(OAuth2UserRequest request) throws OAuth2AuthenticationException {
+
+        OAuth2User oAuth2User = super.loadUser(request);
+        String email = oAuth2User.getAttribute("email");
+
+        // Verificar que el email existe y está validado en Google
+        Boolean emailVerified = oAuth2User.getAttribute("email_verified");
+        if (emailVerified == null || !emailVerified) {
+            throw new OAuth2AuthenticationException("Email no verificado");
+        }
+
+        return oAuth2User;
+    }
+}

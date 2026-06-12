@@ -1,6 +1,6 @@
 package com.lirium.nutrition.controller;
 
-import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequest;
+import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
 import com.lirium.nutrition.service.*;
@@ -34,7 +34,7 @@ public class NutritionPlanController {
     @PatchMapping("/{id}/complete")
     public ResponseEntity<NutritionPlanDetailDTO> complete(
             @PathVariable Long id,
-            @RequestBody CompleteNutritionPlanRequest request) {
+            @RequestBody CompleteNutritionPlanRequestDTO request) {
 
         log.info("Completing nutrition plan id={}", id);
         if (log.isDebugEnabled()) {

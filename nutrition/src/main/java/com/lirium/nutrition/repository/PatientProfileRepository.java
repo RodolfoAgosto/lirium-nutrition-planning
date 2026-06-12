@@ -7,6 +7,7 @@ import com.lirium.nutrition.model.enums.GoalType;
 import com.lirium.nutrition.model.enums.Sex;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -45,14 +46,12 @@ public interface PatientProfileRepository extends JpaRepository<PatientProfile, 
             String dni
     );
 
-
     @Query("""
-        SELECT p
-        FROM PatientProfile p
-        JOIN FETCH p.user
-        WHERE p.user.id = :id
-    """)
-    Optional<PatientProfile> findByIdWithUser(Long id);
+    SELECT p
+    FROM PatientProfile p
+    JOIN FETCH p.user
+    WHERE p.user.id = :userId""")
+    Optional<PatientProfile> findByUserIdFetchUser(@Param("userId") Long userId);
 
     Optional<PatientProfile> findByUserId(Long userId);
 

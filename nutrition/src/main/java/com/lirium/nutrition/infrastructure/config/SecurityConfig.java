@@ -31,9 +31,11 @@ public class SecurityConfig {
     private final UserDetailsServiceImpl userDetailsServiceImpl;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler)
+            throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception
@@ -43,7 +45,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         // Public
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/auth/**", "/oauth2/**","/login/oauth2/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 
                         // Only ADMIN
@@ -71,11 +73,18 @@ public class SecurityConfig {
                         .requestMatchers("/api/foods/**").authenticated()
 
                         .anyRequest().authenticated()
+
                 )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        ;
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .oauth2Login(oauth2 -> oauth2
+                   .userInfoEndpoint(userInfo -> userInfo
+                              .userService(customOAuth2UserService)
+                   )
+                   .successHandler(oAuth2LoginSuccessHandler)
+        );
 
         return http.build();
     }

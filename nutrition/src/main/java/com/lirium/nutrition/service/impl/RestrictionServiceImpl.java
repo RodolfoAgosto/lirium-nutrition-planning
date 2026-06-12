@@ -77,10 +77,8 @@ public class RestrictionServiceImpl implements RestrictionService {
                     return new ResourceNotFoundException("Restriction", id);
                 });
 
-        if (log.isDebugEnabled()) {
-            log.debug("Update payload id={} code={} category={}",
+        log.debug("Update payload id={} code={} category={}",
                     id, dto.code(), dto.category());
-        }
 
         restriction.setCode(dto.code());
         restriction.setName(dto.name());
