@@ -13,7 +13,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/patients")
+@RequestMapping("/api/patients")
 @RequiredArgsConstructor
 public class PatientController {
 
@@ -32,7 +32,6 @@ public class PatientController {
         return ResponseEntity.ok(response);
 
     }
-
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#id, authentication)")
