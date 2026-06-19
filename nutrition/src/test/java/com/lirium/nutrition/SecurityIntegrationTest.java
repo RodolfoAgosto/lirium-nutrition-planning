@@ -123,7 +123,7 @@ class SecurityIntegrationTest {
     @Test
     @DisplayName("Login exitoso devuelve token")
     void loginSuccess() throws Exception {
-        mockMvc.perform(post("/auth/login")
+        mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                 {
@@ -138,7 +138,7 @@ class SecurityIntegrationTest {
     @Test
     @DisplayName("Login con password incorrecta devuelve 401")
     void loginWrongPassword() throws Exception {
-        mockMvc.perform(post("/auth/login")
+        mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                 {
@@ -152,7 +152,7 @@ class SecurityIntegrationTest {
     @Test
     @DisplayName("Login con usuario inexistente devuelve 401")
     void loginUnknownUser() throws Exception {
-        mockMvc.perform(post("/auth/login")
+        mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                 {
@@ -235,7 +235,7 @@ class SecurityIntegrationTest {
     @Test
     @DisplayName("PATIENT puede ver su propio perfil")
     void patientCanViewOwnProfile() throws Exception {
-        mockMvc.perform(get("/patients/" + patientProfile.getId())
+        mockMvc.perform(get("/api/patients/" + patientProfile.getId())
                         .header("Authorization", patientToken))
                 .andExpect(status().isOk());
     }
@@ -243,7 +243,7 @@ class SecurityIntegrationTest {
     @Test
     @DisplayName("PATIENT no puede ver perfil de otro paciente")
     void patientCannotViewOtherProfile() throws Exception {
-        mockMvc.perform(get("/patients/" + otherPatientProfile.getId())
+        mockMvc.perform(get("/api/patients/" + otherPatientProfile.getId())
                         .header("Authorization", patientToken))
                 .andExpect(status().isForbidden());
     }
@@ -251,11 +251,11 @@ class SecurityIntegrationTest {
     @Test
     @DisplayName("NUTRITIONIST puede ver cualquier paciente")
     void nutritionistCanViewAnyPatient() throws Exception {
-        mockMvc.perform(get("/patients/" + patientProfile.getId())
+        mockMvc.perform(get("/api/patients/" + patientProfile.getId())
                         .header("Authorization", nutritionistToken))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(get("/patients/" + otherPatientProfile.getId())
+        mockMvc.perform(get("/api/patients/" + otherPatientProfile.getId())
                         .header("Authorization", nutritionistToken))
                 .andExpect(status().isOk());
     }
@@ -376,7 +376,7 @@ class SecurityIntegrationTest {
     @DisplayName("Refresh token válido devuelve nuevo access token")
     void validRefreshTokenReturnsNewAccessToken() throws Exception {
         // Primero login para obtener refresh token
-        MvcResult result = mockMvc.perform(post("/auth/login")
+        MvcResult result = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                 {"email": "admin@test.com", "password": "1234"}
@@ -389,7 +389,7 @@ class SecurityIntegrationTest {
                 "$.refreshToken");
 
         // Usar refresh token
-        mockMvc.perform(post("/auth/refresh")
+        mockMvc.perform(post("/api/auth/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                 {"refreshToken": "%s"}
@@ -401,7 +401,7 @@ class SecurityIntegrationTest {
     @Test
     @DisplayName("Refresh token inválido devuelve 401")
     void invalidRefreshTokenReturns401() throws Exception {
-        mockMvc.perform(post("/auth/refresh")
+        mockMvc.perform(post("/api/auth/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                 {"refreshToken": "tokenfalso"}

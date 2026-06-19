@@ -8,6 +8,7 @@ import com.lirium.nutrition.dto.response.MealRecordResponseDTO;
 import com.lirium.nutrition.dto.response.NutritionComparisonReportDTO;
 import com.lirium.nutrition.service.AdherenceReportService;
 import com.lirium.nutrition.service.DailyRecordService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,7 +28,8 @@ public class DailyRecordController {
     private final AdherenceReportService adherenceReportService;
 
     @GetMapping("/today/{patientId}")
-    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or #patientId == authentication.principal.id")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or ( isAuthenticated()\n" +
+            "        and #patientId == authentication.principal.id)")
     public ResponseEntity<DailyRecordResponseDTO> getOrCreateToday(@PathVariable Long patientId) {
 
         log.info("Fetching or creating daily record for patientId={}", patientId);
@@ -38,6 +40,7 @@ public class DailyRecordController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or #patientId == authentication.principal.id")
     public ResponseEntity<DailyRecordResponseDTO> getById(@PathVariable Long id) {
         return ResponseEntity.ok(dailyRecordService.getById(id));
     }
@@ -49,14 +52,13 @@ public class DailyRecordController {
     }
 
     @PatchMapping("/meals/{mealRecordId}")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordService.isMealRecordOwnedByUser(#mealRecordId, authentication.principal.id)")
     public ResponseEntity<MealRecordResponseDTO> updateMeal(
             @PathVariable Long mealRecordId,
-            @RequestBody MealRecordUpdateRequestDTO request) {
+            @Valid @RequestBody MealRecordUpdateRequestDTO request) {
 
         log.info("Updating mealRecordId={} (request received)", mealRecordId);
-        if (log.isDebugEnabled()) {
-            log.debug("Meal update payload={}", request);
-        }
+        log.debug("Meal update payload={}", request);
         MealRecordResponseDTO response = dailyRecordService.updateMeal(mealRecordId, request);
         log.info("Meal updated successfully mealRecordId={}", mealRecordId);
         return ResponseEntity.ok(response);
@@ -64,14 +66,13 @@ public class DailyRecordController {
     }
 
     @PostMapping("/meals/{mealRecordId}/portions")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordService.isMealRecordOwnedByUser(#mealRecordId, authentication.principal.id)")
     public ResponseEntity<MealRecordResponseDTO> addPortion(
             @PathVariable Long mealRecordId,
-            @RequestBody AddFoodPortionRequestDTO request) {
+            @Valid @RequestBody AddFoodPortionRequestDTO request) {
 
         log.info("Adding portion to mealRecordId={} with foodId={}", mealRecordId, request.foodId());
-        if (log.isDebugEnabled()) {
-            log.debug("Portion payload={}", request.toString());
-        }
+        log.debug("Portion payload={}", request.toString());
         MealRecordResponseDTO response = dailyRecordService.addPortion(mealRecordId, request);
         log.info("Portion added successfully to mealRecordId={}", mealRecordId);
         return ResponseEntity.ok(response);
@@ -79,6 +80,7 @@ public class DailyRecordController {
     }
 
     @DeleteMapping("/{dailyRecordId}/meals/{mealRecordId}/portions/{portionId}")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordService.isDailyRecordOwnedByUser(#dailyRecordId, authentication.principal.id)")
     public ResponseEntity<Void> removePortion(
             @PathVariable Long dailyRecordId,
             @PathVariable Long mealRecordId,

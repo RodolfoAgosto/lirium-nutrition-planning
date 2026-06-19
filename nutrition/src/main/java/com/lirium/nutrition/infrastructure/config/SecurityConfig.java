@@ -45,7 +45,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         // Public
-                        .requestMatchers("/auth/**", "/oauth2/**","/login/oauth2/**").permitAll()
+                        .requestMatchers("api/auth/**", "/oauth2/**","/login/oauth2/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 
                         // Only ADMIN
