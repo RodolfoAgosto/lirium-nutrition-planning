@@ -6,13 +6,11 @@ import com.lirium.nutrition.dto.response.*;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.infrastructure.security.JwtService;
 import com.lirium.nutrition.infrastructure.security.UserDetailsServiceImpl;
-import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.model.enums.MealType;
 import com.lirium.nutrition.model.enums.MeasureUnit;
 import com.lirium.nutrition.service.AdherenceReportService;
 import com.lirium.nutrition.service.DailyRecordService;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -23,10 +21,8 @@ import org.springframework.test.web.servlet.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -222,8 +218,8 @@ class DailyRecordControllerTest {
     @WithMockUser
     void shouldAddPortionSuccessfully() throws Exception {
 
-        AddFoodPortionRequestDTO request =
-                new AddFoodPortionRequestDTO(
+        FoodPortionAddRequestDTO request =
+                new FoodPortionAddRequestDTO(
                         10L,
                         2.0,
                         MeasureUnit.GRAM
@@ -239,7 +235,7 @@ class DailyRecordControllerTest {
                         List.of()
                 );
 
-        when(dailyRecordService.addPortion(eq(1L), any(AddFoodPortionRequestDTO.class)))
+        when(dailyRecordService.addPortion(eq(1L), any(FoodPortionAddRequestDTO.class)))
                 .thenReturn(response);
 
         mvc.perform(post("/api/daily-records/meals/1/portions")
@@ -252,21 +248,21 @@ class DailyRecordControllerTest {
                 .andExpect(jsonPath("$.type").value("LUNCH"))
                 .andExpect(jsonPath("$.overridden").value(false));
 
-        verify(dailyRecordService).addPortion(eq(1L), any(AddFoodPortionRequestDTO.class));
+        verify(dailyRecordService).addPortion(eq(1L), any(FoodPortionAddRequestDTO.class));
     }
 
     @Test
     @WithMockUser
     void shouldReturnNotFoundWhenMealRecordDoesNotExistWhenAddingPortion() throws Exception {
 
-        AddFoodPortionRequestDTO request =
-                new AddFoodPortionRequestDTO(
+        FoodPortionAddRequestDTO request =
+                new FoodPortionAddRequestDTO(
                         10L,
                         2.0,
                         MeasureUnit.GRAM
                 );
 
-        when(dailyRecordService.addPortion(eq(999L), any(AddFoodPortionRequestDTO.class)))
+        when(dailyRecordService.addPortion(eq(999L), any(FoodPortionAddRequestDTO.class)))
                 .thenThrow(new ResourceNotFoundException("Meal record not found", 999L));
 
         mvc.perform(post("/api/daily-records/meals/999/portions")
@@ -275,15 +271,15 @@ class DailyRecordControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
 
-        verify(dailyRecordService).addPortion(eq(999L), any(AddFoodPortionRequestDTO.class));
+        verify(dailyRecordService).addPortion(eq(999L), any(FoodPortionAddRequestDTO.class));
     }
 
     @Test
     @WithMockUser
     void shouldReturnBadRequestWhenPortionRequestIsInvalid() throws Exception {
 
-        AddFoodPortionRequestDTO request =
-                new AddFoodPortionRequestDTO(
+        FoodPortionAddRequestDTO request =
+                new FoodPortionAddRequestDTO(
                         null,
                         -1.0,
                         null

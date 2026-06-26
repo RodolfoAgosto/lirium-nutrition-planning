@@ -46,13 +46,13 @@ public class PlanFoodPortionMapper {
 
     /* === UPDATE DTO -> ENTITY ==== */
 
-    public static void updateEntity(
-            PlanFoodPortion entity,
-            PlanFoodPortionUpdateRequestDTO dto
+    public static PlanFoodPortion toEntity(
+            FoodPortionAddRequestDTO dto,
+            PlanMeal meal,
+            Food food
     ) {
 
-        if (dto.quantity() != null) {
-            entity.changeQuantity(dto.quantity());
-        }
+        return PlanFoodPortion.of(meal,food, dto.quantity(), dto.unit());
+
     }
 }

@@ -29,9 +29,7 @@ public class RestrictionController {
     public ResponseEntity<RestrictionSummaryDTO> create(@Valid @RequestBody RestrictionCreateRequestDTO request) {
 
         log.info("Creating restriction name={}", request.name());
-        if (log.isDebugEnabled()) {
-            log.debug("Restriction create payload={}", request.toString());
-        }
+        log.debug("Restriction create payload={}", request.toString());
         RestrictionSummaryDTO response = restrictionService.create(request);
         log.info("Restriction created successfully name={}", request.name());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -49,9 +47,7 @@ public class RestrictionController {
             @Valid @RequestBody RestrictionCatalogUpdateDTO request) {
 
         log.info("Updating restriction id={}", id);
-        if (log.isDebugEnabled()) {
-            log.debug("Restriction update payload={}", request.toString());
-        }
+        log.debug("Restriction update payload={}", request.toString());
         RestrictionSummaryDTO response = restrictionService.update(id, request);
         log.info("Restriction updated successfully id={}", id);
         return ResponseEntity.ok(response);

@@ -31,9 +31,7 @@ public class UserController {
             @Valid @RequestBody CreateUserRequestDTO request) {
 
         log.info("Registering new user");
-        if (log.isDebugEnabled()) {
-            log.debug("User register payload={}", request.toString());
-        }
+        log.debug("User register payload={}", request.toString());
         UserResponseDTO response = userService.registerUser(request);
         log.info("User registered successfully");
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -46,9 +44,7 @@ public class UserController {
             @Valid @RequestBody CreatePatientRequestDTO request) {
 
         log.info("Registering new patient user");
-        if (log.isDebugEnabled()) {
-            log.debug("Patient register payload={}", request.toString());
-        }
+        log.debug("Patient register payload={}", request.toString());
         UserResponseDTO response = userService.registerPatient(request);
         log.info("Patient user registered successfully");
         return ResponseEntity.ok(response);
@@ -76,9 +72,7 @@ public class UserController {
             @Valid @RequestBody UserUpdateRequestDTO request) {
 
         log.info("Updating user id={}", id);
-        if (log.isDebugEnabled()) {
-            log.debug("User update payload={}", request.toString());
-        }
+        log.debug("User update payload={}", request.toString());
         UserResponseDTO response = userService.updateBasicInfo(id, request);
         log.info("User updated successfully id={}", id);
         return ResponseEntity.ok(response);

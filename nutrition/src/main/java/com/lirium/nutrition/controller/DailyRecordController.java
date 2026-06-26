@@ -1,6 +1,6 @@
 package com.lirium.nutrition.controller;
 
-import com.lirium.nutrition.dto.request.AddFoodPortionRequestDTO;
+import com.lirium.nutrition.dto.request.FoodPortionAddRequestDTO;
 import com.lirium.nutrition.dto.request.MealRecordUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.AdherenceReportDTO;
 import com.lirium.nutrition.dto.response.DailyRecordResponseDTO;
@@ -69,7 +69,7 @@ public class DailyRecordController {
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordService.isMealRecordOwnedByUser(#mealRecordId, authentication.principal.id)")
     public ResponseEntity<MealRecordResponseDTO> addPortion(
             @PathVariable Long mealRecordId,
-            @Valid @RequestBody AddFoodPortionRequestDTO request) {
+            @Valid @RequestBody FoodPortionAddRequestDTO request) {
 
         log.info("Adding portion to mealRecordId={} with foodId={}", mealRecordId, request.foodId());
         log.debug("Portion payload={}", request.toString());

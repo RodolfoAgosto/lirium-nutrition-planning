@@ -1,6 +1,6 @@
 package com.lirium.nutrition.service;
 
-import com.lirium.nutrition.dto.request.AddFoodPortionRequestDTO;
+import com.lirium.nutrition.dto.request.FoodPortionAddRequestDTO;
 import com.lirium.nutrition.dto.request.MealRecordUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.DailyRecordResponseDTO;
 import com.lirium.nutrition.dto.response.MealRecordResponseDTO;
@@ -15,7 +15,7 @@ public interface DailyRecordService {
     DailyRecordResponseDTO getById(Long id);
     List<DailyRecordResponseDTO> getByPatient(Long patientId);
     MealRecordResponseDTO updateMeal(Long mealRecordId, MealRecordUpdateRequestDTO request);
-    MealRecordResponseDTO addPortion(Long mealRecordId, AddFoodPortionRequestDTO request);
+    MealRecordResponseDTO addPortion(Long mealRecordId, FoodPortionAddRequestDTO request);
     void removePortion(Long dailyRecordId, Long mealRecordId, Long portionId);
     NutritionComparisonReportDTO getNutritionComparison(Long patientId, LocalDate from, LocalDate to);
 

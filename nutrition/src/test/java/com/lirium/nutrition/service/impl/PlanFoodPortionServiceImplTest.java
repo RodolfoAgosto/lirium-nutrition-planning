@@ -1,7 +1,7 @@
 package com.lirium.nutrition.service.impl;
 
 import com.lirium.nutrition.dto.request.PlanFoodPortionCreateRequestDTO;
-import com.lirium.nutrition.dto.request.UpdatePlanFoodPortionRequestDTO;
+import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateFoodRequestDTO;
 import com.lirium.nutrition.dto.response.PlanFoodPortionResponseDTO;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.PlanFoodPortionMapper;
@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -186,7 +187,7 @@ class PlanFoodPortionServiceImplTest {
 
         assertThrows(ResourceNotFoundException.class,
                 () -> service.update(1L,
-                        new UpdatePlanFoodPortionRequestDTO(null, null)));
+                        new PlanFoodPortionUpdateFoodRequestDTO(null, null)));
     }
 
     @Test
@@ -202,91 +203,12 @@ class PlanFoodPortionServiceImplTest {
         assertThrows(IllegalStateException.class,
                 () -> service.update(
                         1L,
-                        new UpdatePlanFoodPortionRequestDTO(null, null)
+                        new PlanFoodPortionUpdateFoodRequestDTO(null, null)
                 ));
 
         verify(repository).findById(1L);
         verify(repository, never()).save(any());
         verifyNoInteractions(foodRepository);
-    }
-
-    @Test
-    void shouldUpdateQuantityOnly() {
-
-        // Given
-        PlanFoodPortion portion =
-                mockPortionWithStatusAndFood(PlanStatus.DRAFT);
-
-        PlanMeal meal = portion.getMeal();
-        Food food = portion.getFood();
-
-        when(meal.getId()).thenReturn(1L);
-
-        when(food.getId()).thenReturn(10L);
-        when(food.getName()).thenReturn("Rice");
-
-        when(portion.getQuantity()).thenReturn(250D);
-        when(portion.getUnit()).thenReturn(MeasureUnit.GRAM);
-
-        when(repository.findById(1L))
-                .thenReturn(Optional.of(portion));
-
-        when(repository.save(portion))
-                .thenReturn(portion);
-
-        // When
-        var result = service.update(
-                1L,
-                new UpdatePlanFoodPortionRequestDTO(null, 250D)
-        );
-
-        // Then
-        assertNotNull(result);
-        verify(portion).changeQuantity(250D);
-    }
-
-
-    @Test
-    void shouldUpdateFoodWhenSameCategory() {
-
-        PlanFoodPortion portion = mockPortion(PlanStatus.DRAFT, FoodCategory.CARB);
-
-        Food newFood = mock(Food.class);
-        when(newFood.getCategory()).thenReturn(FoodCategory.CARB);
-
-        when(repository.findById(1L))
-                .thenReturn(Optional.of(portion));
-
-        when(foodRepository.findById(2L))
-                .thenReturn(Optional.of(newFood));
-
-        when(repository.save(portion))
-                .thenReturn(portion);
-
-        var result = service.update(1L,
-                new UpdatePlanFoodPortionRequestDTO(2L, null));
-
-        assertNotNull(result);
-        verify(portion).changeFood(newFood);
-    }
-
-    @Test
-    void shouldFailWhenFoodCategoryMismatch() {
-
-        PlanFoodPortion portion = mockPortion(PlanStatus.DRAFT, FoodCategory.CARB);
-
-        Food newFood = mock(Food.class);
-        when(newFood.getCategory()).thenReturn(FoodCategory.PROTEIN);
-
-        when(repository.findById(1L))
-                .thenReturn(Optional.of(portion));
-
-        when(foodRepository.findById(2L))
-                .thenReturn(Optional.of(newFood));
-
-        assertThrows(IllegalArgumentException.class,
-                () -> service.update(1L,
-                        new UpdatePlanFoodPortionRequestDTO(2L, null)));
     }
 
     private PlanFoodPortion mockPortion(PlanStatus status, FoodCategory category) {
@@ -329,6 +251,123 @@ class PlanFoodPortionServiceImplTest {
         return portion;
     }
 
+    @Test
+    void shouldReturnEntityById() {
+
+        PlanFoodPortion portion = mock(PlanFoodPortion.class);
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(portion));
+
+        PlanFoodPortion result = service.findEntityById(1L);
+
+        assertSame(portion, result);
+        verify(repository).findById(1L);
+    }
+
+    @Test
+    void shouldThrowWhenEntityNotFound() {
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> service.findEntityById(1L));
+
+        verify(repository).findById(1L);
+    }
+
+    @Test
+    void shouldFailWhenCategoryMismatch() {
+
+        PlanFoodPortion portion = mock(PlanFoodPortion.class);
+        Food oldFood = mock(Food.class);
+        Food newFood = mock(Food.class);
+
+        when(oldFood.getId()).thenReturn(2L);
+
+        PlanMeal meal = mock(PlanMeal.class);
+        DailyPlan dailyPlan = mock(DailyPlan.class);
+        NutritionPlan nutritionPlan = mock(NutritionPlan.class);
+
+        when(portion.getId()).thenReturn(1L);
+
+        when(portion.getMeal()).thenReturn(meal);
+        when(meal.getDailyPlan()).thenReturn(dailyPlan);
+        when(dailyPlan.getNutritionPlan()).thenReturn(nutritionPlan);
+        when(nutritionPlan.getStatus()).thenReturn(PlanStatus.DRAFT);
+
+        when(portion.getFood()).thenReturn(oldFood);
+        when(foodRepository.findById(2L))
+                .thenReturn(Optional.of(newFood));
+
+        when(oldFood.getCategory()).thenReturn(FoodCategory.PROTEIN);
+        when(newFood.getCategory()).thenReturn(FoodCategory.CARB);
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(portion));
+
+        when(foodRepository.findById(2L))
+                .thenReturn(Optional.of(newFood));
+
+        PlanFoodPortionUpdateFoodRequestDTO dto =
+                new PlanFoodPortionUpdateFoodRequestDTO(2L, null);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.update(1L, dto));
+
+        verify(repository).findById(1L);
+        verify(foodRepository).findById(2L);
+    }
+
+    @Test
+    void shouldUpdateQuantitySuccessfully() {
+
+        // given
+        PlanFoodPortion portion = mock(PlanFoodPortion.class);
+
+        Food food = mock(Food.class);
+        when(food.getId()).thenReturn(2L);
+        when(food.getCategory()).thenReturn(FoodCategory.CARB);
+
+        NutritionPlan nutritionPlan = mock(NutritionPlan.class);
+        when(nutritionPlan.getStatus()).thenReturn(PlanStatus.DRAFT);
+
+        DailyPlan dailyPlan = mock(DailyPlan.class);
+        when(dailyPlan.getNutritionPlan()).thenReturn(nutritionPlan);
+
+        PlanMeal meal = mock(PlanMeal.class);
+        when(meal.getDailyPlan()).thenReturn(dailyPlan);
+
+        when(portion.getMeal()).thenReturn(meal);
+        when(portion.getFood()).thenReturn(food);
+
+        when(repository.findById(1L)).thenReturn(Optional.of(portion));
+
+        // 🔥 ESTE ERA EL QUE TE FALTABA
+        when(foodRepository.findById(2L)).thenReturn(Optional.of(food));
+
+        PlanFoodPortionUpdateFoodRequestDTO dto =
+                new PlanFoodPortionUpdateFoodRequestDTO(null, 250.0);
+
+        when(repository.save(portion)).thenReturn(portion);
+
+        try (MockedStatic<PlanFoodPortionMapper> mapper =
+                     mockStatic(PlanFoodPortionMapper.class)) {
+
+            mapper.when(() -> PlanFoodPortionMapper.toResponse(portion))
+                    .thenReturn(mock(PlanFoodPortionResponseDTO.class));
+
+            // when
+            var result = service.update(1L, dto);
+
+            // then
+            verify(portion).changeQuantity(250.0);
+            verify(repository).save(portion);
+        }
+    }
+
+
     private PlanFoodPortion mockPortionWithStatusAndFood(PlanStatus status) {
 
         NutritionPlan nutritionPlan = mock(NutritionPlan.class);
@@ -350,7 +389,7 @@ class PlanFoodPortionServiceImplTest {
     }
 
     private PlanFoodPortionCreateRequestDTO createPlanFoodPortionCreateRequestDTO(){
-      return new PlanFoodPortionCreateRequestDTO(1L, 2L, 100, 2D, MeasureUnit.MILLILITER);
+      return new PlanFoodPortionCreateRequestDTO(1L, 2L, 2D, MeasureUnit.MILLILITER);
    }
 
 }

@@ -1,6 +1,6 @@
 package com.lirium.nutrition.service.impl;
 
-import com.lirium.nutrition.dto.request.AddFoodPortionRequestDTO;
+import com.lirium.nutrition.dto.request.FoodPortionAddRequestDTO;
 import com.lirium.nutrition.dto.request.MealRecordUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.DailyNutritionComparisonDTO;
 import com.lirium.nutrition.dto.response.DailyRecordResponseDTO;
@@ -314,8 +314,8 @@ class DailyRecordServiceImplTest {
 
         Food food = mock(Food.class);
 
-        AddFoodPortionRequestDTO request =
-                new AddFoodPortionRequestDTO(
+        FoodPortionAddRequestDTO request =
+                new FoodPortionAddRequestDTO(
                         foodId,
                         100D,
                         MeasureUnit.GRAM
@@ -351,8 +351,8 @@ class DailyRecordServiceImplTest {
         PatientProfile patient = patientProfile();
         DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now());
 
-        AddFoodPortionRequestDTO request =
-                new AddFoodPortionRequestDTO(
+        FoodPortionAddRequestDTO request =
+                new FoodPortionAddRequestDTO(
                         10L,
                         100D,
                         MeasureUnit.GRAM
@@ -687,8 +687,8 @@ class DailyRecordServiceImplTest {
 
         Long mealId = 1L;
 
-        AddFoodPortionRequestDTO request =
-                new AddFoodPortionRequestDTO(
+        FoodPortionAddRequestDTO request =
+                new FoodPortionAddRequestDTO(
                         10L,
                         100D,
                         MeasureUnit.GRAM

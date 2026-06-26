@@ -37,9 +37,7 @@ public class NutritionPlanController {
             @RequestBody CompleteNutritionPlanRequestDTO request) {
 
         log.info("Completing nutrition plan id={}", id);
-        if (log.isDebugEnabled()) {
-            log.debug("Complete plan payload={}", request.toString());
-        }
+        log.debug("Complete plan payload={}", request.toString());
         NutritionPlanDetailDTO response = nutritionPlanService.complete(id, request);
         log.info("Nutrition plan completed id={}", id);
         return ResponseEntity.ok(response);

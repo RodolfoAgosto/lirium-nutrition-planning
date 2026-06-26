@@ -11,10 +11,10 @@ public record PlanFoodPortionCreateRequestDTO(
         @NotNull(message = "Food id is required")
         Long foodId,
 
-        @NotNull(message = "Grams is required")
-        @Min(value = 1, message = "Grams must be positive")
-        @Max(value = 5000, message = "Grams too large")
-        Integer grams,
+//        @NotNull(message = "Grams is required")
+//        @Min(value = 1, message = "Grams must be positive")
+//        @Max(value = 5000, message = "Grams too large")
+//        Integer grams,
 
         Double quantity,
 

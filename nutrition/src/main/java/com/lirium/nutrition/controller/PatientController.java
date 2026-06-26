@@ -46,9 +46,7 @@ public class PatientController {
             @RequestBody PatientUpdateRequestDTO requestDTO) {
 
         log.info("Updating patient profile id={}", id);
-        if (log.isDebugEnabled()) {
-            log.debug("Patient update payload={}", requestDTO.toString());
-        }
+        log.debug("Patient update payload={}", requestDTO.toString());
         PatientDetailsDTO response = patientService.updatePatient(id, requestDTO);
         log.info("Patient profile updated successfully id={}", id);
         return ResponseEntity.ok(response);

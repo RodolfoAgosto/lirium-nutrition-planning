@@ -1,6 +1,6 @@
 package com.lirium.nutrition.service.impl;
 
-import com.lirium.nutrition.dto.request.AddFoodPortionRequestDTO;
+import com.lirium.nutrition.dto.request.FoodPortionAddRequestDTO;
 import com.lirium.nutrition.dto.request.MealRecordUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.DailyNutritionComparisonDTO;
 import com.lirium.nutrition.dto.response.DailyRecordResponseDTO;
@@ -10,7 +10,6 @@ import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.DailyRecordMapper;
 import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.model.enums.MealType;
-import com.lirium.nutrition.model.enums.PlanStatus;
 import com.lirium.nutrition.repository.*;
 import com.lirium.nutrition.service.DailyRecordService;
 import com.lirium.nutrition.service.FoodService;
@@ -20,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -123,7 +121,7 @@ public class DailyRecordServiceImpl implements DailyRecordService {
 
     @Override
     @Transactional
-    public MealRecordResponseDTO addPortion(Long mealRecordId, AddFoodPortionRequestDTO request) {
+    public MealRecordResponseDTO addPortion(Long mealRecordId, FoodPortionAddRequestDTO request) {
         DailyRecord dailyRecord = dailyRecordRepository
                 .findByMealRecordId(mealRecordId)
                 .orElseThrow(() -> new ResourceNotFoundException("DailyRecord for meal", mealRecordId));

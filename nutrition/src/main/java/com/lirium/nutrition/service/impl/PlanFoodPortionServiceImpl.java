@@ -1,7 +1,7 @@
 package com.lirium.nutrition.service.impl;
 
 import com.lirium.nutrition.dto.request.PlanFoodPortionCreateRequestDTO;
-import com.lirium.nutrition.dto.request.UpdatePlanFoodPortionRequestDTO;
+import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateFoodRequestDTO;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.PlanFoodPortionMapper;
 import com.lirium.nutrition.dto.response.*;
@@ -45,6 +45,18 @@ public class PlanFoodPortionServiceImpl implements PlanFoodPortionService {
     }
 
     @Override
+    public PlanFoodPortion findEntityById(Long id) {
+
+        return repository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("PlanFoodPortion entity not found id={}", id);
+                    return new ResourceNotFoundException("Food", id);
+                });
+    }
+
+
+
+    @Override
     public PlanFoodPortionResponseDTO create(PlanFoodPortionCreateRequestDTO dto) {
 
         log.info("Creating portion mealId={} foodId={}", dto.mealId(), dto.foodId());
@@ -78,7 +90,7 @@ public class PlanFoodPortionServiceImpl implements PlanFoodPortionService {
 
     @Override
     @Transactional
-    public PlanFoodPortionResponseDTO update(Long id, UpdatePlanFoodPortionRequestDTO request) {
+    public PlanFoodPortionResponseDTO update(Long id, PlanFoodPortionUpdateFoodRequestDTO request) {
 
         log.info("Updating portion id={}", id);
 
@@ -93,16 +105,14 @@ public class PlanFoodPortionServiceImpl implements PlanFoodPortionService {
             throw new IllegalStateException("Only DRAFT plans can be modified");
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("Update payload id={} foodId={} quantity={}",
-                    id, request.foodId(), request.quantity());
-        }
+        log.debug("Update payload id={} foodId={} quantity={}",
+                    id, portion.getFood().getId(), request.quantity());
 
-        if (request.foodId() != null) {
-            Food newFood = foodRepository.findById(request.foodId())
+        if (portion.getId() != null) {
+            Food newFood = foodRepository.findById(portion.getFood().getId())
                     .orElseThrow(() -> {
-                        log.warn("Food not found id={}", request.foodId());
-                        return new ResourceNotFoundException("Food", request.foodId());
+                        log.warn("Food not found id={}", (portion.getFood().getId()));
+                        return new ResourceNotFoundException("Food", (portion.getFood().getId()));
                     });
 
             if (newFood.getCategory() != portion.getFood().getCategory()) {
