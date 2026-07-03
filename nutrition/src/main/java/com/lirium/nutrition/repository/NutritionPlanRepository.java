@@ -15,11 +15,9 @@ public interface NutritionPlanRepository extends JpaRepository<NutritionPlan, Lo
 
     Optional<NutritionPlan> findByName(String name);
 
-    List<NutritionPlan> findByStartDateLessThanEqualAndEndDateGreaterThanEqual(LocalDate date1, LocalDate date2);
-
     List<NutritionPlan> findByTargetGoal(GoalType goalType);
 
-    void deleteByEndDateBefore(LocalDate date);
+    long deleteByEndDateBefore(LocalDate date);
 
     Optional<NutritionPlan> findByPatientProfileIdAndStatus(Long patientId, PlanStatus status);
 

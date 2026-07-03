@@ -234,8 +234,16 @@
 						<!-- builders/lombok generated -->
 						<exclude>**/*Builder*</exclude>
 
-						<!-- enums (opcional) -->
-						<exclude>**/model/enums/**</exclude>
+						<!-- config -->
+						<exclude>**/infrastructure/config/**</exclude>
+
+						<!-- model -->
+						<exclude>**/model/**</exclude>
+
+						<!--NutritionAplication (main)  -->
+						<exclude>**/NutritionApplication.class</exclude> -->
+
+						<!--<exclude>**/dataloader/**/*.class</exclude> -->
 					</excludes>
 				</configuration>
 

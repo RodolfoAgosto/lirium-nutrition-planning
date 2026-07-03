@@ -17,6 +17,6 @@ public interface MealRecordRepository extends JpaRepository<MealRecord, Long> {
 
     List<MealRecord> findByTypeAndEatenAtBetween(MealType type, LocalDateTime start, LocalDateTime end);
 
-    void deleteByEatenAtBefore(LocalDateTime dateTime);
+    long deleteByEatenAtBefore(LocalDateTime dateTime);
 
 }

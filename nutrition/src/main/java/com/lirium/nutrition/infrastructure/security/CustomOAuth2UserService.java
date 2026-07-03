@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
@@ -16,16 +17,27 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest request) throws OAuth2AuthenticationException {
-
         OAuth2User oAuth2User = super.loadUser(request);
-        String email = oAuth2User.getAttribute("email");
+        validateEmail(oAuth2User);
+        return oAuth2User;
+    }
 
-        // Verificar que el email existe y está validado en Google
+    void validateEmail(OAuth2User oAuth2User) {
+        String email = oAuth2User.getAttribute("email");
         Boolean emailVerified = oAuth2User.getAttribute("email_verified");
-        if (emailVerified == null || !emailVerified) {
-            throw new OAuth2AuthenticationException("Email no verificado");
+
+        if (email == null || email.isEmpty()) {
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("email_missing"),
+                    "Email address not provided"
+            );
         }
 
-        return oAuth2User;
+        if (emailVerified == null || !emailVerified) {
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("email_not_verified"),
+                    "Email address not provided"
+            );
+        }
     }
 }

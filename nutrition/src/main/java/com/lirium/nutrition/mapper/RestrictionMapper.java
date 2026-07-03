@@ -1,12 +1,10 @@
 package com.lirium.nutrition.mapper;
 
-        import com.lirium.nutrition.dto.request.*;
-        import com.lirium.nutrition.dto.response.*;
-        import com.lirium.nutrition.model.entity.Restriction;
-        import org.mapstruct.*;
-
-        import java.util.List;
-        import java.util.Set;
+import com.lirium.nutrition.dto.request.*;
+import com.lirium.nutrition.dto.response.*;
+import com.lirium.nutrition.model.entity.Restriction;
+import org.mapstruct.*;
+import java.util.Set;
 
 @Mapper(componentModel = "spring")
 public interface RestrictionMapper {

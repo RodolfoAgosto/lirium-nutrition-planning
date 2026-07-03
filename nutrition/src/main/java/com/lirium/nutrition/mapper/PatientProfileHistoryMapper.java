@@ -7,8 +7,6 @@ import java.util.stream.Collectors;
 
 public class PatientProfileHistoryMapper {
 
-    private PatientProfileHistoryMapper() {}
-
     public static PatientProfileHistoryResponseDTO toResponseDTO(PatientProfileHistory history) {
         return new PatientProfileHistoryResponseDTO(
                 history.getId(),

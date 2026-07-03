@@ -1,6 +1,7 @@
 package com.lirium.nutrition.model.entity;
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import java.time.Instant;
 @Table(name = "refresh_tokens")
 @Getter
 @NoArgsConstructor
+@EqualsAndHashCode(of = "id")
 public class RefreshToken {
 
     @Id

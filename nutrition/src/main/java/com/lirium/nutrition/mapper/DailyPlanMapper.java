@@ -43,7 +43,7 @@ public class DailyPlanMapper {
             NutritionPlan nutritionPlan
     ) {
 
-        DayOfWeek day = DayOfWeek.valueOf(dto.day().toUpperCase());
+        DayOfWeek day = dto.day();
 
         return DailyPlan.of(day, nutritionPlan);
     }

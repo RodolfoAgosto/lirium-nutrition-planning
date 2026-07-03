@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class PatientProfileServiceImpl implements PatientProfileService {
 
     private final PatientProfileRepository patientProfileRepository;
-    private final PatientProfileMapper patientProfileMapper;
 
     @Override
     public PatientProfile findByUserId(Long userId) {
@@ -33,7 +32,7 @@ public class PatientProfileServiceImpl implements PatientProfileService {
 
         PatientProfile saved = patientProfileRepository.save(patientProfile);
 
-        return patientProfileMapper.toResponse(saved);
+        return PatientProfileMapper.toResponse(saved);
 
     }
 }
