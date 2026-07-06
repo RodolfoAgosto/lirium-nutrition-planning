@@ -198,19 +198,32 @@
 
 			<!-- JaCoCo -->
 
+			<!-- Ejecutor de Tests de Integración -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>3.2.5</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.13</version>
 
 				<executions>
-
 					<execution>
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
 					</execution>
-
 					<execution>
 						<id>report</id>
 						<phase>test</phase>
@@ -219,7 +232,27 @@
 						</goals>
 					</execution>
 
+					<!-- Agente para integración -->
+					<execution>
+						<id>prepare-agent-integration</id>
+						<goals><goal>prepare-agent-integration</goal></goals>
+						<configuration>
+							<destFile>${project.build.directory}/jacoco-integration.exec</destFile>
+						</configuration>
+					</execution>
+					<!-- Reporte integración -->
+					<execution>
+						<id>report-integration</id>
+						<phase>verify</phase>
+						<goals><goal>report-integration</goal></goals>
+						<configuration>
+							<dataFile>${project.build.directory}/jacoco-integration.exec</dataFile>
+							<outputDirectory>${project.reporting.outputDirectory}/jacoco-integration</outputDirectory>
+						</configuration>
+					</execution>
+
 				</executions>
+
 				<configuration>
 					<excludes>
 						<!-- logs -->

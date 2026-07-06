@@ -76,8 +76,7 @@ public enum Role {
 
     Role(List<SimpleGrantedAuthority> authorities) {
 
-        List<SimpleGrantedAuthority> allAuthorities =
-                new ArrayList<>(authorities);
+        List<SimpleGrantedAuthority> allAuthorities = new ArrayList<>(authorities);
 
         // agrega ROLE_PATIENT, ROLE_ADMIN, etc.
         allAuthorities.add(new SimpleGrantedAuthority("ROLE_" + this.name()));

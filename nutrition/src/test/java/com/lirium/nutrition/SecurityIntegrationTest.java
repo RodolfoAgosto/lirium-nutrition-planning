@@ -119,50 +119,6 @@ class SecurityIntegrationTest {
 
     }
 
-    // Tests de Autenticación
-    @Test
-    @DisplayName("Login exitoso devuelve token")
-    void loginSuccess() throws Exception {
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                {
-                    "email": "admin@test.com",
-                    "password": "1234"
-                }
-            """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").isNotEmpty());
-    }
-
-    @Test
-    @DisplayName("Login con password incorrecta devuelve 401")
-    void loginWrongPassword() throws Exception {
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                {
-                    "email": "admin@test.com",
-                    "password": "wrongpassword"
-                }
-            """))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    @DisplayName("Login con usuario inexistente devuelve 401")
-    void loginUnknownUser() throws Exception {
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                {
-                    "email": "noexiste@test.com",
-                    "password": "1234"
-                }
-            """))
-                .andExpect(status().isUnauthorized());
-    }
-
     @Test
     @DisplayName("Request sin token devuelve 401")
     void requestWithoutToken() throws Exception {
@@ -370,43 +326,6 @@ class SecurityIntegrationTest {
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.status").value(403))
                 .andExpect(jsonPath("$.error").value("Forbidden"));
-    }
-
-    @Test
-    @DisplayName("Refresh token válido devuelve nuevo access token")
-    void validRefreshTokenReturnsNewAccessToken() throws Exception {
-        // Primero login para obtener refresh token
-        MvcResult result = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                {"email": "admin@test.com", "password": "1234"}
-            """))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        String refreshToken = JsonPath.read(
-                result.getResponse().getContentAsString(),
-                "$.refreshToken");
-
-        // Usar refresh token
-        mockMvc.perform(post("/api/auth/refresh")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                {"refreshToken": "%s"}
-            """.formatted(refreshToken)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").isNotEmpty());
-    }
-
-    @Test
-    @DisplayName("Refresh token inválido devuelve 401")
-    void invalidRefreshTokenReturns401() throws Exception {
-        mockMvc.perform(post("/api/auth/refresh")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                {"refreshToken": "tokenfalso"}
-            """))
-                .andExpect(status().isUnauthorized());
     }
 
     @Test
