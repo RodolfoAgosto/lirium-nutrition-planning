@@ -12,11 +12,20 @@ import java.util.List;
 public interface DailyRecordService {
 
     DailyRecordResponseDTO getOrCreateToday(Long patientId);
+
     DailyRecordResponseDTO getById(Long id);
+
     List<DailyRecordResponseDTO> getByPatient(Long patientId);
+
     MealRecordResponseDTO updateMeal(Long mealRecordId, MealRecordUpdateRequestDTO request);
+
     MealRecordResponseDTO addPortion(Long mealRecordId, FoodPortionAddRequestDTO request);
+
     void removePortion(Long dailyRecordId, Long mealRecordId, Long portionId);
+
     NutritionComparisonReportDTO getNutritionComparison(Long patientId, LocalDate from, LocalDate to);
 
+    boolean isDailyRecordOwnedByUser(Long dailyRecordId, Long userId);
+
+    boolean isMealRecordOwnedByUser(Long mealRecordId, Long userId);
 }

@@ -9,4 +9,6 @@ public interface PatientProfileService {
 
     PatientProfileResponseDTO update(PatientProfile patientProfile);
 
+    public PatientProfile findById(Long patientId);
+
 }

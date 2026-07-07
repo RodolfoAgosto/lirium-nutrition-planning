@@ -184,7 +184,7 @@ class DailyRecordServiceImplTest {
         when(dailyRecordRepository.findByPatient_IdAndDate(patientId, today))
                 .thenReturn(Optional.empty());
 
-        when(patientProfileService.findByUserId(patientId))
+        when(patientProfileService.findById(patientId))
                 .thenReturn(patient);
 
         when(nutritionPlanService.findActivePlan(patientId))
@@ -205,7 +205,7 @@ class DailyRecordServiceImplTest {
         assertEquals(today, saved.getDate());
         assertEquals(patient, saved.getPatient());
 
-        verify(patientProfileService).findByUserId(patientId);
+        verify(patientProfileService).findById(patientId);
         verify(nutritionPlanService).findActivePlan(patientId);
         verify(dailyRecordRepository).save(any(DailyRecord.class));
     }
@@ -222,7 +222,7 @@ class DailyRecordServiceImplTest {
         when(dailyRecordRepository.findByPatient_IdAndDate(patientId, today))
                 .thenReturn(Optional.empty());
 
-        when(patientProfileService.findByUserId(patientId))
+        when(patientProfileService.findById(patientId))
                 .thenReturn(patient);
 
         when(nutritionPlanService.findActivePlan(patientId))
@@ -234,7 +234,7 @@ class DailyRecordServiceImplTest {
                 () -> service.getOrCreateToday(patientId)
         );
 
-        verify(patientProfileService).findByUserId(patientId);
+        verify(patientProfileService).findById(1L);
         verify(nutritionPlanService).findActivePlan(patientId);
         verify(dailyRecordRepository, never()).save(any());
     }
@@ -748,7 +748,7 @@ class DailyRecordServiceImplTest {
         when(dailyRecordRepository.findByPatient_IdAndDate(patientId, today))
                 .thenReturn(Optional.empty());
 
-        when(patientProfileService.findByUserId(patientId))
+        when(patientProfileService.findById(patientId))
                 .thenReturn(patient);
 
         when(nutritionPlanService.findActivePlan(patientId))
@@ -804,7 +804,7 @@ class DailyRecordServiceImplTest {
         when(plan.getWeek())
                 .thenReturn(List.of(otherDay));
 
-        when(patientProfileService.findByUserId(patientId))
+        when(patientProfileService.findById(patientId))
                 .thenReturn(patient);
 
         when(nutritionPlanService.findActivePlan(patientId))
@@ -841,7 +841,7 @@ class DailyRecordServiceImplTest {
         when(dailyRecordRepository.findByPatient_IdAndDate(patientId, today))
                 .thenReturn(Optional.empty());
 
-        when(patientProfileService.findByUserId(patientId))
+        when(patientProfileService.findById(patientId))
                 .thenReturn(patient);
 
         when(nutritionPlanService.findActivePlan(patientId))

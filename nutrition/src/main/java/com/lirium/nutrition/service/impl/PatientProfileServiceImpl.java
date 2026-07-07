@@ -35,4 +35,11 @@ public class PatientProfileServiceImpl implements PatientProfileService {
         return PatientProfileMapper.toResponse(saved);
 
     }
+
+    @Override
+    public PatientProfile findById(Long patientId) {
+        return patientProfileRepository.findById(patientId)
+                .orElseThrow(() -> new ResourceNotFoundException("PatientProfile", patientId));
+    }
+
 }

@@ -37,66 +37,20 @@ class PatientSecurityTest {
 
     @Test
     void shouldReturnTrueWhenCurrentUserOwnsPatientProfile() {
-
-        User user = new User();
-        user.setId(1L);
-        user.setEmail("test@mail.com");
-
-        User owner = new User();
-        owner.setId(1L);
-
-        PatientProfile patient = new PatientProfile(owner);
-
-        when(authentication.getPrincipal()).thenReturn(userDetails);
-        when(userDetails.getUsername()).thenReturn("test@mail.com");
-
-        when(userRepository.findByEmail("test@mail.com"))
-                .thenReturn(Optional.of(user));
-
-        when(patientRepository.findById(10L))
-                .thenReturn(Optional.of(patient));
-
+        User principal = new User();
+        principal.setId(10L);
+        when(authentication.getPrincipal()).thenReturn(principal);
         assertTrue(patientSecurity.isOwner(10L, authentication));
     }
 
     @Test
     void shouldReturnFalseWhenCurrentUserDoesNotOwnPatientProfile() {
 
-        User user = new User();
-        user.setId(1L);
-
-        User owner = new User();
-        owner.setId(2L);
-
-        PatientProfile patient = new PatientProfile(owner);
-
-        when(authentication.getPrincipal()).thenReturn(userDetails);
-        when(userDetails.getUsername()).thenReturn("test@mail.com");
-
-        when(userRepository.findByEmail("test@mail.com"))
-                .thenReturn(Optional.of(user));
-
-        when(patientRepository.findById(10L))
-                .thenReturn(Optional.of(patient));
-
+        User principal = new User();
+        principal.setId(1L);
+        when(authentication.getPrincipal()).thenReturn(principal);
         assertFalse(patientSecurity.isOwner(10L, authentication));
+
     }
 
-    @Test
-    void shouldReturnFalseWhenPatientProfileDoesNotExist() {
-
-        User user = new User();
-        user.setId(1L);
-
-        when(authentication.getPrincipal()).thenReturn(userDetails);
-        when(userDetails.getUsername()).thenReturn("test@mail.com");
-
-        when(userRepository.findByEmail("test@mail.com"))
-                .thenReturn(Optional.of(user));
-
-        when(patientRepository.findById(10L))
-                .thenReturn(Optional.empty());
-
-        assertFalse(patientSecurity.isOwner(10L, authentication));
-    }
 }

@@ -28,25 +28,26 @@ public class DailyRecordController {
     private final AdherenceReportService adherenceReportService;
 
     @GetMapping("/today/{patientId}")
-    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or ( isAuthenticated()\n" +
-            "        and #patientId == authentication.principal.id)")
-    public ResponseEntity<DailyRecordResponseDTO> getOrCreateToday(@PathVariable Long patientId) {
+    @PreAuthorize("""
+        hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#patientId, authentication)
+        """)
+    public ResponseEntity<DailyRecordResponseDTO> getOrCreateToday(
+            @PathVariable Long patientId) {
 
         log.info("Fetching or creating daily record for patientId={}", patientId);
         DailyRecordResponseDTO response = dailyRecordService.getOrCreateToday(patientId);
         log.info("Daily record ready for patientId={}", patientId);
         return ResponseEntity.ok(response);
-
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or #patientId == authentication.principal.id")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordService.isDailyRecordOwnedByUser(#id, authentication.principal.id)")
     public ResponseEntity<DailyRecordResponseDTO> getById(@PathVariable Long id) {
         return ResponseEntity.ok(dailyRecordService.getById(id));
     }
 
     @GetMapping("/patient/{patientId}")
-    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or #patientId == authentication.principal.id")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#patientId, authentication)")
     public ResponseEntity<List<DailyRecordResponseDTO>> getByPatient(@PathVariable Long patientId) {
         return ResponseEntity.ok(dailyRecordService.getByPatient(patientId));
     }
@@ -94,7 +95,7 @@ public class DailyRecordController {
     }
 
     @GetMapping("/patient/{patientId}/adherence")
-    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or #patientId == authentication.principal.id")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#patientId, authentication)")
     public ResponseEntity<AdherenceReportDTO> getAdherence(
             @PathVariable Long patientId,
             @RequestParam LocalDate from,
@@ -108,7 +109,7 @@ public class DailyRecordController {
     }
 
     @GetMapping("/patient/{patientId}/nutrition-comparison")
-    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or #patientId == authentication.principal.id")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#patientId, authentication)")
     public ResponseEntity<NutritionComparisonReportDTO> getNutritionComparison(
             @PathVariable Long patientId,
             @RequestParam LocalDate from,

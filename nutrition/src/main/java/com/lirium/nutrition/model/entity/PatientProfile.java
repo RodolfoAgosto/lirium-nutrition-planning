@@ -25,6 +25,7 @@ public class PatientProfile extends Auditable {
     private Long id;
 
     @OneToOne(optional = false)
+    @MapsId
     @JoinColumn(name="user_id", unique = true, nullable = false)
     private User user;
 

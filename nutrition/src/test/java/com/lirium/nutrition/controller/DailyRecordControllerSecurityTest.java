@@ -2,7 +2,10 @@ package com.lirium.nutrition.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lirium.nutrition.dto.response.DailyRecordResponseDTO;
+import com.lirium.nutrition.infrastructure.security.PatientSecurity;
 import com.lirium.nutrition.model.entity.User;
+import com.lirium.nutrition.repository.PatientProfileRepository;
+import com.lirium.nutrition.repository.UserRepository;
 import com.lirium.nutrition.service.AdherenceReportService;
 import com.lirium.nutrition.service.DailyRecordService;
 import com.lirium.nutrition.infrastructure.security.JwtAuthenticationFilter; // Importalo
@@ -15,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -42,6 +46,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 classes = JwtAuthenticationFilter.class
         )
 )
+@Import({
+        PatientSecurity.class,
+        DailyRecordControllerSecurityTest.TestSecurityConfig.class
+})
 public class DailyRecordControllerSecurityTest {
 
     @Autowired
@@ -55,6 +63,16 @@ public class DailyRecordControllerSecurityTest {
 
     @MockBean
     private AdherenceReportService adherenceReportService;
+
+    @MockBean
+    private PatientSecurity patientSecurity;
+
+    @MockBean
+    private UserRepository userRepository;
+
+    @MockBean
+    private PatientProfileRepository patientProfileRepository;
+
 
     @TestConfiguration
     @EnableMethodSecurity // Requerido para procesar las expresiones SpEL de @PreAuthorize
@@ -153,6 +171,8 @@ public class DailyRecordControllerSecurityTest {
         User principal = mock(User.class);
 
         when(principal.getId()).thenReturn(loggedUserId);
+        when(patientSecurity.isOwner(eq(targetPatientId), any(Authentication.class)))
+                .thenReturn(false);
         when(principal.getUsername()).thenReturn("patient@test.com");
 
         mvc.perform(get("/api/daily-records/today/{patientId}", targetPatientId)

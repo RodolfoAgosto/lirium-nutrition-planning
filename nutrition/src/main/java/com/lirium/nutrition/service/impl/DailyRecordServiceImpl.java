@@ -33,6 +33,7 @@ public class DailyRecordServiceImpl implements DailyRecordService {
     private final PatientProfileService patientProfileService;
     private final NutritionPlanService nutritionPlanService;
     private final FoodService foodService;
+    private final MealRecordRepository mealRecordRepository;
 
     @Override
     @Transactional
@@ -46,7 +47,7 @@ public class DailyRecordServiceImpl implements DailyRecordService {
 
     private DailyRecordResponseDTO createTodayRecord(Long patientId, LocalDate today) {
 
-        PatientProfile patient = patientProfileService.findByUserId(patientId);
+        PatientProfile patient = patientProfileService.findById(patientId);
 
         // Si no tiene plan activo no puede registrar comidas
         NutritionPlan activePlan = nutritionPlanService.findActivePlan(patientId)
@@ -215,6 +216,31 @@ public class DailyRecordServiceImpl implements DailyRecordService {
                 .toList();
 
         return new NutritionComparisonReportDTO(from, to, days);
+    }
+
+    @Override
+    public boolean isDailyRecordOwnedByUser(Long dailyRecordId, Long userId) {
+        return dailyRecordRepository.findById(dailyRecordId)
+                .map(dailyRecord ->
+                        dailyRecord.getPatient()
+                                .getUser()
+                                .getId()
+                                .equals(userId)
+                )
+                .orElse(false);
+    }
+
+    @Override
+    public boolean isMealRecordOwnedByUser(Long mealRecordId, Long userId) {
+        return mealRecordRepository.findById(mealRecordId)
+                .map(mealRecord ->
+                        mealRecord.getDailyRecord()
+                                .getPatient()
+                                .getUser()
+                                .getId()
+                                .equals(userId)
+                )
+                .orElse(false);
     }
 
 }

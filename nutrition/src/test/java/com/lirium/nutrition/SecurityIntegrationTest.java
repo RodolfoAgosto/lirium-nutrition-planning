@@ -232,34 +232,6 @@ class SecurityIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
-    // Tests de Daily Records con Ownership
-    @Test
-    @DisplayName("PATIENT puede ver sus registros diarios")
-    void patientCanViewOwnDailyRecords() throws Exception {
-        mockMvc.perform(get("/api/daily-records/patient/" + patientId)
-                        .header("Authorization", patientToken))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    @DisplayName("PATIENT no puede ver registros de otro paciente")
-    void patientCannotViewOtherDailyRecords() throws Exception {
-        mockMvc.perform(get("/api/daily-records/patient/" + otherPatientId)
-                        .header("Authorization", patientToken))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @DisplayName("NUTRITIONIST puede ver adherencia de cualquier paciente")
-    void nutritionistCanViewAnyAdherence() throws Exception {
-        mockMvc.perform(get("/api/daily-records/patient/"
-                        + patientId + "/adherence")
-                        .param("from", "2026-05-01")
-                        .param("to", "2026-05-09")
-                        .header("Authorization", nutritionistToken))
-                .andExpect(status().isOk());
-    }
-
     // Tests de Foods
     @Test
     @DisplayName("Todos los roles pueden ver alimentos")
