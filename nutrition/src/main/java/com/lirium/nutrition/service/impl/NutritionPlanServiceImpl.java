@@ -17,7 +17,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-@Service
+@Service("nutritionPlanService")
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class NutritionPlanServiceImpl implements NutritionPlanService {
@@ -28,7 +28,7 @@ public class NutritionPlanServiceImpl implements NutritionPlanService {
     public NutritionPlanDetailDTO complete(Long id, CompleteNutritionPlanRequestDTO request) {
 
         NutritionPlan plan = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("NutritionPlan not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("NutritionPlan not found", id));
 
         plan.completeBasic(request.name(), request.description());
 

@@ -45,7 +45,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         // Public
-                        .requestMatchers("api/auth/**", "/oauth2/**","/login/oauth2/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/oauth2/**","/login/oauth2/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 
                         // Only ADMIN
@@ -60,7 +60,7 @@ public class SecurityConfig {
                         // ADMIN and NUTRITIONIST
                         .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "NUTRITIONIST")
                         .requestMatchers("/api/restrictions/**").hasAnyRole("ADMIN", "NUTRITIONIST")
-                        .requestMatchers("/plan-meals/**").hasAnyRole("ADMIN", "NUTRITIONIST")
+                        .requestMatchers("/api/plan-meals/**").hasAnyRole("ADMIN", "NUTRITIONIST")
                         .requestMatchers("/api/plan-food-portions/**").hasAnyRole("ADMIN", "NUTRITIONIST")
                         .requestMatchers("/api/nutrition-plan-templates/**").hasAnyRole("ADMIN", "NUTRITIONIST")
                         .requestMatchers(HttpMethod.POST, "/api/nutrition-plans/**").hasAnyRole("ADMIN", "NUTRITIONIST")

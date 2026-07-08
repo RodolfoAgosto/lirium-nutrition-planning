@@ -105,4 +105,19 @@ public class NutritionPlanTestDataFactory {
                         )
                 ));
     }
+
+    @Transactional
+    public NutritionPlan createDraftOnlyPlan(PatientProfile patient) {
+
+        NutritionPlan plan = NutritionPlan.generate(
+                GoalType.WEIGHT_MAINTENANCE,
+                2000,
+                120,
+                200,
+                70,
+                patient
+        );
+
+        return nutritionPlanRepository.save(plan);
+    }
 }

@@ -87,10 +87,9 @@ class NutritionPlanServiceImplTest {
                 () -> service.complete(planId, request)
         );
 
-        assertEquals(
-                "NutritionPlan not found",
-                ex.getMessage()
-        );
+        assertTrue(ex.getMessage().contains("NutritionPlan"));
+        assertTrue(ex.getMessage().contains("1"));
+
 
         verify(repository).findById(planId);
 
