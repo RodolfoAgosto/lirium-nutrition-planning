@@ -41,7 +41,7 @@ public class DailyRecordController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordService.isDailyRecordOwnedByUser(#id, authentication.principal.id)")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordServiceImpl.isDailyRecordOwnedByUser(#id, authentication.principal.id)")
     public ResponseEntity<DailyRecordResponseDTO> getById(@PathVariable Long id) {
         return ResponseEntity.ok(dailyRecordService.getById(id));
     }
@@ -53,7 +53,7 @@ public class DailyRecordController {
     }
 
     @PatchMapping("/meals/{mealRecordId}")
-    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordService.isMealRecordOwnedByUser(#mealRecordId, authentication.principal.id)")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordServiceImpl.isMealRecordOwnedByUser(#mealRecordId, authentication.principal.id)")
     public ResponseEntity<MealRecordResponseDTO> updateMeal(
             @PathVariable Long mealRecordId,
             @Valid @RequestBody MealRecordUpdateRequestDTO request) {
@@ -67,7 +67,7 @@ public class DailyRecordController {
     }
 
     @PostMapping("/meals/{mealRecordId}/portions")
-    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordService.isMealRecordOwnedByUser(#mealRecordId, authentication.principal.id)")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordServiceImpl.isMealRecordOwnedByUser(#mealRecordId, authentication.principal.id)")
     public ResponseEntity<MealRecordResponseDTO> addPortion(
             @PathVariable Long mealRecordId,
             @Valid @RequestBody FoodPortionAddRequestDTO request) {
@@ -81,7 +81,7 @@ public class DailyRecordController {
     }
 
     @DeleteMapping("/{dailyRecordId}/meals/{mealRecordId}/portions/{portionId}")
-    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordService.isDailyRecordOwnedByUser(#dailyRecordId, authentication.principal.id)")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordServiceImpl.isDailyRecordOwnedByUser(#dailyRecordId, authentication.principal.id)")
     public ResponseEntity<Void> removePortion(
             @PathVariable Long dailyRecordId,
             @PathVariable Long mealRecordId,

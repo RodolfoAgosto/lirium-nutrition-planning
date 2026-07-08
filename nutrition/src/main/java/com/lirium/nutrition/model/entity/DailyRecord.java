@@ -14,6 +14,15 @@ import java.util.Objects;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")
+@Table(
+        name = "daily_records",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_daily_record_patient_date",
+                        columnNames = {"patient_profile_id", "date"}
+                )
+        }
+)
 public class DailyRecord extends Auditable {
 
     @Id

@@ -6,10 +6,7 @@ import com.lirium.nutrition.infrastructure.security.OAuth2LoginSuccessHandler;
 import com.lirium.nutrition.model.entity.PatientProfile;
 import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.model.enums.Role;
-import com.lirium.nutrition.repository.FoodRepository;
-import com.lirium.nutrition.repository.PatientProfileRepository;
-import com.lirium.nutrition.repository.RefreshTokenRepository;
-import com.lirium.nutrition.repository.UserRepository;
+import com.lirium.nutrition.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -49,5 +46,8 @@ public abstract class AbstractIntegrationTest {
     RefreshTokenRepository refreshTokenRepository;
     @Autowired
     OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    @Autowired
+    DailyRecordRepository dailyRecordRepository;
+
 
 }
