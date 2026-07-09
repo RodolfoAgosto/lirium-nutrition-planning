@@ -39,7 +39,9 @@ public class PlanFoodPortionServiceImpl implements PlanFoodPortionService {
     public PlanFoodPortionResponseDTO getById(Long id) {
 
         PlanFoodPortion portion = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Food portion not found"));
+        .orElseThrow(() ->
+                new ResourceNotFoundException("Food portion not found",id)
+        );
 
         return PlanFoodPortionMapper.toResponse(portion);
     }
