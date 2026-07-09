@@ -1,9 +1,12 @@
 package com.lirium.nutrition.controller;
 
-import com.lirium.nutrition.dto.request.*;
-import com.lirium.nutrition.dto.response.*;
-
+import com.lirium.nutrition.dto.request.FoodPortionAddRequestDTO;
+import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateFoodRequestDTO;
+import com.lirium.nutrition.dto.request.PlanMealCreateRequestDTO;
+import com.lirium.nutrition.dto.response.PlanMealResponseDTO;
+import com.lirium.nutrition.dto.response.PlanMealSummaryDTO;
 import com.lirium.nutrition.service.PlanMealService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +32,7 @@ public class PlanMealController {
     }
 
     @PostMapping
-    public PlanMealResponseDTO create(@RequestBody PlanMealCreateRequestDTO dto) {
+    public PlanMealResponseDTO create(@Valid @RequestBody PlanMealCreateRequestDTO dto){
 
         log.info("Creating plan meal for dailyPlanDayId={}", dto.dailyPlanId());
         log.debug("PlanMeal create payload={}", dto);
