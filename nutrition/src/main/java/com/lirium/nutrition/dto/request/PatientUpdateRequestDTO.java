@@ -15,7 +15,7 @@ public record PatientUpdateRequestDTO(
         String email,
         String dni,
         Sex sex,
-        boolean enabled,
+        Boolean enabled,
         LocalDate birthDate,
         Integer height,
         Integer weight,

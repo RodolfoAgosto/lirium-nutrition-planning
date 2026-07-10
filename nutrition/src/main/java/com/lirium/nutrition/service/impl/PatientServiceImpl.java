@@ -91,26 +91,47 @@ public class PatientServiceImpl implements PatientService {
         log.info("Updating patient patientId={}", patientId);
 
         PatientProfile profile = patientProfileService.findByUserId(patientId);
-        Set<Restriction> restrictions = resolveRestrictions(request.restrictions());
+        Set<Restriction> restrictions = null;
+
+        if (request.restrictions() != null) {
+            restrictions = resolveRestrictions(request.restrictions());
+        }
 
         List<PhysiologicalCondition> physiologicalConditions =
                 request.physiologicalConditions();
 
         User user = profile.getUser();
 
-        user.setFirstName(request.firstName());
-        user.setLastName(request.lastName());
-        user.setEmail(request.email());
-        user.setBirthDate(request.birthDate());
-        user.setEnabled(request.enabled());
-        user.setEmailValidated(false);
-        user.setDni(request.dni());
+        if (request.firstName() != null) {
+            user.setFirstName(request.firstName());
+        }
+
+        if (request.lastName() != null) {
+            user.setLastName(request.lastName());
+        }
+
+        if (request.email() != null) {
+            user.setEmail(request.email());
+            user.setEmailValidated(false);
+        }
+
+        if (request.birthDate() != null) {
+            user.setBirthDate(request.birthDate());
+        }
+
+        if (request.dni() != null) {
+            user.setDni(request.dni());
+        }
+
+        if (request.enabled() != null) {
+            user.setEnabled(request.enabled());
+        }
 
         profile.update(
                 request.sex(),
                 request.activityLevel(),
-                Weight.of(request.weight()),
-                Height.of(request.height()),
+                request.weight() != null ? Weight.of(request.weight()) : null,
+                request.height() != null ? Height.of(request.height()) : null,
                 request.medicalNotes(),
                 restrictions,
                 physiologicalConditions,
