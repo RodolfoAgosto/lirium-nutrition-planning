@@ -1,8 +1,10 @@
 package com.lirium.nutrition.service.impl;
 
-import com.lirium.nutrition.dto.request.*;
+import com.lirium.nutrition.dto.request.RestrictionCatalogUpdateDTO;
+import com.lirium.nutrition.dto.request.RestrictionCreateRequestDTO;
 import com.lirium.nutrition.dto.response.RestrictionResponseDTO;
 import com.lirium.nutrition.dto.response.RestrictionSummaryDTO;
+import com.lirium.nutrition.exception.InvalidEnumValueException;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.RestrictionMapper;
 import com.lirium.nutrition.model.entity.Restriction;
@@ -54,7 +56,7 @@ public class RestrictionServiceImpl implements RestrictionService {
         restriction.setCode(dto.code());
         restriction.setName(dto.name());
         restriction.setDescription(dto.description());
-        restriction.setCategory(RestrictionCategory.valueOf(dto.category()));
+        restriction.setCategory(parseCategory(dto.category()));
 
         Restriction saved = restrictionRepository.save(restriction);
 
@@ -83,7 +85,7 @@ public class RestrictionServiceImpl implements RestrictionService {
         restriction.setCode(dto.code());
         restriction.setName(dto.name());
         restriction.setDescription(dto.description());
-        restriction.setCategory(RestrictionCategory.valueOf(dto.category()));
+        restriction.setCategory(parseCategory(dto.category()));
 
         restrictionRepository.save(restriction);
 
@@ -106,6 +108,17 @@ public class RestrictionServiceImpl implements RestrictionService {
     private Restriction getRestrictionOrThrow(Long id) {
         return restrictionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Restriction", id));
+    }
+
+    private RestrictionCategory parseCategory(String category) {
+
+        try {
+            return RestrictionCategory.valueOf(category);
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new InvalidEnumValueException(
+                    "Invalid restriction category: " + category
+            );
+        }
     }
 
 }
