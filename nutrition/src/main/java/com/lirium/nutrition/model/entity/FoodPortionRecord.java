@@ -1,10 +1,11 @@
 package com.lirium.nutrition.model.entity;
 
 import com.lirium.nutrition.model.enums.MeasureUnit;
-import com.lirium.nutrition.model.valueobject.Grams;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.Objects;
 
@@ -14,37 +15,37 @@ import java.util.Objects;
  * Quantity is expressed in Grams.
  */
 
-@Entity
-@Table(name = "food_portions")
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EqualsAndHashCode(of = "id")
-public class FoodPortionRecord extends AbstractFoodPortion{
+ @Entity
+ @Table(name = "food_portions")
+ @Getter
+ @NoArgsConstructor(access = AccessLevel.PROTECTED)
+ @EqualsAndHashCode(of = "id")
+ public class FoodPortionRecord extends AbstractFoodPortion{
 
-    @Id
-    @SequenceGenerator(
-            name = "food_portion_seq",
-            sequenceName = "food_portion_seq",
-            allocationSize = 1
-    )
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "food_portion_seq")
-    protected Long id;
+        @Id
+        @SequenceGenerator(
+                name = "food_portion_seq",
+                sequenceName = "food_portion_seq",
+                allocationSize = 1
+        )
+        @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "food_portion_seq")
+        protected Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "meal_id", nullable = false)
-    private MealRecord meal;
+        @ManyToOne(fetch = FetchType.LAZY, optional = false)
+        @JoinColumn(name = "meal_id", nullable = false)
+        private MealRecord meal;
 
 
-    private FoodPortionRecord(MealRecord meal, Food food, Double quantity , MeasureUnit unit) {
-        super(Objects.requireNonNull(food, "Food cannot be null"),
-                Objects.requireNonNull(quantity, "Cuantity cannot be null"),
-                Objects.requireNonNull(unit, "Grams cannot be null"));
-        this.meal = Objects.requireNonNull(meal, "Meal cannot be null");
-    }
+        private FoodPortionRecord(MealRecord meal, Food food, Double quantity , MeasureUnit unit) {
+            super(Objects.requireNonNull(food, "Food cannot be null"),
+                    Objects.requireNonNull(quantity, "Cuantity cannot be null"),
+                    Objects.requireNonNull(unit, "Grams cannot be null"));
+            this.meal = Objects.requireNonNull(meal, "Meal cannot be null");
+        }
 
-    public static FoodPortionRecord of(MealRecord mealPlan, Food food, Double quantity , MeasureUnit unit) {
-        return new FoodPortionRecord(mealPlan, food, quantity , unit);
-    }
+        public static FoodPortionRecord of(MealRecord mealPlan, Food food, Double quantity , MeasureUnit unit) {
+            return new FoodPortionRecord(mealPlan, food, quantity , unit);
+        }
 
-}
+ }
 

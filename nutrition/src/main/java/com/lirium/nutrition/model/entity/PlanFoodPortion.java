@@ -1,10 +1,11 @@
 package com.lirium.nutrition.model.entity;
 
 import com.lirium.nutrition.model.enums.MeasureUnit;
-import com.lirium.nutrition.model.valueobject.Grams;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.Objects;
 
@@ -50,7 +51,13 @@ public class PlanFoodPortion extends AbstractFoodPortion{
     }
 
     public void changeQuantity(Double quantity){
-        this.quantity = Objects.requireNonNull(quantity);
+
+        Objects.requireNonNull(quantity, "Quantity cannot be null");
+
+        if (quantity <= 0)
+            throw new IllegalArgumentException("Quantity must be positive");
+
+        this.quantity = quantity;
     }
 
     public void changeFood(Food food) {

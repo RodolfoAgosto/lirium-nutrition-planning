@@ -58,7 +58,12 @@ public class PlanMeal extends DateAuditable {
 
         Objects.requireNonNull(planFoodPortion, "The food portion cannot be null");
         boolean alreadyExists = foods.stream()
-                .anyMatch(p -> p.getFood().getId().equals(planFoodPortion.getFood().getId()));
+                .anyMatch(p ->
+                        Objects.equals(
+                                p.getFood().getId(),
+                                planFoodPortion.getFood().getId()
+                        )
+                );
         if (alreadyExists) return;
         foods.add(planFoodPortion);
         planFoodPortion.assignToMeal(this);
