@@ -271,10 +271,10 @@
 						<exclude>**/infrastructure/config/**</exclude>
 
 						<!-- model -->
-						<exclude>**/model/**</exclude>
+						<!-- <exclude>**/model/**</exclude> -->
 
 						<!--NutritionAplication (main)  -->
-						<exclude>**/NutritionApplication.class</exclude> -->
+						<exclude>**/NutritionApplication.class</exclude>
 
 						<!--<exclude>**/dataloader/**/*.class</exclude> -->
 					</excludes>
