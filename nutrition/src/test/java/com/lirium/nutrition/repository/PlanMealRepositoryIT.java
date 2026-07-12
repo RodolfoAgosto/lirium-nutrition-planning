@@ -16,11 +16,10 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @Import(JpaConfig.class)
-class PlanMealRepositoryTest {
+class PlanMealRepositoryIT {
 
     @Autowired
     private PlanMealRepository repository;

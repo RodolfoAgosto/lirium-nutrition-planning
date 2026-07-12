@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @Import(JpaConfig.class)
-class PatientProfileRepositoryTest {
+class PatientProfileRepositoryIT {
 
     @Autowired
     private PatientProfileRepository repository;

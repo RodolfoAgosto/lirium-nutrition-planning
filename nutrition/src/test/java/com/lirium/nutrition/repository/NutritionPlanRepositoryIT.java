@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @Import(JpaConfig.class)
-class NutritionPlanRepositoryTest {
+class NutritionPlanRepositoryIT {
 
     @Autowired
     private NutritionPlanRepository repository;

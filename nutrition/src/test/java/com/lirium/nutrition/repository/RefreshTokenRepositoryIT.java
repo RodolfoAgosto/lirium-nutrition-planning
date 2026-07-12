@@ -15,11 +15,10 @@ import java.time.Instant;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @Import(JpaConfig.class)
-class RefreshTokenRepositoryTest {
+class RefreshTokenRepositoryIT {
 
     @Autowired
     private RefreshTokenRepository repository;

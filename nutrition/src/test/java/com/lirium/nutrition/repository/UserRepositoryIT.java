@@ -12,11 +12,10 @@ import org.springframework.context.annotation.Import;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @Import(JpaConfig.class)
-class UserRepositoryTest {
+class UserRepositoryIT {
 
     @Autowired
     private UserRepository repository;

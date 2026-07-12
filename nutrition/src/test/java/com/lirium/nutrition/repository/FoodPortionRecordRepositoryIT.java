@@ -17,11 +17,10 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @EnableJpaAuditing
-class FoodPortionRecordRepositoryTest {
+class FoodPortionRecordRepositoryIT {
 
     @Autowired
     private FoodPortionRecordRepository repository;

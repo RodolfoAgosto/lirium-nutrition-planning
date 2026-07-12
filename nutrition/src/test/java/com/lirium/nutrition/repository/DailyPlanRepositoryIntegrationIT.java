@@ -19,7 +19,7 @@ import java.util.Set;
 
 @DataJpaTest
 @EnableJpaAuditing
-class DailyPlanRepositoryIntegrationTest {
+class DailyPlanRepositoryIntegrationIT {
 
     @Autowired
     private DailyPlanRepository repository;

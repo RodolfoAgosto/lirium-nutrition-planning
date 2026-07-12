@@ -14,11 +14,10 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @Import(JpaConfig.class)
-class RestrictionRepositoryTest {
+class RestrictionRepositoryIT {
 
     @Autowired
     private RestrictionRepository repository;
