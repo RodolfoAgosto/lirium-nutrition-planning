@@ -22,6 +22,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -211,46 +213,6 @@ class PlanFoodPortionServiceImplTest {
         verifyNoInteractions(foodRepository);
     }
 
-    private PlanFoodPortion mockPortion(PlanStatus status, FoodCategory category) {
-
-        NutritionPlan nutritionPlan = mock(NutritionPlan.class);
-        when(nutritionPlan.getStatus()).thenReturn(status);
-
-        DailyPlan dailyPlan = mock(DailyPlan.class);
-        when(dailyPlan.getNutritionPlan()).thenReturn(nutritionPlan);
-
-        PlanMeal meal = mock(PlanMeal.class);
-        when(meal.getDailyPlan()).thenReturn(dailyPlan);
-
-        Food food = mock(Food.class);
-        when(food.getCategory()).thenReturn(category);
-
-        PlanFoodPortion portion = mock(PlanFoodPortion.class);
-        when(portion.getMeal()).thenReturn(meal);
-        when(portion.getFood()).thenReturn(food);
-
-        return portion;
-    }
-
-    private PlanFoodPortion mockPortionWithStatus(PlanStatus status) {
-
-        NutritionPlan nutritionPlan = mock(NutritionPlan.class);
-        when(nutritionPlan.getStatus()).thenReturn(status);
-
-        DailyPlan dailyPlan = mock(DailyPlan.class);
-        when(dailyPlan.getNutritionPlan()).thenReturn(nutritionPlan);
-
-        PlanMeal meal = mock(PlanMeal.class);
-        when(meal.getDailyPlan()).thenReturn(dailyPlan);
-
-        Food food = mock(Food.class);
-
-        PlanFoodPortion portion = mock(PlanFoodPortion.class);
-        when(portion.getMeal()).thenReturn(meal);
-
-        return portion;
-    }
-
     @Test
     void shouldReturnEntityById() {
 
@@ -365,6 +327,193 @@ class PlanFoodPortionServiceImplTest {
             verify(portion).changeQuantity(250.0);
             verify(repository).save(portion);
         }
+    }
+
+    @Test
+    void shouldUpdateOnlyQuantityWhenPortionHasNoId() {
+
+        // Given
+        PlanFoodPortion portion = mock(PlanFoodPortion.class);
+
+        NutritionPlan nutritionPlan = mock(NutritionPlan.class);
+        when(nutritionPlan.getStatus()).thenReturn(PlanStatus.DRAFT);
+
+        DailyPlan dailyPlan = mock(DailyPlan.class);
+        when(dailyPlan.getNutritionPlan()).thenReturn(nutritionPlan);
+
+        PlanMeal meal = mock(PlanMeal.class);
+        when(meal.getDailyPlan()).thenReturn(dailyPlan);
+
+        Food food = mock(Food.class);
+        when(food.getId()).thenReturn(10L);
+
+        when(portion.getMeal()).thenReturn(meal);
+        when(portion.getFood()).thenReturn(food);
+        when(portion.getId()).thenReturn(null);
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(portion));
+
+        when(repository.save(portion))
+                .thenReturn(portion);
+
+        try (MockedStatic<PlanFoodPortionMapper> mapper =
+                     mockStatic(PlanFoodPortionMapper.class)) {
+
+            PlanFoodPortionResponseDTO response =
+                    mock(PlanFoodPortionResponseDTO.class);
+
+            mapper.when(() -> PlanFoodPortionMapper.toResponse(portion))
+                    .thenReturn(response);
+
+            // When
+            PlanFoodPortionResponseDTO result = service.update(
+                    1L,
+                    new PlanFoodPortionUpdateFoodRequestDTO(null, 250.0)
+            );
+
+            // Then
+            assertThat(result).isSameAs(response);
+
+            verify(foodRepository, never()).findById(anyLong());
+            verify(portion, never()).changeFood(any(Food.class));
+            verify(portion).changeQuantity(250.0);
+            verify(repository).save(portion);
+        }
+    }
+
+    @Test
+    void shouldNotChangeQuantityWhenQuantityIsNull() {
+
+        // Given
+        PlanFoodPortion portion = mock(PlanFoodPortion.class);
+
+        NutritionPlan nutritionPlan = mock(NutritionPlan.class);
+        when(nutritionPlan.getStatus()).thenReturn(PlanStatus.DRAFT);
+
+        DailyPlan dailyPlan = mock(DailyPlan.class);
+        when(dailyPlan.getNutritionPlan()).thenReturn(nutritionPlan);
+
+        PlanMeal meal = mock(PlanMeal.class);
+        when(meal.getDailyPlan()).thenReturn(dailyPlan);
+
+        Food food = mock(Food.class);
+        when(food.getId()).thenReturn(10L);
+
+        when(portion.getMeal()).thenReturn(meal);
+        when(portion.getFood()).thenReturn(food);
+        when(portion.getId()).thenReturn(null);
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(portion));
+
+        when(repository.save(portion))
+                .thenReturn(portion);
+
+        try (MockedStatic<PlanFoodPortionMapper> mapper =
+                     mockStatic(PlanFoodPortionMapper.class)) {
+
+            PlanFoodPortionResponseDTO response = mock(PlanFoodPortionResponseDTO.class);
+
+            mapper.when(() -> PlanFoodPortionMapper.toResponse(portion))
+                    .thenReturn(response);
+
+            // When
+            PlanFoodPortionResponseDTO result = service.update(
+                    1L,
+                    new PlanFoodPortionUpdateFoodRequestDTO(null, null)
+            );
+
+            // Then
+            assertThat(result).isSameAs(response);
+
+            verify(foodRepository, never()).findById(anyLong());
+            verify(portion, never()).changeFood(any(Food.class));
+            verify(portion, never()).changeQuantity(anyDouble());
+            verify(repository).save(portion);
+        }
+    }
+
+    @Test
+    void shouldFailUpdateWhenFoodNotFound() {
+
+        // Given
+        PlanFoodPortion portion = mock(PlanFoodPortion.class);
+
+        NutritionPlan nutritionPlan = mock(NutritionPlan.class);
+        when(nutritionPlan.getStatus()).thenReturn(PlanStatus.DRAFT);
+
+        DailyPlan dailyPlan = mock(DailyPlan.class);
+        when(dailyPlan.getNutritionPlan()).thenReturn(nutritionPlan);
+
+        PlanMeal meal = mock(PlanMeal.class);
+        when(meal.getDailyPlan()).thenReturn(dailyPlan);
+
+        Food currentFood = mock(Food.class);
+        when(currentFood.getId()).thenReturn(2L);
+
+        when(portion.getMeal()).thenReturn(meal);
+        when(portion.getFood()).thenReturn(currentFood);
+        when(portion.getId()).thenReturn(1L);
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(portion));
+
+        when(foodRepository.findById(2L))
+                .thenReturn(Optional.empty());
+
+        // When / Then
+        assertThatThrownBy(() ->
+                service.update(
+                        1L,
+                        new PlanFoodPortionUpdateFoodRequestDTO(null, null)
+                )
+        ).isInstanceOf(ResourceNotFoundException.class);
+
+        verify(repository, never()).save(any());
+        verify(portion, never()).changeFood(any());
+        verify(portion, never()).changeQuantity(anyDouble());
+    }
+
+
+    private PlanFoodPortion mockPortion(PlanStatus status, FoodCategory category) {
+
+        NutritionPlan nutritionPlan = mock(NutritionPlan.class);
+        when(nutritionPlan.getStatus()).thenReturn(status);
+
+        DailyPlan dailyPlan = mock(DailyPlan.class);
+        when(dailyPlan.getNutritionPlan()).thenReturn(nutritionPlan);
+
+        PlanMeal meal = mock(PlanMeal.class);
+        when(meal.getDailyPlan()).thenReturn(dailyPlan);
+
+        Food food = mock(Food.class);
+        when(food.getCategory()).thenReturn(category);
+
+        PlanFoodPortion portion = mock(PlanFoodPortion.class);
+        when(portion.getMeal()).thenReturn(meal);
+        when(portion.getFood()).thenReturn(food);
+
+        return portion;
+    }
+
+    private PlanFoodPortion mockPortionWithStatus(PlanStatus status) {
+
+        NutritionPlan nutritionPlan = mock(NutritionPlan.class);
+        when(nutritionPlan.getStatus()).thenReturn(status);
+
+        DailyPlan dailyPlan = mock(DailyPlan.class);
+        when(dailyPlan.getNutritionPlan()).thenReturn(nutritionPlan);
+
+        PlanMeal meal = mock(PlanMeal.class);
+        when(meal.getDailyPlan()).thenReturn(dailyPlan);
+
+        Food food = mock(Food.class);
+
+        PlanFoodPortion portion = mock(PlanFoodPortion.class);
+        when(portion.getMeal()).thenReturn(meal);
+
+        return portion;
     }
 
 

@@ -209,4 +209,175 @@ class NutritionPlanTemplateTest {
         )
                 .isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void shouldIgnoreNullNameOnUpdate() {
+
+        NutritionPlanTemplate template = NutritionPlanTemplate.of(
+                "Template",
+                "Description",
+                GoalType.WEIGHT_LOSS,
+                40,40,20,
+                null
+        );
+
+        template.update(
+                null,
+                "New Description",
+                GoalType.MUSCLE_GAIN,
+                null
+        );
+
+        assertThat(template.getName()).isEqualTo("Template");
+    }
+
+    @Test
+    void shouldIgnoreNullDescriptionOnUpdate() {
+
+        NutritionPlanTemplate template = NutritionPlanTemplate.of(
+                "Template",
+                "Description",
+                GoalType.WEIGHT_LOSS,
+                40,40,20,
+                null
+        );
+
+        template.update(
+                "New Name",
+                null,
+                GoalType.MUSCLE_GAIN,
+                null
+        );
+
+        assertThat(template.getDescription()).isEqualTo("Description");
+    }
+
+    @Test
+    void shouldRejectBlankNameOnUpdate() {
+
+        NutritionPlanTemplate template = NutritionPlanTemplate.of(
+                "Template",
+                "Description",
+                GoalType.WEIGHT_LOSS,
+                40,40,20,
+                null
+        );
+
+        assertThatThrownBy(() ->
+                template.update(
+                        "",
+                        "Description",
+                        GoalType.WEIGHT_LOSS,
+                        null
+                )
+        ).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void shouldRejectBlankDescriptionOnUpdate() {
+
+        NutritionPlanTemplate template = NutritionPlanTemplate.of(
+                "Template",
+                "Description",
+                GoalType.WEIGHT_LOSS,
+                40,40,20,
+                null
+        );
+
+        assertThatThrownBy(() ->
+                template.update(
+                        "Template",
+                        "",
+                        GoalType.WEIGHT_LOSS,
+                        null
+                )
+        ).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void shouldRejectNegativeCarbPercentage() {
+
+        assertThatThrownBy(() ->
+                NutritionPlanTemplate.of(
+                        "Template",
+                        "Description",
+                        GoalType.WEIGHT_LOSS,
+                        40,
+                        -1,
+                        61,
+                        null
+                )
+        ).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void shouldRejectNegativeFatPercentage() {
+
+        assertThatThrownBy(() ->
+                NutritionPlanTemplate.of(
+                        "Template",
+                        "Description",
+                        GoalType.WEIGHT_LOSS,
+                        40,
+                        61,
+                        -1,
+                        null
+                )
+        ).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void shouldRejectNullName() {
+
+        assertThatThrownBy(() ->
+                NutritionPlanTemplate.of(
+                        null,
+                        "Description",
+                        GoalType.WEIGHT_LOSS,
+                        40,
+                        40,
+                        20,
+                        null
+                )
+        )
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void shouldRejectNullDescription() {
+
+        assertThatThrownBy(() ->
+                NutritionPlanTemplate.of(
+                        "Template",
+                        null,
+                        GoalType.WEIGHT_LOSS,
+                        40,
+                        40,
+                        20,
+                        null
+                )
+        )
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void shouldRejectNegativeCarbOnUpdateMacros() {
+
+        NutritionPlanTemplate template = NutritionPlanTemplate.of(
+                "Template",
+                "Description",
+                GoalType.WEIGHT_LOSS,
+                40,
+                40,
+                20,
+                null
+        );
+
+        assertThatThrownBy(() ->
+                template.updateMacros(40, -1, 61)
+        )
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+
 }

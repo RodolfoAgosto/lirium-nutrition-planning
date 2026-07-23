@@ -196,9 +196,10 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 
-			<!-- JaCoCo -->
+			<!-- ===================================================== -->
+			<!-- Test Execution -->
+			<!-- ===================================================== -->
 
-			<!-- Ejecutor de Tests de Integración -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
@@ -212,22 +213,35 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<!-- ===================================================== -->
+			<!-- JaCoCo Coverage -->
+			<!-- ===================================================== -->
+
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.13</version>
 				<executions>
 					<execution>
+						<id>prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
 						<id>report</id>
-						<phase>test</phase>
+						<phase>verify</phase>
 						<goals>
 							<goal>report</goal>
 						</goals>
 						<configuration>
-							<title>Lirium Nutrition - Unit Test Coverage</title>
+							<title>Unit Test Coverage</title>
 						</configuration>
 					</execution>
-					<!-- Agente para integración -->
+					<!-- ========================= -->
+					<!-- Unit Test Coverage -->
+					<!-- ========================= -->
 					<execution>
 						<id>prepare-agent-integration</id>
 						<goals>
@@ -237,7 +251,9 @@
 							<destFile>${project.build.directory}/jacoco-integration.exec</destFile>
 						</configuration>
 					</execution>
-					<!-- Reporte integración -->
+					<!-- ========================= -->
+					<!-- Integration Test Coverage -->
+					<!-- ========================= -->
 					<execution>
 						<id>report-integration</id>
 						<phase>verify</phase>
@@ -245,7 +261,7 @@
 							<goal>report-integration</goal>
 						</goals>
 						<configuration>
-							<title>Lirium Nutrition - Integration Test Coverage</title>
+							<title>Integration Test Coverage</title>
 							<dataFile>${project.build.directory}/jacoco-integration.exec</dataFile>
 							<outputDirectory>${project.reporting.outputDirectory}/jacoco-integration</outputDirectory>
 							<includes>
@@ -256,7 +272,9 @@
 							</includes>
 						</configuration>
 					</execution>
-					<!-- Reporte fusionado -->
+					<!-- ========================= -->
+					<!-- Overall Test Coverage -->
+					<!-- ========================= -->
 					<execution>
 						<id>merge-results</id>
 						<phase>verify</phase>
@@ -283,13 +301,15 @@
 							<goal>report</goal>
 						</goals>
 						<configuration>
-							<title>Lirium Nutrition - Overall Test Coverage</title>
+							<title>Overall Test Coverage</title>
 							<dataFile>${project.build.directory}/jacoco-merged.exec</dataFile>
 							<outputDirectory>${project.reporting.outputDirectory}/jacoco-merged</outputDirectory>
 						</configuration>
 					</execution>
 				</executions>
-
+				<!-- ========================= -->
+				<!-- Global Configuration -->
+				<!-- ========================= -->
 				<configuration>
 					<excludes>
 
@@ -318,6 +338,126 @@
 
 					</excludes>
 				</configuration>
+			</plugin>
+			<!-- ===================================================== -->
+			<!-- JaCoCo Report Customization -->
+			<!-- ===================================================== -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.3.1</version>
+				<executions>
+					<execution>
+						<id>copy-lirium-logo</id>
+						<!-- Nos aseguramos de correr en la fase post-integration-test para que las carpetas ya existan -->
+						<phase>verify</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.reporting.outputDirectory}</outputDirectory>
+							<resources>
+								<!-- Copiamos el SVG a las carpetas de recursos de JaCoCo -->
+								<resource>
+									<directory>docs/images</directory>
+									<includes>
+										<include>lirium-logo-light.svg</include>
+									</includes>
+									<targetPath>jacoco/jacoco-resources</targetPath>
+								</resource>
+								<resource>
+									<directory>docs/images</directory>
+									<includes>
+										<include>lirium-logo-light.svg</include>
+									</includes>
+									<targetPath>jacoco-integration/jacoco-resources</targetPath>
+								</resource>
+								<resource>
+									<directory>docs/images</directory>
+									<includes>
+										<include>lirium-logo-light.svg</include>
+									</includes>
+									<targetPath>jacoco-merged/jacoco-resources</targetPath>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Modificar el CSS de JaCoCo automáticamente para mostrar el logo y mejorar el Layout -->
+			<plugin>
+				<groupId>com.google.code.maven-replacer-plugin</groupId>
+				<artifactId>replacer</artifactId>
+				<version>1.5.3</version>
+				<executions>
+					<execution>
+						<id>inject-custom-css-and-logo</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>replace</goal>
+						</goals>
+						<configuration>
+							<basedir>${project.reporting.outputDirectory}</basedir>
+							<includes>
+								<include>**/jacoco-resources/report.css</include>
+							</includes>
+							<replacements>
+								<!-- Buscamos el estilo del body original y le inyectamos la tipografía moderna -->
+								<replacement>
+									<token>body \{</token>
+									<value>body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif !important;</value>
+								</replacement>
+								<!-- Buscamos la clase .breadcrumb (la cabecera del reporte) e inyectamos el logo -->
+								<replacement>
+									<token>\.breadcrumb \{</token>
+									<value>.breadcrumb {
+										display: flex;
+										align-items: center;
+										min-height: 90px;
+										padding: 15px 30px;
+										background-image: url('lirium-logo-light.svg') !important;
+										background-repeat: no-repeat !important;
+										background-position: 25px center !important;
+										background-size: 330px auto !important;
+										padding-left: 350px !important;
+										min-height: 100px;
+										font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif !important;
+									</value>
+								</replacement>
+								<replacement>
+									<token>\.el_session \{</token>
+									<value>.el_session {
+										display: none !important;
+									</value>
+								</replacement>
+								<replacement>
+									<token>\.el_report \{</token>
+									<value>.el_report {
+										background: none !important;
+										padding-left: 0 !important;
+										font-size: 28px !important;
+										font-weight: 600 !important;
+										color: #111 !important;
+									</value>
+								</replacement>
+								<replacement>
+									<token>h1 \{</token>
+									<value>h1 {
+										display: none !important;
+									</value>
+								</replacement>
+								<replacement>
+									<token>body \{</token>
+									<value>body {
+										font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif !important;
+										margin-top: 10px;
+									</value>
+								</replacement>
+							</replacements>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
