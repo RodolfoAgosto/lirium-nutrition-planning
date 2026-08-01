@@ -1,9 +1,12 @@
 package com.lirium.nutrition.model.valueobject;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 @Embeddable
-public record Weight(int grams) {
+public record Weight(
+        @Column(name = "grams")
+        int grams) {
 
     private static final int MIN_WEIGHT_GR = 300;
     private static final int MAX_WEIGHT_GR = 300_000;

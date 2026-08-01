@@ -1,11 +1,15 @@
 package com.lirium.nutrition.model.valueobject;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 import java.util.Objects;
 
 @Embeddable
-public record Calories(int amount) {
+public record Calories(
+        @Column(name = "calories")
+        int amount
+) {
 
     private static final int MIN_CALORIES = 0;
     private static final int MAX_CALORIES = 200000;

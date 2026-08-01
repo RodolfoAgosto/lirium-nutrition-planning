@@ -1,11 +1,14 @@
 package com.lirium.nutrition.model.valueobject;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 import java.util.Objects;
 
 @Embeddable
-public record Protein(int grams) {
+public record Protein(
+        @Column(name = "grams")
+        int grams) {
 
     public Protein {
         if (grams < 0) {

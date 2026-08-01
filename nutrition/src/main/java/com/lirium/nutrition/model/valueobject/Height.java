@@ -1,9 +1,12 @@
 package com.lirium.nutrition.model.valueobject;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 @Embeddable
-public record Height(int cm) {
+public record Height(
+        @Column(name = "height")
+        int cm) {
 
     private static final int MIN_HEIGHT = 30;
     private static final int MAX_HEIGHT = 250;
