@@ -5,10 +5,15 @@ import com.lirium.nutrition.model.enums.FoodTag;
 import com.lirium.nutrition.model.enums.MealType;
 import com.lirium.nutrition.model.enums.MeasureUnit;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Food catalog entity with nutritional values per 100g.
@@ -31,29 +36,32 @@ public class Food extends DateAuditable{
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "food_seq")
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 120)
+    @Column(nullable = false, unique = true, length = 120, name = "name")
     private String name;
 
+    @Column(name = "density")
     private Double density;
 
+    @Column(name = "unit_weight")
     private Double unitWeight;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "calories_per_100g")
     private Integer caloriesPer100g;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "protein_per_100g")
     private Integer proteinPer100g;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "carbs_per_100g")
     private Integer carbsPer100g;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "fat_per_100g")
     private Integer fatPer100g;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "category", nullable = false)
     private FoodCategory category;
 
+    @Column(name = "default_unit")
     private MeasureUnit defaultUnit;
 
     @ElementCollection(fetch = FetchType.LAZY)
@@ -69,8 +77,12 @@ public class Food extends DateAuditable{
     @CollectionTable(
             name = "food_tags",
             joinColumns = @JoinColumn(name = "food_id"),
-            uniqueConstraints = @UniqueConstraint(columnNames = {"food_id", "tag"})
+            uniqueConstraints = @UniqueConstraint(
+                name = "uk_food_tags_food_tag",
+                columnNames = {"food_id", "tag"}
+            )
     )
+
     @Enumerated(EnumType.STRING)
     @Column(name = "tag")
     private Set<FoodTag> foodTags = new HashSet<>();

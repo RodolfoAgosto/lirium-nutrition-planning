@@ -32,7 +32,7 @@ public class PlanFoodPortion extends AbstractFoodPortion{
     protected Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "meal_id", nullable = false)
+    @JoinColumn(name = "plan_meal_id", nullable = false)
     private PlanMeal meal;
 
     private PlanFoodPortion(PlanMeal meal, Food food, Double quantity ,MeasureUnit unit) {

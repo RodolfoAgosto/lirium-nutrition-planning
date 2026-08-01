@@ -38,7 +38,7 @@ public class DailyRecordMapper {
                 portion.getId(),
                 portion.getFood().getName(),
                 portion.getQuantity(),
-                portion.getUnit(),
+                portion.getMeasureUnit(),
                 (int)(portion.getFood().getCaloriesPer100g() * grams / 100),
                 (int)(portion.getFood().getProteinPer100g()  * grams / 100),
                 (int)(portion.getFood().getCarbsPer100g()    * grams / 100),

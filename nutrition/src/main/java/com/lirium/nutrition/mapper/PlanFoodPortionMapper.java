@@ -1,10 +1,12 @@
 package com.lirium.nutrition.mapper;
 
-import com.lirium.nutrition.dto.request.*;
-import com.lirium.nutrition.dto.response.*;
-import com.lirium.nutrition.model.entity.*;
-import com.lirium.nutrition.model.enums.MeasureUnit;
-import com.lirium.nutrition.model.valueobject.Grams;
+import com.lirium.nutrition.dto.request.FoodPortionAddRequestDTO;
+import com.lirium.nutrition.dto.request.PlanFoodPortionCreateRequestDTO;
+import com.lirium.nutrition.dto.response.PlanFoodPortionResponseDTO;
+import com.lirium.nutrition.dto.response.PlanFoodPortionSummaryDTO;
+import com.lirium.nutrition.model.entity.Food;
+import com.lirium.nutrition.model.entity.PlanFoodPortion;
+import com.lirium.nutrition.model.entity.PlanMeal;
 
 public class PlanFoodPortionMapper {
 
@@ -20,7 +22,7 @@ public class PlanFoodPortionMapper {
                 entity.getFood().getId(),
                 entity.getFood().getName(),
                 entity.getQuantity(),
-                entity.getUnit()
+                entity.getMeasureUnit()
         );
     }
 
@@ -30,7 +32,7 @@ public class PlanFoodPortionMapper {
                 entity.getId(),
                 entity.getFood().getId(),
                 entity.getQuantity(),
-                entity.getUnit()
+                entity.getMeasureUnit()
                 );
     }
 

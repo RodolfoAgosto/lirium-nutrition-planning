@@ -13,10 +13,10 @@ import java.time.LocalDateTime;
 public abstract class DateAuditable {
 
     @org.springframework.data.annotation.CreatedDate
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false, name = "created_at")
     private LocalDateTime createdAt;
 
     @org.springframework.data.annotation.LastModifiedDate
-    @Column(nullable = false)
+    @Column(nullable = false, name = "updated_at")
     private LocalDateTime updatedAt;
 }

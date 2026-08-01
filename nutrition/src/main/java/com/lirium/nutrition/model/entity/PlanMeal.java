@@ -25,22 +25,23 @@ import java.util.Objects;
 public class PlanMeal extends DateAuditable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @SequenceGenerator(
             name = "plan_meal_seq",
             sequenceName = "plan_meal_seq",
             allocationSize = 1
     )
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "plan_meal_seq")
     private Long id;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "meal_type", nullable = false)
     private MealType type;
 
     @OneToMany(mappedBy = "meal", fetch = FetchType.LAZY, orphanRemoval = true , cascade = CascadeType.ALL)
     private List<PlanFoodPortion> foods = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "daily_plan_id")
+    @JoinColumn(name = "daily_plan_id", nullable = false)
     private DailyPlan dailyPlan;
 
     private PlanMeal(MealType mealType, DailyPlan dailyPlan){

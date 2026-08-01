@@ -15,12 +15,12 @@ import java.util.Objects;
  * Quantity is expressed in Grams.
  */
 
- @Entity
- @Table(name = "food_portions")
- @Getter
- @NoArgsConstructor(access = AccessLevel.PROTECTED)
- @EqualsAndHashCode(of = "id")
- public class FoodPortionRecord extends AbstractFoodPortion{
+@Entity
+@Table(name = "food_portion_records")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EqualsAndHashCode(of = "id")
+public class FoodPortionRecord extends AbstractFoodPortion{
 
         @Id
         @SequenceGenerator(
@@ -29,16 +29,15 @@ import java.util.Objects;
                 allocationSize = 1
         )
         @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "food_portion_seq")
-        protected Long id;
+        private Long id;
 
         @ManyToOne(fetch = FetchType.LAZY, optional = false)
-        @JoinColumn(name = "meal_id", nullable = false)
+        @JoinColumn(name = "meal_record_id", nullable = false)
         private MealRecord meal;
-
 
         private FoodPortionRecord(MealRecord meal, Food food, Double quantity , MeasureUnit unit) {
             super(Objects.requireNonNull(food, "Food cannot be null"),
-                    Objects.requireNonNull(quantity, "Cuantity cannot be null"),
+                    Objects.requireNonNull(quantity, "Quantity cannot be null"),
                     Objects.requireNonNull(unit, "Grams cannot be null"));
             this.meal = Objects.requireNonNull(meal, "Meal cannot be null");
         }
@@ -47,5 +46,4 @@ import java.util.Objects;
             return new FoodPortionRecord(mealPlan, food, quantity , unit);
         }
 
- }
-
+}

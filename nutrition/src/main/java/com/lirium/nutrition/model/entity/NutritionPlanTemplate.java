@@ -16,6 +16,7 @@ import java.util.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")
+@Table(name = "nutrition_plan_template")
 public class NutritionPlanTemplate extends Auditable {
 
     @Id
@@ -27,21 +28,32 @@ public class NutritionPlanTemplate extends Auditable {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "nutrition_plan_template_seq")
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, name = "name")
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "description")
     private String description;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "target_goal")
     private GoalType targetGoal;
 
+    @Column(name = "protein_percentage", nullable = false)
     private int proteinPercentage;
+
+    @Column(name = "carb_percentage", nullable = false)
     private int carbPercentage;
+
+    @Column(name = "fat_percentage", nullable = false)
     private int fatPercentage;
 
-    @ElementCollection(targetClass = FoodTag.class)
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(
+            name = "nutrition_plan_excluded_tags",
+            joinColumns = @JoinColumn(name = "nutrition_plan_id")
+    )
     @Enumerated(EnumType.STRING)
+    @Column(name = "food_tag")
     private Set<FoodTag> excludedTags = new HashSet<>();
 
     public Set<FoodTag> getExcludedTags() {

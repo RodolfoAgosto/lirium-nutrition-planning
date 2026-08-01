@@ -5,9 +5,11 @@ import com.lirium.nutrition.model.enums.PhysiologicalCondition;
 import com.lirium.nutrition.model.valueobject.Height;
 import com.lirium.nutrition.model.valueobject.Weight;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Objects;
@@ -21,7 +23,7 @@ import java.util.Set;
  */
 
 @Entity
-@Table(name = "patient_profile_history")
+@Table(name = "patient_profile_histories")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")
@@ -35,18 +37,21 @@ public class PatientProfileHistory {
     @JoinColumn(name = "patient_profile_id", nullable = false)
     private PatientProfile patientProfile;
 
+    @Column(name = "visit_date", nullable = false)
     private LocalDate visitDate;
 
+    @Embedded
     private Weight weight;
 
+    @Embedded
     private Height height;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "medical_notes", columnDefinition = "TEXT")
     private String medicalNotes;
 
     @ManyToMany
     @JoinTable(
-            name = "patient_profile_history_restriction",
+            name = "patient_profile_history_restrictions",
             joinColumns = @JoinColumn(name = "history_id"),
             inverseJoinColumns = @JoinColumn(name = "restriction_id")
     )
@@ -55,13 +60,14 @@ public class PatientProfileHistory {
     @ElementCollection(targetClass = PhysiologicalCondition.class)
     @Enumerated(EnumType.STRING)
     @CollectionTable(
-            name = "patient_history_conditions",
-            joinColumns = @JoinColumn(name = "patient_history_id")
+            name = "patient_profile_history_conditions",
+            joinColumns = @JoinColumn(name = "patient_profile_history_id")
     )
-    @Column(name = "condition")
+    @Column(name = "physiological_condition")
     private Set<PhysiologicalCondition> physiologicalConditions = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "primary_goal")
     private GoalType primaryGoal;
 
     public PatientProfileHistory(PatientProfile patientProfile) {

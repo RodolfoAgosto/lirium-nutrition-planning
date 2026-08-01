@@ -20,27 +20,32 @@ public class User extends Auditable implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
+    @Column(name = "email", nullable = false, unique = true, length = 100)
     private String passwordHash;
 
-    @Column(length = 60)
+    @Column(name = "first_name", length = 60)
     private String firstName;
 
-    @Column(length = 60)
+    @Column(name = "last_name", length = 60)
     private String lastName;
 
+    @Column(name = "birth_date")
     private LocalDate birthDate;
 
-    @Column(unique = true, length = 20)
+    @Column(name = "dni", unique = true, length = 20)
     private String dni;
 
+    @Column(name = "email_validated", nullable = false)
     private Boolean emailValidated = false;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
     private Role role;
 
+    @Column(name = "enabled", nullable = false)
     private boolean enabled = true;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

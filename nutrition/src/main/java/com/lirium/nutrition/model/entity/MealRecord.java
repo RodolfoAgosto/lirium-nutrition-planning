@@ -2,14 +2,18 @@ package com.lirium.nutrition.model.entity;
 
 import com.lirium.nutrition.model.enums.MealType;
 import com.lirium.nutrition.model.enums.MeasureUnit;
-import com.lirium.nutrition.model.valueobject.Grams;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -22,6 +26,7 @@ import java.util.stream.Collectors;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")
+@Table(name = "meal_records")
 public class MealRecord extends DateAuditable {
 
     @Id
@@ -34,16 +39,19 @@ public class MealRecord extends DateAuditable {
     private Long id;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "meal_type", nullable = false)
     private MealType type;
 
     @OneToMany(mappedBy = "meal",cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<FoodPortionRecord> foods = new ArrayList<>();
 
+    @Column(name = "overridden", nullable = false)
     private boolean overridden;
 
-    @Column(length = 500)
+    @Column(name = "notes", length = 500)
     private String notes;
 
+    @Column(name = "eaten_at", nullable = false)
     private LocalDateTime eatenAt;
 
     // Creates a record linked to a plan. Initially, 'overriden' is false as it follows the prescription.
@@ -60,7 +68,7 @@ public class MealRecord extends DateAuditable {
         this.dailyRecord = dailyRecord;
         this.overridden = false;
         this.foods = planMeal.getFoods().stream()
-                .map(food -> FoodPortionRecord.of(this, food.getFood(), food.getQuantity(), food.getUnit()))
+                .map(food -> FoodPortionRecord.of(this, food.getFood(), food.getQuantity(), food.getMeasureUnit()))
                 .collect(Collectors.toList());
     }
 

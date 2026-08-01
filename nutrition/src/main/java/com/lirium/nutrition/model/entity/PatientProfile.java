@@ -18,6 +18,7 @@ import java.util.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")
+@Table(name = "patient_profile")
 public class PatientProfile extends Auditable {
 
     @Id
@@ -30,9 +31,11 @@ public class PatientProfile extends Auditable {
     private User user;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "sex", nullable = false)
     private Sex sex;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "activity_level", nullable = false)
     private ActivityLevel activityLevel;
 
     @Embedded
@@ -41,13 +44,13 @@ public class PatientProfile extends Auditable {
     @Embedded
     private Height height;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "medical_notes", columnDefinition = "TEXT")
     private String medicalNotes;
 
     @ManyToMany
     @JoinTable(
             name = "patient_profile_restriction",
-            joinColumns = @JoinColumn(name = "patient_id"),
+            joinColumns = @JoinColumn(name = "patient_profile_id"),
             inverseJoinColumns = @JoinColumn(name = "restriction_id")
     )
     private Set<Restriction> restrictions = new HashSet<>();
@@ -58,9 +61,12 @@ public class PatientProfile extends Auditable {
 
     @ElementCollection
     @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "patient_profile_physiological_conditions", joinColumns = @JoinColumn(name = "patient_profile_id"))
+    @Column(name = "physiological_condition")
     private Set<PhysiologicalCondition> physiologicalConditions = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "primary_goal")
     private GoalType primaryGoal;
 
     @OneToMany(mappedBy = "patientProfile", cascade = CascadeType.ALL)

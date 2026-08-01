@@ -1,10 +1,16 @@
 package com.lirium.nutrition.model.entity;
 
-import com.lirium.nutrition.model.enums.MealType;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.time.DayOfWeek;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a day within a NutritionPlan aggregate.
@@ -32,7 +38,7 @@ public class DailyPlan {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, name = "day_of_week")
     private DayOfWeek dayOfWeek;
 
     @OneToMany(

@@ -1,9 +1,10 @@
 package com.lirium.nutrition.mapper;
 
-import com.lirium.nutrition.dto.request.*;
 import com.lirium.nutrition.dto.response.*;
-import com.lirium.nutrition.model.entity.*;
-import com.lirium.nutrition.model.enums.GoalType;
+import com.lirium.nutrition.model.entity.DailyPlan;
+import com.lirium.nutrition.model.entity.NutritionPlan;
+import com.lirium.nutrition.model.entity.PlanFoodPortion;
+import com.lirium.nutrition.model.entity.PlanMeal;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -49,11 +50,11 @@ public class NutritionPlanMapper {
     }
 
     private static PlanFoodPortionDetailDTO toPlanFoodPortionDetail(PlanFoodPortion portion) {
-        double grams = portion.getFood().toGrams(portion.getQuantity(), portion.getUnit());
+        double grams = portion.getFood().toGrams(portion.getQuantity(), portion.getMeasureUnit());
         return new PlanFoodPortionDetailDTO(
                 portion.getFood().getName(),
                 portion.getQuantity(),
-                portion.getUnit(),
+                portion.getMeasureUnit(),
                 (int)(portion.getFood().getCaloriesPer100g() * grams / 100),
                 (int)(portion.getFood().getProteinPer100g()  * grams / 100),
                 (int)(portion.getFood().getCarbsPer100g()    * grams / 100),

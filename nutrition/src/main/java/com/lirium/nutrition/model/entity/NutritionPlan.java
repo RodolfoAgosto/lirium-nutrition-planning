@@ -37,21 +37,29 @@ public class NutritionPlan extends Auditable{
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "status", nullable = false)
     private PlanStatus status;
 
+    @Column(name = "start_date")
     private LocalDate startDate;
 
+    @Column(name = "end_date")
     private LocalDate endDate;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "target_goal")
     private GoalType targetGoal;
 
+    @Column(name = "daily_calories", nullable = false)
     private int dailyCalories;
 
+    @Column(name = "protein_grams", nullable = false)
     private int proteinGrams;
 
+    @Column(name = "carb_grams", nullable = false)
     private int carbGrams;
 
+    @Column(name = "fat_grams", nullable = false)
     private int fatGrams;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

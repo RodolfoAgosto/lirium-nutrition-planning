@@ -11,17 +11,19 @@ import lombok.Getter;
 public abstract class Auditable {
 
     @org.springframework.data.annotation.CreatedDate
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false, name="created_at")
     private java.time.LocalDateTime createdAt;
 
     @org.springframework.data.annotation.LastModifiedDate
-    @Column(nullable = false)
+    @Column(nullable = false, name="updated_at")
     private java.time.LocalDateTime updatedAt;
 
     @org.springframework.data.annotation.CreatedBy
-    @Column(updatable = false)
+    @Column(updatable = false, name="created_by")
     private String createdBy;
 
     @org.springframework.data.annotation.LastModifiedBy
+    @Column(name="updated_by")
     private String updatedBy;
+
 }

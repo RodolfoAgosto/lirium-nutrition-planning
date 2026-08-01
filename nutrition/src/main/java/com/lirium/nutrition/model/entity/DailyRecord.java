@@ -31,10 +31,14 @@ public class DailyRecord extends Auditable {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "patient_profile_id", nullable = false)
+    @JoinColumn(
+            name = "patient_profile_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_daily_record_patient_profile")
+    )
     private PatientProfile patient;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "record_date")
     private LocalDate date;
 
     @OneToMany(mappedBy = "dailyRecord", cascade = CascadeType.ALL, orphanRemoval = true)
