@@ -31,11 +31,11 @@ public class PatientProfile extends Auditable {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "sex", nullable = false)
+    @Column(name = "sex")
     private Sex sex;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "activity_level", nullable = false)
+    @Column(name = "activity_level")
     private ActivityLevel activityLevel;
 
     @Embedded

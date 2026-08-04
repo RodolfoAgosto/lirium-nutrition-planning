@@ -47,18 +47,19 @@ public class NutritionPlanTemplate extends Auditable {
     @Column(name = "fat_percentage", nullable = false)
     private int fatPercentage;
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(
-            name = "nutrition_plan_excluded_tags",
-            joinColumns = @JoinColumn(name = "nutrition_plan_id")
-    )
-    @Enumerated(EnumType.STRING)
-    @Column(name = "food_tag")
-    private Set<FoodTag> excludedTags = new HashSet<>();
-
     public Set<FoodTag> getExcludedTags() {
         return Set.copyOf(excludedTags);
     }
+
+    @ElementCollection
+    @Enumerated(EnumType.STRING)
+    @CollectionTable(
+            name = "nutrition_plan_template_excluded_tags",
+            joinColumns = @JoinColumn(name = "nutrition_plan_template_id")
+    )
+    @Column(name = "food_tag")
+    private Set<FoodTag> excludedTags = new HashSet<>();
+
 
     public static NutritionPlanTemplate of(
             String name,

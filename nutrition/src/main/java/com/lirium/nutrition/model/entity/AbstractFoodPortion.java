@@ -63,4 +63,8 @@ public abstract class AbstractFoodPortion {
         return  new Protein((int)(food.getProteinPer100g() * food.toGrams(this.getQuantity(), this.getMeasureUnit()) / 100));
     }
 
+    public MeasureUnit getUnit() {
+        return measureUnit;
+    }
+
 }

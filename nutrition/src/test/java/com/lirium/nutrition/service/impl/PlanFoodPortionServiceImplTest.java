@@ -71,10 +71,8 @@ class PlanFoodPortionServiceImplTest {
         when(food.getName()).thenReturn("Rice");
 
         when(portion1.getQuantity()).thenReturn(100.0);
-        when(portion1.getUnit()).thenReturn(MeasureUnit.GRAM);
 
         when(portion2.getQuantity()).thenReturn(200.0);
-        when(portion2.getUnit()).thenReturn(MeasureUnit.GRAM);
 
         // When
         var result = service.getByPlanMeal(1L);
@@ -120,7 +118,7 @@ class PlanFoodPortionServiceImplTest {
         when(portion.getMeal()).thenReturn(meal);
         when(portion.getFood()).thenReturn(food);
         when(portion.getQuantity()).thenReturn(100.0);
-        when(portion.getUnit()).thenReturn(MeasureUnit.GRAM);
+        when(portion.getMeasureUnit()).thenReturn(MeasureUnit.GRAM);
 
         when(repository.save(any(PlanFoodPortion.class)))
                 .thenReturn(portion);

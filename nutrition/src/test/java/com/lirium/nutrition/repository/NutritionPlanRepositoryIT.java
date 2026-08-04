@@ -1,8 +1,12 @@
 package com.lirium.nutrition.repository;
 
 import com.lirium.nutrition.infrastructure.config.JpaConfig;
-import com.lirium.nutrition.model.entity.*;
-import com.lirium.nutrition.model.enums.*;
+import com.lirium.nutrition.model.entity.NutritionPlan;
+import com.lirium.nutrition.model.entity.PatientProfile;
+import com.lirium.nutrition.model.entity.User;
+import com.lirium.nutrition.model.enums.GoalType;
+import com.lirium.nutrition.model.enums.PlanStatus;
+import com.lirium.nutrition.model.enums.Role;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -12,6 +16,7 @@ import org.springframework.context.annotation.Import;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -146,7 +151,7 @@ class NutritionPlanRepositoryIT {
 
         User user = new User(
                 "test@mail.com",
-                "pass",
+                UUID.randomUUID().toString(),
                 "Juan",
                 "Perez",
                 Role.PATIENT

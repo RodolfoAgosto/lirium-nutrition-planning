@@ -2,8 +2,10 @@ package com.lirium.nutrition.infrastructure.config;
 
 import com.lirium.nutrition.exception.CustomAccessDeniedHandler;
 import com.lirium.nutrition.exception.CustomAuthenticationEntryPoint;
+import com.lirium.nutrition.infrastructure.security.CustomOAuth2UserService;
+import com.lirium.nutrition.infrastructure.security.JwtAuthenticationFilter;
+import com.lirium.nutrition.infrastructure.security.OAuth2LoginSuccessHandler;
 import com.lirium.nutrition.infrastructure.security.UserDetailsServiceImpl;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +20,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import com.lirium.nutrition.infrastructure.security.*;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -38,6 +39,9 @@ public class SecurityConfig {
             throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.sameOrigin())
+                )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler)
@@ -45,6 +49,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         // Public
+                        .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/api/auth/**", "/oauth2/**","/login/oauth2/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 

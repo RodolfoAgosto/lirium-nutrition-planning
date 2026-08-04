@@ -135,7 +135,7 @@ class PatientProfileRepositoryIT {
 
         User user = new User(
                 email,
-                "pass",
+                UUID.randomUUID().toString(),
                 "Juan",
                 "Perez",
                 Role.PATIENT

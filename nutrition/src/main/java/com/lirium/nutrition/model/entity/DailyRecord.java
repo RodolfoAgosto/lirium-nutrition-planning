@@ -16,12 +16,10 @@ import java.util.Objects;
 @EqualsAndHashCode(of = "id")
 @Table(
         name = "daily_records",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_daily_record_patient_date",
-                        columnNames = {"patient_profile_id", "date"}
-                )
-        }
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_daily_record_patient_date",
+                columnNames = {"patient_profile_id", "record_date"}
+        )
 )
 public class DailyRecord extends Auditable {
 

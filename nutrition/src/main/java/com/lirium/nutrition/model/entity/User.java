@@ -23,7 +23,7 @@ public class User extends Auditable implements UserDetails {
     @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(name = "email", nullable = false, unique = true, length = 100)
+    @Column(name = "password_hash")
     private String passwordHash;
 
     @Column(name = "first_name", length = 60)
@@ -42,7 +42,7 @@ public class User extends Auditable implements UserDetails {
     private Boolean emailValidated = false;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
+    @Column(name = "role")
     private Role role;
 
     @Column(name = "enabled", nullable = false)
