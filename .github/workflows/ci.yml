@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      # mvn verify corre TODO en este proyecto: unit tests (Surefire),
+      # integration tests (Failsafe, H2), y los 3 reportes de JaCoCo
+      # (unit, integration, merged) -- todos enganchados a la fase verify.
+      - name: Run full build and test suite
+        run: mvn verify
+
+      - name: Upload JaCoCo unit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-unit-report
+          path: target/site/jacoco
+
+      - name: Upload JaCoCo integration report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-integration-report
+          path: target/site/jacoco-integration
+
+      - name: Upload JaCoCo merged report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-merged-report
+          path: target/site/jacoco-merged
+
+  # Job opcional: valida que Flyway aplique limpio contra Postgres real
+  # (independiente de la suite de tests, que corre en H2). No depende
+  # de Testcontainers -- usa el soporte nativo de GitHub Actions para
+  # levantar el servicio.
+  flyway-check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: lirium
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Verify Flyway migrations apply cleanly
+        run: >
+          mvn flyway:migrate
+          -Dflyway.url=jdbc:postgresql://localhost:5432/lirium
+          -Dflyway.user=postgres
+          -Dflyway.password=postgres
+          -Dflyway.locations=classpath:db/migration
