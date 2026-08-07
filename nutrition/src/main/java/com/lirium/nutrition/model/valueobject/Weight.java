@@ -3,6 +3,8 @@ package com.lirium.nutrition.model.valueobject;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
+import java.util.Locale;
+
 @Embeddable
 public record Weight(
         @Column(name = "grams")
@@ -32,7 +34,7 @@ public record Weight(
     }
 
     public String toDisplayString() {
-        return String.format("%.2f kg", toKg());
+        return String.format(Locale.US, "%.2f kg", toKg());
     }
 
 }

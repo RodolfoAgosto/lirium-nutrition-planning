@@ -1,7 +1,5 @@
 package com.lirium.nutrition.model.valueobject;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -70,7 +68,7 @@ class WeightTest {
         Weight weight = new Weight(72500);
 
         assertThat(weight.toDisplayString())
-                .isEqualTo("72,50 kg");
+                .isEqualTo("72.50 kg");
 
     }
 
