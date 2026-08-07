@@ -9,6 +9,9 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nutrition
     steps:
       - uses: actions/checkout@v4
 
@@ -51,6 +54,9 @@ jobs:
   # levantar el servicio.
   flyway-check:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nutrition
     services:
       postgres:
         image: postgres:16-alpine
