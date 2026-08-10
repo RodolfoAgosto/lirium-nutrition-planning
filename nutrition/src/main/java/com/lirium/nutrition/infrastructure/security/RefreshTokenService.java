@@ -41,6 +41,6 @@ public class RefreshTokenService {
                 .filter(t -> !t.isRevoked())
                 .filter(t -> !t.isExpired())
                 .orElseThrow(() ->
-                        new InvalidRefreshTokenException("Refresh token inválido o expirado"));
+                        new InvalidRefreshTokenException("Refresh token invalid or expired"));
     }
 }

@@ -52,6 +52,7 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/api/auth/**", "/oauth2/**","/login/oauth2/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+                        .requestMatchers("/images/**","/swagger-ui/**","/swagger-ui.html","/v3/api-docs/**").permitAll()
 
                         // Only ADMIN
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
