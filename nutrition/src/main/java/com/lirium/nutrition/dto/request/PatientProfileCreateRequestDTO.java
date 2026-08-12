@@ -1,9 +1,11 @@
 package com.lirium.nutrition.dto.request;
 
-import com.lirium.nutrition.model.enums.*;
+import com.lirium.nutrition.model.enums.ActivityLevel;
+import com.lirium.nutrition.model.enums.GoalType;
+import com.lirium.nutrition.model.enums.PhysiologicalCondition;
+import com.lirium.nutrition.model.enums.Sex;
 import jakarta.validation.constraints.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
@@ -19,7 +21,7 @@ public record PatientProfileCreateRequestDTO(
         ActivityLevel activityLevel,
 
         @DecimalMin("20.0")
-        @DecimalMax("400.0")
+        @DecimalMax("300000.0")
         Integer weight,
 
         @Min(80)

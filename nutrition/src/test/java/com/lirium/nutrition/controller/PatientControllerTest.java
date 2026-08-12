@@ -12,8 +12,6 @@ import com.lirium.nutrition.model.enums.Sex;
 import com.lirium.nutrition.model.valueobject.Height;
 import com.lirium.nutrition.model.valueobject.Weight;
 import com.lirium.nutrition.service.PatientService;
-import com.lirium.nutrition.service.UserService;
-import com.lirium.nutrition.service.impl.PatientServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -146,7 +144,7 @@ class PatientControllerTest {
                         true,
                         LocalDate.of(1990, 1, 1),
                         180,
-                        80,
+                        80000,
                         ActivityLevel.MODERATE,
                         GoalType.WEIGHT_LOSS,
                         "Updated notes",

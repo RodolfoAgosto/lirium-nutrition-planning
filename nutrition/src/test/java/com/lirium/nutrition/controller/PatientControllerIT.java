@@ -166,6 +166,7 @@ class PatientControllerIT extends AbstractIntegrationTest {
                         {
                             "firstName": "Juan Updated",
                             "lastName": "Perez Updated",
+                            "email": "patient@test.com",
                             "dni": "12345678"
                         }
                         """))
@@ -184,7 +185,8 @@ class PatientControllerIT extends AbstractIntegrationTest {
                         .content("""
                         {
                             "firstName": "Hack",
-                            "lastName": "User"
+                            "lastName": "User",
+                            "email": "other@test.com"
                         }
                         """))
                 .andExpect(status().isForbidden());
@@ -201,7 +203,8 @@ class PatientControllerIT extends AbstractIntegrationTest {
                         .content("""
                         {
                             "firstName": "Admin Update",
-                            "lastName": "Patient"
+                            "lastName": "Patient",
+                            "email": "patient@test.com"
                         }
                         """))
                 .andExpect(status().isOk())

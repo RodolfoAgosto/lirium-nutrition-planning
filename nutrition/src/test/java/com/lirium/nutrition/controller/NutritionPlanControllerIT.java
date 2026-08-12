@@ -23,12 +23,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 
 class NutritionPlanControllerIT extends AbstractIntegrationTest {
@@ -416,7 +413,7 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
                         post("/api/nutrition-plans/generate/" + patientId)
                                 .header("Authorization", adminToken)
                 )
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest()); // <--- Cambiado de .isInternalServerError() a .isBadRequest()
     }
 
     @Test

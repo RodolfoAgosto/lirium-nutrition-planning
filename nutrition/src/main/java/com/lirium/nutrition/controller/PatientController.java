@@ -1,8 +1,12 @@
 package com.lirium.nutrition.controller;
 
 import com.lirium.nutrition.dto.request.PatientUpdateRequestDTO;
-import com.lirium.nutrition.dto.response.*;
+import com.lirium.nutrition.dto.response.PatientDetailsDTO;
+import com.lirium.nutrition.dto.response.PatientSummaryDTO;
 import com.lirium.nutrition.service.PatientService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/patients")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class PatientController {
 
     private final PatientService patientService;
@@ -40,10 +45,10 @@ public class PatientController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or " + "#id == authentication.principal.id")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#id, authentication)")
     public ResponseEntity<PatientDetailsDTO> updateProfile(
-            @PathVariable Long id,
-            @RequestBody PatientUpdateRequestDTO requestDTO) {
+            @PathVariable("id") @Positive(message = "The ID must be a positive integer.") Long id,
+            @Valid @RequestBody PatientUpdateRequestDTO requestDTO){
 
         log.info("Updating patient profile id={}", id);
         log.debug("Patient update payload={}", requestDTO.toString());
