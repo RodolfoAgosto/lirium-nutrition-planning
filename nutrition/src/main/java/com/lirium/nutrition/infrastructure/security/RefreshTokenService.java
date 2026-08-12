@@ -22,7 +22,7 @@ public class RefreshTokenService {
 
     public RefreshToken createRefreshToken(User user) {
         // Revocar el anterior si existe
-        refreshTokenRepository.findByUser(user)
+        refreshTokenRepository.findByUserAndRevokedFalse(user)
                 .ifPresent(t -> {
                     t.revoke();
                     refreshTokenRepository.save(t);

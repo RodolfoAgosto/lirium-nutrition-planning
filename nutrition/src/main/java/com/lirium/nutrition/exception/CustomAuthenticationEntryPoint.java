@@ -24,7 +24,7 @@ public class CustomAuthenticationEntryPoint
             {
                 "status": 401,
                 "error": "Unauthorized",
-                "message": "Token ausente o inválido"
+                "message": "Missing or invalid token."
             }
         """);
     }

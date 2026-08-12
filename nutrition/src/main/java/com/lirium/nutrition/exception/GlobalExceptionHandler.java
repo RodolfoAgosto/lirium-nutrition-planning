@@ -142,6 +142,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
+    @ExceptionHandler(DNIAlreadyExistsException.class)
+    public ResponseEntity<ApiError> handleDNIExists(
+            DNIAlreadyExistsException ex,
+            HttpServletRequest request) {
+
+        log.warn("DNI already exists path={} message={}", request.getRequestURI(), ex.getMessage());
+
+        ApiError error = new ApiError(
+                HttpStatus.CONFLICT.value(),
+                "DNI already exists",
+                ex.getMessage(),
+                request.getRequestURI(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
     @ExceptionHandler({
             UnauthorizedOperationException.class,
             EmailNotValidatedException.class,

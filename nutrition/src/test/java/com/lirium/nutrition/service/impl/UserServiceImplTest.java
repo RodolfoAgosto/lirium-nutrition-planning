@@ -141,7 +141,7 @@ class UserServiceImplTest {
         verify(userRepository).save(user);
         verify(userMapper).toResponseDTO(savedUser);
 
-        verifyNoInteractions(passwordEncoder);
+        verify(passwordEncoder).encode(anyString());
     }
 
     @Test

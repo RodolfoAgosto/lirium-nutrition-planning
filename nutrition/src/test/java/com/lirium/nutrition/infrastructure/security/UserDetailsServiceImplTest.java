@@ -55,7 +55,7 @@ class UserDetailsServiceImplTest {
                 );
 
         assertEquals(
-                "Usuario no encontrado: test@mail.com",
+                "User not found: test@mail.com",
                 exception.getMessage()
         );
     }

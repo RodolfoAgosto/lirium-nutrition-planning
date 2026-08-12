@@ -57,11 +57,11 @@ public class SecurityConfig {
                         // Only ADMIN
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
                         .requestMatchers("/api/users/*/enabled").hasRole("ADMIN")
-                        .requestMatchers("/api/users/*/validate-email").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE,"/api/nutrition-plan-templates/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/foods/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/foods/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/foods/**").hasRole("ADMIN")
+                        .requestMatchers("/api/users/*/validate-email").authenticated()
 
                         // ADMIN and NUTRITIONIST
                         .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "NUTRITIONIST")

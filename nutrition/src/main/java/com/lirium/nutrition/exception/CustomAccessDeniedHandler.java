@@ -22,7 +22,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
             {
                 "status": 403,
                 "error": "Forbidden",
-                "message": "No tenés permisos para este recurso"
+                "message": "You do not have permission to access this resource."
             }
         """);
     }

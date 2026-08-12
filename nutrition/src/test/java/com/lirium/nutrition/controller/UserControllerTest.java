@@ -110,7 +110,7 @@ class UserControllerTest {
         mockMvc.perform(post("/api/users/patient")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.email").value("patient@mail.com"));
 
         verify(userService).registerPatient(any(CreatePatientRequestDTO.class));

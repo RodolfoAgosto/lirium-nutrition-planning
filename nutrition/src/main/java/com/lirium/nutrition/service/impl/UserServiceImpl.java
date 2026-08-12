@@ -1,21 +1,26 @@
 package com.lirium.nutrition.service.impl;
 
-import com.lirium.nutrition.dto.request.*;
-import com.lirium.nutrition.dto.response.*;
+import com.lirium.nutrition.dto.request.CreatePatientRequestDTO;
+import com.lirium.nutrition.dto.request.CreateUserRequestDTO;
+import com.lirium.nutrition.dto.request.UserUpdateRequestDTO;
+import com.lirium.nutrition.dto.response.UserResponseDTO;
 import com.lirium.nutrition.exception.AccountDisabledException;
+import com.lirium.nutrition.exception.DNIAlreadyExistsException;
 import com.lirium.nutrition.exception.EmailAlreadyExistsException;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.UserMapper;
 import com.lirium.nutrition.model.entity.User;
+import com.lirium.nutrition.model.enums.Role;
 import com.lirium.nutrition.repository.UserRepository;
 import com.lirium.nutrition.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -46,8 +51,17 @@ public class UserServiceImpl implements UserService {
             throw new EmailAlreadyExistsException(request.email());
         }
 
+        if (request.dni() != null && userRepository.existsByDni(request.dni())) {
+            log.warn("User registration failed - DNI already exists: dni={}", request.dni());
+            throw new DNIAlreadyExistsException("User already exists with DNI: " + request.dni());
+        }
+
         User user = userMapper.toEntity(request);
         user.setPasswordHash(hashPassword(request.password()));
+        user.setRole(Role.PATIENT);
+        user.setEnabled(true);
+        user.setEmailValidated(false);
+
         User savedUser = userRepository.save(user);
 
         log.info("User registered successfully id={} email={}", savedUser.getId(), savedUser.getEmail());
@@ -66,7 +80,18 @@ public class UserServiceImpl implements UserService {
             throw new EmailAlreadyExistsException(request.email());
         }
 
+        if (request.dni() != null && userRepository.existsByDni(request.dni())) {
+            log.warn("User registration failed - DNI already exists: dni={}", request.dni());
+            throw new DNIAlreadyExistsException("User already exists with DNI: " + request.dni());
+        }
+
+
         User user = userMapper.toEntity(request);
+        String randomPassword = UUID.randomUUID().toString();
+        user.setPasswordHash(passwordEncoder.encode(randomPassword));
+        user.setRole(Role.PATIENT);
+        user.setEnabled(true);
+        user.setEmailValidated(false);
         User savedUser = userRepository.save(user);
 
         log.info("Patient registered successfully id={} email={}", savedUser.getId(), savedUser.getEmail());

@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -42,8 +43,7 @@ class RefreshTokenServiceTest {
     @Test
     void shouldCreateRefreshTokenWhenUserHasNoPreviousToken() {
 
-        when(refreshTokenRepository.findByUser(user))
-                .thenReturn(Optional.empty());
+        when(refreshTokenRepository.findByUserAndRevokedFalse(user)).thenReturn(Optional.empty());
 
         when(refreshTokenRepository.save(any(RefreshToken.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -55,28 +55,21 @@ class RefreshTokenServiceTest {
         assertEquals(user, token.getUser());
         assertNotNull(token.getToken());
 
-        verify(refreshTokenRepository).findByUser(user);
+        verify(refreshTokenRepository).findByUserAndRevokedFalse(user);
         verify(refreshTokenRepository).save(any(RefreshToken.class));
     }
 
     @Test
     void shouldRevokePreviousTokenAndCreateNewOne() {
 
-        RefreshToken oldToken = mock(RefreshToken.class);
-
-        when(refreshTokenRepository.findByUser(user))
-                .thenReturn(Optional.of(oldToken));
-
-        when(refreshTokenRepository.save(any(RefreshToken.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
+        RefreshToken existingToken = spy(new RefreshToken(user, "old-token", Instant.now().plusSeconds(3600)));
+        when(refreshTokenRepository.findByUserAndRevokedFalse(user)).thenReturn(Optional.of(existingToken));
+        when(refreshTokenRepository.save(any(RefreshToken.class))).thenAnswer(i -> i.getArgument(0));
         refreshTokenService.createRefreshToken(user);
-
-        verify(oldToken).revoke();
-
-        verify(refreshTokenRepository, times(2))
-                .save(any());
+        verify(existingToken).revoke();
+        verify(refreshTokenRepository, times(2)).save(any(RefreshToken.class));
     }
+
 
     @Test
     void shouldReturnTokenWhenTokenIsValid() {
@@ -108,7 +101,7 @@ class RefreshTokenServiceTest {
                 );
 
         assertEquals(
-                "Refresh token inválido o expirado",
+                "Refresh token invalid or expired",
                 exception.getMessage()
         );
     }

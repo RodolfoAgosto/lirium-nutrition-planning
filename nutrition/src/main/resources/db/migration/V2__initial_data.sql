@@ -163,3 +163,11 @@ INSERT INTO patient_profile (
       (62000, 163, TIMESTAMP '2026-08-02 16:51:57.987483', TIMESTAMP '2026-08-02 16:51:58.061777', 1, 'ACTIVE', 'system', NULL, 'WEIGHT_MAINTENANCE', 'FEMALE', 'system'),
       (85000, 175, TIMESTAMP '2026-08-02 16:51:57.996521', TIMESTAMP '2026-08-02 16:51:58.062785', 2, 'MODERATE', 'system', NULL, 'WEIGHT_LOSS', 'MALE', 'system'),
       (58000, 160, TIMESTAMP '2026-08-02 16:51:57.999035', TIMESTAMP '2026-08-02 16:51:58.062785', 3, 'VERY_ACTIVE', 'system', NULL, 'MUSCLE_GAIN', 'FEMALE', 'system');
+
+-- ---------------------------------------------------------------------
+-- Sincronización de secuencias para todas las tablas con IDs explícitos
+-- ---------------------------------------------------------------------
+SELECT setval(pg_get_serial_sequence('users', 'id'), (SELECT MAX(id) FROM users));
+SELECT setval(pg_get_serial_sequence('foods', 'id'), (SELECT MAX(id) FROM foods));
+SELECT setval(pg_get_serial_sequence('nutrition_plan_template', 'id'), (SELECT MAX(id) FROM nutrition_plan_template));
+SELECT setval(pg_get_serial_sequence('restrictions', 'id'), (SELECT MAX(id) FROM restrictions));
