@@ -34,17 +34,18 @@ public interface PatientProfileRepository extends JpaRepository<PatientProfile, 
              )
              FROM PatientProfile p
              JOIN p.user u
-             WHERE (:firstName IS NULL OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :firstName, '%')))
-             AND (:lastName IS NULL OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :lastName, '%')))
-             AND (:email IS NULL OR LOWER(u.email) LIKE LOWER(CONCAT('%', :email, '%')))
-             AND (:dni IS NULL OR u.dni LIKE CONCAT('%', :dni, '%'))
+             WHERE (CAST(:firstName AS string) IS NULL OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', CAST(:firstName AS string), '%')))
+             AND (CAST(:lastName AS string) IS NULL OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', CAST(:lastName AS string), '%')))
+             AND (CAST(:email AS string) IS NULL OR LOWER(u.email) LIKE LOWER(CONCAT('%', CAST(:email AS string), '%')))
+             AND (CAST(:dni AS string) IS NULL OR u.dni LIKE CONCAT('%', CAST(:dni AS string), '%'))
            """)
     List<PatientSummaryDTO> searchPatients(
-            String firstName,
-            String lastName,
-            String email,
-            String dni
+            @Param("firstName") String firstName,
+            @Param("lastName") String lastName,
+            @Param("email") String email,
+            @Param("dni") String dni
     );
+
 
     @Query("""
     SELECT p

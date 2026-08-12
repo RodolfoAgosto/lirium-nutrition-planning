@@ -24,6 +24,7 @@ public class PatientController {
 
     private final PatientService patientService;
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
     @GetMapping("/search")
     public ResponseEntity<List<PatientSummaryDTO>> findPatients(
             @RequestParam(required = false) String firstName,

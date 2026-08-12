@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 
@@ -240,7 +241,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
-    @ExceptionHandler(AuthorizationDeniedException.class)
+    @ExceptionHandler({
+            AccessDeniedException.class,
+            AuthorizationDeniedException.class
+    })
     public ResponseEntity<ApiError> handleAccessDenied(
             AuthorizationDeniedException ex,
             HttpServletRequest request) {
