@@ -5,10 +5,15 @@ import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.model.entity.NutritionPlan;
 import com.lirium.nutrition.model.entity.NutritionPlanTemplate;
 import com.lirium.nutrition.model.entity.PatientProfile;
+import com.lirium.nutrition.model.entity.User;
+import com.lirium.nutrition.model.enums.ActivityLevel;
 import com.lirium.nutrition.model.enums.FoodTag;
+import com.lirium.nutrition.model.enums.GoalType;
 import com.lirium.nutrition.model.enums.PlanStatus;
 import com.lirium.nutrition.model.valueobject.Calories;
+import com.lirium.nutrition.model.valueobject.Height;
 import com.lirium.nutrition.model.valueobject.MacroDistribution;
+import com.lirium.nutrition.model.valueobject.Weight;
 import com.lirium.nutrition.repository.NutritionPlanRepository;
 import com.lirium.nutrition.repository.NutritionPlanTemplateRepository;
 import com.lirium.nutrition.repository.PatientProfileRepository;
@@ -25,7 +30,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -124,7 +130,17 @@ class NutritionPlanGeneratorImplTest {
         // Given
         Long patientId = 1L;
 
-        PatientProfile patient = mock(PatientProfile.class);
+        User user = new User();
+        user.setId(patientId);
+
+        PatientProfile patient = new PatientProfile(user);
+        patient.updateNutritionProfile(
+                Height.of(175),
+                Weight.of(70000),
+                ActivityLevel.MODERATE,
+                GoalType.WEIGHT_MAINTENANCE
+        );
+
         Calories calories = mock(Calories.class);
         MacroDistribution macros = mock(MacroDistribution.class);
         NutritionPlan plan = mock(NutritionPlan.class);
@@ -169,6 +185,7 @@ class NutritionPlanGeneratorImplTest {
         verify(nutritionPlanRepository)
                 .save(plan);
     }
+
 
     @Test
     void shouldThrowWhenPatientNotFoundForTemplateGeneration() {
@@ -442,7 +459,17 @@ class NutritionPlanGeneratorImplTest {
 
         Long patientId = 1L;
 
-        PatientProfile patient = mock(PatientProfile.class);
+        User user = new User();
+        user.setId(patientId);
+
+        PatientProfile patient = new PatientProfile(user);
+        patient.updateNutritionProfile(
+                Height.of(175),
+                Weight.of(75000),
+                ActivityLevel.MODERATE,
+                GoalType.WEIGHT_MAINTENANCE
+        );
+
         Calories calories = new Calories(2000);
         MacroDistribution macros = new MacroDistribution(150, 250, 67);
         NutritionPlan plan = mock(NutritionPlan.class);

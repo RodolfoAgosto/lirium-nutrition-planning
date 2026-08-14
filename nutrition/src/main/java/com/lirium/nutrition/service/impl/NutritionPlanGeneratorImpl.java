@@ -1,8 +1,8 @@
 package com.lirium.nutrition.service.impl;
 
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
-import com.lirium.nutrition.dto.response.NutritionPlanResponseDTO;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.UnprocessableEntityException;
 import com.lirium.nutrition.mapper.NutritionPlanMapper;
 import com.lirium.nutrition.model.entity.NutritionPlan;
 import com.lirium.nutrition.model.entity.NutritionPlanTemplate;
@@ -49,6 +49,14 @@ public class NutritionPlanGeneratorImpl implements NutritionPlanGenerator {
         if (nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT)) {
             log.warn("Plan generation failed - draft already exists patientId={}", patientId);
             throw new IllegalStateException("Patient already has an active or draft plan");
+        }
+
+        if (patient.getWeight() == null || patient.getHeight() == null ||
+                patient.getActivityLevel() == null || patient.getPrimaryGoal() == null) {
+
+            throw new UnprocessableEntityException(
+                    "Missing required physical metrics or goals for patient"
+            );
         }
 
         Calories calories = calorieCalculator.calculate(patient);

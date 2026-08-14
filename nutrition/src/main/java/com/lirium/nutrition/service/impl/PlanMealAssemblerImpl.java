@@ -31,14 +31,20 @@ public class PlanMealAssemblerImpl implements PlanMealAssembler {
     @Override
     public void assemble(DailyPlan dailyPlan, PatientProfile patient, Calories calories,
                          MacroDistribution macros, Set<FoodTag> additionalExcludedTags) {
+
         for (MealType meal : MealType.values()) {
             PlanMeal planMeal = PlanMeal.of(meal, dailyPlan);
-            Calories mealCalories = new Calories((int)(calories.amount() * meal.getCalorieRatio()));
-            Fat fat       = new Fat((int)(macros.fatGrams()     * meal.getFatRatio()));
-            Carbs carbs   = new Carbs((int)(macros.carbGrams()  * meal.getCarbRatio()));
-            Protein protein = new Protein((int)(macros.proteinGrams() * meal.getProteinRatio()));
-            planFoodPortionAssembler.assemble(planMeal, patient, additionalExcludedTags,
-                    mealCalories, fat, carbs, protein);
+
+            Calories mealCalories = new Calories((int) Math.round(calories.amount() * meal.getCalorieRatio()));
+            Fat fat = new Fat((int) Math.round(macros.fatGrams() * meal.getFatRatio()));
+            Carbs carbs = new Carbs((int) Math.round(macros.carbGrams() * meal.getCarbRatio()));
+            Protein protein = new Protein((int) Math.round(macros.proteinGrams() * meal.getProteinRatio()));
+
+            planFoodPortionAssembler.assemble(
+                    planMeal, patient, additionalExcludedTags,
+                    mealCalories, fat, carbs, protein
+            );
+
             dailyPlan.addMeal(planMeal);
         }
     }
