@@ -6,6 +6,7 @@ import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
 import com.lirium.nutrition.service.NutritionPlanGenerator;
 import com.lirium.nutrition.service.NutritionPlanService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -94,9 +95,38 @@ public class NutritionPlanController {
 
     }
 
+    @Operation(
+            summary = "Generate nutrition plan from a template",
+            description = "Creates a new DRAFT nutrition plan for the specified patient by adapting the caloric and macronutrient distribution from a base template."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Nutrition plan successfully generated from template",
+                    content = @Content(schema = @Schema(implementation = NutritionPlanDetailDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Patient or template not found",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "422",
+                    description = "Missing required physical metrics or goals for patient",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Patient already has a plan in DRAFT status",
+                    content = @Content
+            )
+    })
     @PostMapping("/generate-from-template/{patientId}/{templateId}")
+    @SecurityRequirement(name = "bearerAuth")
     public NutritionPlanDetailDTO generateFromTemplate(
+            @Parameter(description = "ID of the target patient", example = "1")
             @PathVariable Long patientId,
+            @Parameter(description = "ID of the source template", example = "2")
             @PathVariable Long templateId) {
 
         log.info("Generating nutrition plan from template templateId={} for patientId={}", templateId, patientId);
