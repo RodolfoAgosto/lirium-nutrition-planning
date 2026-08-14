@@ -100,26 +100,10 @@ public class NutritionPlanController {
             description = "Creates a new DRAFT nutrition plan for the specified patient by adapting the caloric and macronutrient distribution from a base template."
     )
     @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Nutrition plan successfully generated from template",
-                    content = @Content(schema = @Schema(implementation = NutritionPlanDetailDTO.class))
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Patient or template not found",
-                    content = @Content
-            ),
-            @ApiResponse(
-                    responseCode = "422",
-                    description = "Missing required physical metrics or goals for patient",
-                    content = @Content
-            ),
-            @ApiResponse(
-                    responseCode = "409",
-                    description = "Patient already has a plan in DRAFT status",
-                    content = @Content
-            )
+            @ApiResponse(responseCode = "200", description = "Nutrition plan successfully generated from template", content = @Content(schema = @Schema(implementation = NutritionPlanDetailDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Patient or template not found",  content = @Content),
+            @ApiResponse(responseCode = "422", description = "Missing required physical metrics or goals for patient", content = @Content),
+            @ApiResponse(responseCode = "409", description = "Patient already has a plan in DRAFT status", content = @Content)
     })
     @PostMapping("/generate-from-template/{patientId}/{templateId}")
     @SecurityRequirement(name = "bearerAuth")
