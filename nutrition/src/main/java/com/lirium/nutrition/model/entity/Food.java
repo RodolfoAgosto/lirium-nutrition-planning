@@ -61,6 +61,12 @@ public class Food extends DateAuditable{
     @Column(name = "category", nullable = false)
     private FoodCategory category;
 
+    @Column(name = "min_serving_grams")
+    private Double minServingGrams;
+
+    @Column(name = "max_serving_grams")
+    private Double maxServingGrams;
+
     @Column(name = "default_unit")
     private MeasureUnit defaultUnit;
 
@@ -82,7 +88,6 @@ public class Food extends DateAuditable{
                 columnNames = {"food_id", "tag"}
             )
     )
-
     @Enumerated(EnumType.STRING)
     @Column(name = "tag")
     private Set<FoodTag> foodTags = new HashSet<>();
@@ -152,6 +157,35 @@ public class Food extends DateAuditable{
         return food;
     }
 
+    public static Food of(
+            String name,
+            Integer caloriesPer100g,
+            Integer proteinPer100g,
+            Integer carbsPer100g,
+            Integer fatPer100g,
+            FoodCategory category,
+            Set<MealType> suitableFor,
+            Double minServingGrams,
+            Double maxServingGrams
+    ) {
+        Food food = of(name, caloriesPer100g, proteinPer100g, carbsPer100g, fatPer100g, category, suitableFor);
+        food.changeServingLimits(minServingGrams, maxServingGrams);
+        return food;
+    }
+
+    public void changeServingLimits(Double minGrams, Double maxGrams) {
+        if (minGrams != null && minGrams <= 0) {
+            throw new IllegalArgumentException("Min serving grams must be positive");
+        }
+        if (maxGrams != null && maxGrams <= 0) {
+            throw new IllegalArgumentException("Max serving grams must be positive");
+        }
+        if (minGrams != null && maxGrams != null && minGrams > maxGrams) {
+            throw new IllegalArgumentException("Min serving grams cannot be greater than max serving grams");
+        }
+        this.minServingGrams = minGrams;
+        this.maxServingGrams = maxGrams;
+    }
 
     private static Integer requireRange(Integer value, int min, int max, String field) {
         Objects.requireNonNull(value, field + " cannot be null");

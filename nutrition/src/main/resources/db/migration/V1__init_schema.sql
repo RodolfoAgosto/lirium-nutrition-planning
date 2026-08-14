@@ -76,6 +76,8 @@ create table foods (
                        updated_at timestamp(6) not null,
                        name varchar(120) not null unique,
                        category varchar(255) not null check (category in ('PROTEIN','CARB','DAIRY','VEGETABLE','FRUIT','SWEET','FAT','BEVERAGE')),
+                       min_serving_grams float(53),
+                       max_serving_grams float(53),
                        primary key (id)
 );
 
