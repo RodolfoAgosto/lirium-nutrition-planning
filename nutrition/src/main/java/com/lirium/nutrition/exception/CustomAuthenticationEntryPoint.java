@@ -10,8 +10,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 @Component
-public class CustomAuthenticationEntryPoint
-        implements AuthenticationEntryPoint {
+public class CustomAuthenticationEntryPoint extends RuntimeException implements AuthenticationEntryPoint {
 
     @Override
     public void commence(HttpServletRequest request,

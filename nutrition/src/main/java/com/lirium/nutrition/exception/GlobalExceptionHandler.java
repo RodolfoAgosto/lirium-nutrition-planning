@@ -1,13 +1,14 @@
 package com.lirium.nutrition.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
-
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -331,6 +332,47 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiError> handleConstraintViolationException(
+            ConstraintViolationException ex,
+            HttpServletRequest request) {
+
+        String message = ex.getConstraintViolations().stream()
+                .map(ConstraintViolation::getMessage)
+                .findFirst()
+                .orElse("Validation failed");
+
+        log.warn("Constraint violation error path={} message={}", request.getRequestURI(), message);
+
+        ApiError error = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                message,
+                request.getRequestURI(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(UnprocessableEntityException.class)
+    public ResponseEntity<ApiError> handleUnprocessableEntity(
+            UnprocessableEntityException ex,
+            HttpServletRequest request) {
+
+        log.warn("Unprocessable entity error path={} message={}", request.getRequestURI(), ex.getMessage());
+
+        ApiError error = new ApiError(
+                HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                "Unprocessable Entity",
+                ex.getMessage(),
+                request.getRequestURI(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
     }
 
 }
