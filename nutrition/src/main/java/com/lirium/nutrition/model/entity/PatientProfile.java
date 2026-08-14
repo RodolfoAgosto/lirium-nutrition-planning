@@ -22,7 +22,6 @@ import java.util.*;
 public class PatientProfile extends Auditable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @OneToOne(optional = false)

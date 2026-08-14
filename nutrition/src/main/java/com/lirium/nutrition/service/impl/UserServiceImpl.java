@@ -9,6 +9,7 @@ import com.lirium.nutrition.exception.DNIAlreadyExistsException;
 import com.lirium.nutrition.exception.EmailAlreadyExistsException;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.UserMapper;
+import com.lirium.nutrition.model.entity.PatientProfile;
 import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.model.enums.Role;
 import com.lirium.nutrition.repository.UserRepository;
@@ -93,6 +94,9 @@ public class UserServiceImpl implements UserService {
         user.setEnabled(true);
         user.setEmailValidated(false);
         User savedUser = userRepository.save(user);
+
+        PatientProfile profile = new PatientProfile(user);
+        user.setPatientProfile(profile);
 
         log.info("Patient registered successfully id={} email={}", savedUser.getId(), savedUser.getEmail());
 
