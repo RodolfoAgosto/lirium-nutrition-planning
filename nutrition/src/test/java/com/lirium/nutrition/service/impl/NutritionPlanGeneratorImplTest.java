@@ -1,6 +1,7 @@
 package com.lirium.nutrition.service.impl;
 
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
+import com.lirium.nutrition.exception.PlanConflictException;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.model.entity.NutritionPlan;
 import com.lirium.nutrition.model.entity.NutritionPlanTemplate;
@@ -32,6 +33,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -91,7 +93,7 @@ class NutritionPlanGeneratorImplTest {
         // Given
         Long patientId = 1L;
 
-        PatientProfile patient =  mock(PatientProfile.class);
+        PatientProfile patient = mock(PatientProfile.class);
 
         when(repository.findById(patientId))
                 .thenReturn(Optional.of(patient));
@@ -186,7 +188,6 @@ class NutritionPlanGeneratorImplTest {
                 .save(plan);
     }
 
-
     @Test
     void shouldThrowWhenPatientNotFoundForTemplateGeneration() {
 
@@ -235,7 +236,7 @@ class NutritionPlanGeneratorImplTest {
 
         // When - Then
         assertThrows(
-                IllegalStateException.class,
+                PlanConflictException.class,
                 () -> nutritionPlanGenerator.generateFromTemplate(
                         patientId,
                         templateId)
@@ -288,7 +289,7 @@ class NutritionPlanGeneratorImplTest {
 
         // When - Then
         assertThrows(
-                IllegalStateException.class,
+                PlanConflictException.class,
                 () -> nutritionPlanGenerator.generateFromTemplate(
                         patientId,
                         templateId)
@@ -362,7 +363,17 @@ class NutritionPlanGeneratorImplTest {
         Long patientId = 1L;
         Long templateId = 10L;
 
-        PatientProfile patient = mock(PatientProfile.class);
+        User user = new User();
+        user.setId(patientId);
+
+        PatientProfile patient = new PatientProfile(user);
+        patient.updateNutritionProfile(
+                Height.of(175),
+                Weight.of(70000),
+                ActivityLevel.MODERATE,
+                GoalType.WEIGHT_MAINTENANCE
+        );
+
         NutritionPlanTemplate template = mock(NutritionPlanTemplate.class);
 
         Calories calories = new Calories(2000);
@@ -447,7 +458,7 @@ class NutritionPlanGeneratorImplTest {
         when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE))
                 .thenReturn(true);
 
-        assertThrows(IllegalStateException.class,
+        assertThrows(PlanConflictException.class,
                 () -> nutritionPlanGenerator.generateFromTemplate(patientId, templateId));
 
         verify(nutritionPlanRepository).existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT);

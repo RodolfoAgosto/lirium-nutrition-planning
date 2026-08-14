@@ -1,6 +1,7 @@
 package com.lirium.nutrition.service.impl;
 
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
+import com.lirium.nutrition.exception.PlanConflictException;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.exception.UnprocessableEntityException;
 import com.lirium.nutrition.mapper.NutritionPlanMapper;
@@ -89,20 +90,28 @@ public class NutritionPlanGeneratorImpl implements NutritionPlanGenerator {
         PatientProfile patient = repository.findById(patientId)
                 .orElseThrow(() -> {
                     log.warn("Patient not found id={}", patientId);
-                    return new ResourceNotFoundException("Patient", patientId);
+                    return new ResourceNotFoundException("Patient not found: ", patientId);
                 });
 
         if (nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT) ||
                 nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE)) {
             log.warn("Template plan generation failed - existing plan found patientId={}", patientId);
-            throw new IllegalStateException("Patient already has an active or draft plan");
+            throw new PlanConflictException("Patient already has an active or draft plan");
         }
 
         NutritionPlanTemplate template = templateRepository.findById(templateId)
                 .orElseThrow(() -> {
                     log.warn("Template not found id={}", templateId);
-                    return new ResourceNotFoundException("Template", templateId);
+                    return new ResourceNotFoundException("Template not found: ", templateId);
                 });
+
+        if (patient.getWeight() == null || patient.getHeight() == null ||
+                patient.getActivityLevel() == null || patient.getPrimaryGoal() == null) {
+
+            throw new UnprocessableEntityException(
+                    "Missing required physical metrics or goals for patient"
+            );
+        }
 
         Calories calories = calorieCalculator.calculate(patient);
 
