@@ -92,9 +92,6 @@ public class NutritionPlan extends Auditable{
     // The nutritionist completes the draft
     public void completeBasic(String name, String description) {
 
-        requireText(name, "Name is required");
-        requireText(description, "Description is required");
-
         if (this.status != PlanStatus.DRAFT)
             throw new IllegalStateException("Only DRAFT plans can be completed");
 
@@ -107,9 +104,9 @@ public class NutritionPlan extends Auditable{
         this.week.add(dailyPlan);
     }
 
-    private static void requireText(String s, String msg) {
-        if (s == null || s.isBlank()) {
-            throw new IllegalArgumentException(msg);
+    private static void validateNotBlankIfPresent(String value, String message) {
+        if (value != null && value.isBlank()) {
+            throw new IllegalArgumentException(message);
         }
     }
 
@@ -125,8 +122,8 @@ public class NutritionPlan extends Auditable{
             Integer fatGrams
     ) {
 
-        if(name!=null) requireText(name,"Name required");
-        if(description!=null) requireText(description,"Description required");
+        validateNotBlankIfPresent(name, "Name cannot be blank");
+        validateNotBlankIfPresent(description, "Description cannot be blank");
 
         LocalDate newStart = startDate!=null ? startDate : this.startDate;
         LocalDate newEnd   = endDate!=null ? endDate : this.endDate;
@@ -136,7 +133,6 @@ public class NutritionPlan extends Auditable{
 
         if(dailyCalories!=null && dailyCalories<=0)
             throw new IllegalArgumentException("Daily calories must be greater than zero");
-
         if(proteinGrams!=null && proteinGrams<0)
             throw new IllegalArgumentException("Protein grams cannot be negative");
         if(carbGrams!=null && carbGrams<0)
@@ -174,7 +170,6 @@ public class NutritionPlan extends Auditable{
         this.status = PlanStatus.ACTIVE;
         this.startDate = startDate;
     }
-
 
     public void deactivate() {
         if (status != PlanStatus.ACTIVE)
