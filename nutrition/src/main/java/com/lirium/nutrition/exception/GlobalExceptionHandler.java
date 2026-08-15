@@ -4,8 +4,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
@@ -13,10 +15,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice
@@ -294,26 +295,27 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HandlerMethodValidationException.class)
-    public ResponseEntity<Map<String, Object>> handleHandlerMethodValidationException(
-            HandlerMethodValidationException ex) {
+    public ResponseEntity<ApiError> handleHandlerMethodValidation(
+            HandlerMethodValidationException ex,
+            HttpServletRequest request) {
 
-        Map<String, String> fieldErrors = new HashMap<>();
+        String message = ex.getAllValidationResults().stream()
+                .flatMap(r -> r.getResolvableErrors().stream())
+                .map(MessageSourceResolvable::getDefaultMessage)
+                .findFirst()
+                .orElse("Validation failed for request parameters");
 
-        ex.getAllValidationResults().forEach(result -> {
-            String parameterName = result.getMethodParameter().getParameterName();
-            result.getResolvableErrors().forEach(error -> {
-                fieldErrors.put(parameterName, error.getDefaultMessage());
-            });
-        });
+        log.warn("Handler method validation failed path={} message={}", request.getRequestURI(), message);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("timestamp", LocalDateTime.now());
-        response.put("status", HttpStatus.BAD_REQUEST.value());
-        response.put("error", "Bad Request");
-        response.put("message", "Validation failed for request parameters");
-        response.put("errors", fieldErrors);
+        ApiError error = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation Error",
+                message,
+                request.getRequestURI(),
+                LocalDateTime.now()
+        );
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler({ IllegalArgumentException.class, IllegalStateException.class })
@@ -391,6 +393,43 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiError> handleHttpMessageNotReadable(
+            HttpMessageNotReadableException ex,
+            HttpServletRequest request) {
+
+        log.warn("Malformed JSON payload path={} message={}", request.getRequestURI(), ex.getMessage());
+
+        ApiError error = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                "Malformed JSON",
+                "Malformed JSON payload or invalid data format",
+                request.getRequestURI(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiError> handleTypeMismatch(
+            MethodArgumentTypeMismatchException ex,
+            HttpServletRequest request) {
+
+        String message = String.format("Parameter '%s' has an invalid value '%s'", ex.getName(), ex.getValue());
+        log.warn("Type mismatch path={} message={}", request.getRequestURI(), message);
+
+        ApiError error = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                "Invalid Parameter",
+                message,
+                request.getRequestURI(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
 }
