@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -44,12 +45,7 @@ public class NutritionPlanController {
             description = "Executes the calculation engine to create a tailored nutrition plan based on the patient's metrics and target goals."
     )
     @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "201",
-                    description = "Nutrition plan successfully generated",
-                    headers = @Header(name = "Location", description = "URI of the newly generated nutrition plan", schema = @Schema(type = "string")),
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NutritionPlanDetailDTO.class))
-            ),
+            @ApiResponse(responseCode = "201", description = "Nutrition plan successfully generated", headers = @Header(name = "Location", description = "URI of the newly generated nutrition plan", schema = @Schema(type = "string")), content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NutritionPlanDetailDTO.class))),
             @ApiResponse(responseCode = "400", description = "Invalid patient ID or parameters out of bounds", content = @Content),
             @ApiResponse(responseCode = "401", description = "Unauthorized access / Unauthenticated", content = @Content),
             @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient privileges to generate plan for this patient", content = @Content),
@@ -72,10 +68,21 @@ public class NutritionPlanController {
 
     }
 
+    @Operation(
+            summary = "Complete nutrition plan",
+            description = "Transitions the nutrition plan status to COMPLETED."
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Nutrition plan completed successfully", content = @Content),
+            @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Nutrition plan not found", content = @Content),
+            @ApiResponse(responseCode = "409", description = "Plan is not in a valid status to be completed", content = @Content)
+    })
     @PatchMapping("/{id}/complete")
     public ResponseEntity<NutritionPlanDetailDTO> complete(
             @PathVariable Long id,
-            @RequestBody CompleteNutritionPlanRequestDTO request) {
+            @Valid @RequestBody CompleteNutritionPlanRequestDTO request) {
 
         log.info("Completing nutrition plan id={}", id);
         log.debug("Complete plan payload={}", request.toString());
