@@ -12,8 +12,6 @@ public interface NutritionPlanService {
 
     NutritionPlanDetailDTO complete(Long id, CompleteNutritionPlanRequestDTO request);
 
-    NutritionPlan createFromTemplate(Long patientId, Long templateId);
-
     NutritionPlanDetailDTO activatePlan(Long planId);
 
     NutritionPlanDetailDTO findById(Long id);

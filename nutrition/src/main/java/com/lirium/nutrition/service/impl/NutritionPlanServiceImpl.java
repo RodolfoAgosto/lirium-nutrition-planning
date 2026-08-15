@@ -3,6 +3,7 @@ package com.lirium.nutrition.service.impl;
 import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
+import com.lirium.nutrition.exception.PlanConflictException;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.NutritionPlanMapper;
 import com.lirium.nutrition.model.entity.NutritionPlan;
@@ -30,14 +31,25 @@ public class NutritionPlanServiceImpl implements NutritionPlanService {
         NutritionPlan plan = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("NutritionPlan not found", id));
 
-        plan.completeBasic(request.name(), request.description());
+        if (plan.getStatus() != PlanStatus.ACTIVE) {
+            throw new PlanConflictException(
+                    "Only ACTIVE plans can be completed. Current status: " + plan.getStatus());
+        }
+
+        plan.update(
+                request.name(),
+                request.description(),
+                plan.getStartDate(),
+                LocalDate.now(),
+                plan.getTargetGoal(),
+                plan.getDailyCalories(),
+                plan.getProteinGrams(),
+                plan.getCarbGrams(),
+                plan.getFatGrams());
+        plan.deactivate();
 
         return NutritionPlanMapper.toDetail(plan);
-    }
 
-    @Override
-    public NutritionPlan createFromTemplate(Long patientId, Long templateId) {
-        return null;
     }
 
     @Override
@@ -63,7 +75,6 @@ public class NutritionPlanServiceImpl implements NutritionPlanService {
 
         return NutritionPlanMapper.toDetail(newPlan);
     }
-
 
     @Override
     public NutritionPlanDetailDTO findById(Long id) {
