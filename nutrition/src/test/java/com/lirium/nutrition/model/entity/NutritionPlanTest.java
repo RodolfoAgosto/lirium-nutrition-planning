@@ -69,7 +69,6 @@ class NutritionPlanTest {
                 .isEqualTo("Plan para bajar grasa");
     }
 
-
     @Test
     void shouldNotCompleteWithBlankName() {
 

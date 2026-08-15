@@ -12,13 +12,11 @@ import com.lirium.nutrition.model.enums.*;
 import com.lirium.nutrition.model.valueobject.Height;
 import com.lirium.nutrition.model.valueobject.Weight;
 import com.lirium.nutrition.repository.NutritionPlanRepository;
-import com.lirium.nutrition.service.NutritionPlanService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -43,28 +41,31 @@ class NutritionPlanServiceImplTest {
         // Given
         Long planId = 1L;
 
-        NutritionPlan plan = mock(NutritionPlan.class);
+        User patientProfile = new User();
 
-        CompleteNutritionPlanRequestDTO request =
-                new CompleteNutritionPlanRequestDTO(
-                        "Volumen",
-                        "Plan de aumento muscular"
-                );
+        // Crear la entidad real y llevarla a estado ACTIVE
+        NutritionPlan plan = NutritionPlan.generate(
+                GoalType.WEIGHT_LOSS, 2000, 120, 200, 60 , generateUser().getPatientProfile()
+        );
+        plan.activate(LocalDate.now().minusDays(1)); // status = ACTIVE
 
-        when(repository.findById(planId))
-                .thenReturn(Optional.of(plan));
-
-        // When + Then
-
-        service.complete(planId, request);
-
-        verify(repository).findById(planId);
-
-        verify(plan).completeBasic(
+        CompleteNutritionPlanRequestDTO request = new CompleteNutritionPlanRequestDTO(
                 "Volumen",
                 "Plan de aumento muscular"
         );
+
+        when(repository.findById(planId)).thenReturn(Optional.of(plan));
+
+        // When
+        service.complete(planId, request);
+
+        // Then
+        verify(repository).findById(planId);
+        assertEquals(PlanStatus.INACTIVE, plan.getStatus());
+        assertEquals("Volumen", plan.getName());
+        assertEquals("Plan de aumento muscular", plan.getDescription());
     }
+
 
     @Test
     void shouldThrowWhenPlanNotFoundInComplete() {

@@ -298,6 +298,13 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
     @DisplayName("ADMIN puede completar un NutritionPlan")
     void shouldCompleteNutritionPlanWhenAdminRequests() throws Exception {
 
+        mockMvc.perform(
+                patch("/api/nutrition-plans/" + draftNutritionPlanId + "/activate")
+                        .header("Authorization", adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"startDate\": \"2026-08-01\"}")
+        ).andExpect(status().isNoContent()); // <-- Corregido de isOk() a isNoContent()
+
         CompleteNutritionPlanRequestDTO dto =
                 new CompleteNutritionPlanRequestDTO(
                         "Weight Loss Plan",
@@ -313,12 +320,17 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(draftNutritionPlanId))
                 .andExpect(jsonPath("$.name").value("Weight Loss Plan"));
-
     }
 
     @Test
     @DisplayName("NUTRITIONIST puede completar un NutritionPlan")
     void shouldCompleteNutritionPlanWhenNutritionistRequests() throws Exception {
+
+        mockMvc.perform(
+                patch("/api/nutrition-plans/" + draftNutritionPlanId + "/activate")
+                        .header("Authorization", nutritionistToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isNoContent());
 
         CompleteNutritionPlanRequestDTO dto =
                 new CompleteNutritionPlanRequestDTO(
@@ -333,7 +345,8 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
                                 .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(draftNutritionPlanId));
+                .andExpect(jsonPath("$.id").value(draftNutritionPlanId))
+                .andExpect(jsonPath("$.name").value("Weight Loss Plan"));
     }
 
     @Test

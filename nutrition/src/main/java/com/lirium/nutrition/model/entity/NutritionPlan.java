@@ -89,11 +89,16 @@ public class NutritionPlan extends Auditable{
         return plan;
     }
 
-    // The nutritionist completes the draft
     public void completeBasic(String name, String description) {
-
-        if (this.status != PlanStatus.DRAFT)
+        if (this.status != PlanStatus.DRAFT) {
             throw new IllegalStateException("Only DRAFT plans can be completed");
+        }
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Name cannot be null or blank");
+        }
+        if (description == null || description.isBlank()) {
+            throw new IllegalArgumentException("Description cannot be null or blank");
+        }
 
         this.name = name;
         this.description = description;

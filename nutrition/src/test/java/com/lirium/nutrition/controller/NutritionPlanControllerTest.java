@@ -1,8 +1,9 @@
 package com.lirium.nutrition.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lirium.nutrition.dto.request.*;
-import com.lirium.nutrition.dto.response.*;
+import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequestDTO;
+import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
+import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
 import com.lirium.nutrition.infrastructure.security.JwtService;
 import com.lirium.nutrition.infrastructure.security.UserDetailsServiceImpl;
 import com.lirium.nutrition.model.enums.GoalType;
@@ -21,7 +22,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -69,8 +69,10 @@ class NutritionPlanControllerTest {
     @WithMockUser(roles = "ADMIN")
     void shouldCompleteNutritionPlan() throws Exception {
 
-        CompleteNutritionPlanRequestDTO request =
-                mock(CompleteNutritionPlanRequestDTO.class);
+        CompleteNutritionPlanRequestDTO request = new CompleteNutritionPlanRequestDTO(
+                "Cierre de Plan Trimestral",
+                "Paciente alcanzó el objetivo de pérdida de peso"
+        );
 
         NutritionPlanDetailDTO response =
                 mock(NutritionPlanDetailDTO.class);
