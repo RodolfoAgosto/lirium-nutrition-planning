@@ -5,18 +5,29 @@ import com.lirium.nutrition.dto.request.NutritionPlanTemplateUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanTemplateResponseDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanTemplateSummaryDTO;
 import com.lirium.nutrition.service.NutritionPlanTemplateService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
+@Validated
 @RestController
-@RequestMapping("/api/nutrition-plan-templates")
 @RequiredArgsConstructor
+@RequestMapping("/api/nutrition-plan-templates")
+@SecurityRequirement(name = "bearerAuth")
+@Tag(
+        name = "Nutrition Plan Templates",
+        description = "Endpoints for creating, retrieving, updating, and managing nutritional plan templates."
+)
 public class NutritionPlanTemplateController {
 
     private final NutritionPlanTemplateService service;
