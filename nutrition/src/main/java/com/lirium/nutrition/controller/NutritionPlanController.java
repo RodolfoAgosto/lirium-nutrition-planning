@@ -92,6 +92,17 @@ public class NutritionPlanController {
 
     }
 
+    @Operation(
+            summary = "Activate a nutrition plan",
+            description = "Activates a draft nutrition plan for the patient and automatically closes any previously active plan."
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Nutrition plan activated successfully"),
+            @ApiResponse(responseCode = "404", description = "Nutrition plan not found"),
+            @ApiResponse(responseCode = "409", description = "Plan is not in DRAFT status to be activated")
+    })
+    @PreAuthorize("hasAnyRole('NUTRITIONIST', 'ADMIN')")
     @PatchMapping("/{id}/activate")
     public ResponseEntity<Void> activate(@PathVariable Long id) {
 

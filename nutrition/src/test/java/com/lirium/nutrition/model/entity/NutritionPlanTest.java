@@ -1,5 +1,6 @@
 package com.lirium.nutrition.model.entity;
 
+import com.lirium.nutrition.exception.UnprocessableEntityException;
 import com.lirium.nutrition.model.enums.GoalType;
 import org.junit.jupiter.api.Test;
 
@@ -134,7 +135,8 @@ class NutritionPlanTest {
         assertThatThrownBy(() ->
                 plan.activate(LocalDate.now())
         )
-                .isInstanceOf(IllegalStateException.class);
+                .isInstanceOf(UnprocessableEntityException.class)
+                .hasMessageContaining("Only DRAFT or INACTIVE plans can be activated");
     }
 
 

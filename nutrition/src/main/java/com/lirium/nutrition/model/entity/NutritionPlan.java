@@ -1,5 +1,6 @@
 package com.lirium.nutrition.model.entity;
 
+import com.lirium.nutrition.exception.UnprocessableEntityException;
 import com.lirium.nutrition.model.enums.GoalType;
 import com.lirium.nutrition.model.enums.PlanStatus;
 import jakarta.persistence.*;
@@ -168,9 +169,11 @@ public class NutritionPlan extends Auditable{
 
         Objects.requireNonNull(startDate, "Start date is required");
 
-        if (status != PlanStatus.DRAFT)
-            throw new IllegalStateException(
-                    "Only DRAFT plans can be activated. Current status: " + status);
+        if (this.status != PlanStatus.DRAFT && this.status != PlanStatus.INACTIVE) {
+            throw new UnprocessableEntityException(
+                    "Only DRAFT or INACTIVE plans can be activated. Current status: " + this.status
+            );
+        }
 
         this.status = PlanStatus.ACTIVE;
         this.startDate = startDate;
