@@ -1,12 +1,14 @@
 package com.lirium.nutrition.model.entity;
 
+import com.lirium.nutrition.exception.UnprocessableEntityException;
 import com.lirium.nutrition.model.enums.FoodTag;
 import com.lirium.nutrition.model.enums.GoalType;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class NutritionPlanTemplateTest {
 
@@ -122,7 +124,8 @@ class NutritionPlanTemplateTest {
                         null
                 )
         )
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(UnprocessableEntityException.class)
+                .hasMessageContaining("Macro percentages must sum to 100");
     }
 
 
@@ -207,7 +210,7 @@ class NutritionPlanTemplateTest {
         assertThatThrownBy(() ->
                 template.updateMacros(30,30,30)
         )
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(UnprocessableEntityException.class);
     }
 
     @Test
