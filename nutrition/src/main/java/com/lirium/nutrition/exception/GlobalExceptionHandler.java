@@ -1,5 +1,8 @@
 package com.lirium.nutrition.exception;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -18,6 +21,8 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
@@ -400,17 +405,40 @@ public class GlobalExceptionHandler {
             HttpMessageNotReadableException ex,
             HttpServletRequest request) {
 
-        log.warn("Malformed JSON payload path={} message={}", request.getRequestURI(), ex.getMessage());
+        String message = "Malformed JSON payload or invalid data format";
+
+        if (ex.getCause() instanceof InvalidFormatException invalidFormatEx) {
+            String fieldName = invalidFormatEx.getPath().stream()
+                    .map(JsonMappingException.Reference::getFieldName)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.joining("."));
+
+            if (!fieldName.isEmpty()) {
+                message = String.format("Invalid value '%s' for field '%s'", invalidFormatEx.getValue(), fieldName);
+            }
+        } else if (ex.getCause() instanceof MismatchedInputException mismatchedInputEx) {
+            String fieldName = mismatchedInputEx.getPath().stream()
+                    .map(JsonMappingException.Reference::getFieldName)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.joining("."));
+
+            if (!fieldName.isEmpty()) {
+                message = String.format("Invalid structure or value for field '%s'", fieldName);
+            }
+        }
+
+        log.warn("Malformed JSON payload path={} message={}", request.getRequestURI(), message);
 
         ApiError error = new ApiError(
                 HttpStatus.BAD_REQUEST.value(),
                 "Malformed JSON",
-                "Malformed JSON payload or invalid data format",
+                message,
                 request.getRequestURI(),
                 LocalDateTime.now()
         );
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
