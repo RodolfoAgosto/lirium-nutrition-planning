@@ -105,6 +105,7 @@ create table nutrition_plan_template (
                                          name varchar(255) not null unique,
                                          target_goal varchar(255) check (target_goal in ('WEIGHT_LOSS','MUSCLE_GAIN','WEIGHT_MAINTENANCE','METABOLIC_HEALTH','PREGNANCY_HEALTH','LACTATION_HEALTH')),
                                          updated_by varchar(255),
+                                         active BOOLEAN not null default true,
                                          primary key (id)
 );
 
