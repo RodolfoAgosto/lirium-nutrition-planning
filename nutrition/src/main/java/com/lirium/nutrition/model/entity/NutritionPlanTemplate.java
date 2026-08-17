@@ -1,10 +1,17 @@
 package com.lirium.nutrition.model.entity;
 
-import com.lirium.nutrition.model.enums.*;
+import com.lirium.nutrition.exception.UnprocessableEntityException;
+import com.lirium.nutrition.model.enums.FoodTag;
+import com.lirium.nutrition.model.enums.GoalType;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Entity representing a reusable nutrition plan template.
@@ -15,7 +22,7 @@ import java.util.*;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EqualsAndHashCode(of = "id")
+@EqualsAndHashCode(of = "id", callSuper = false)
 @Table(name = "nutrition_plan_template")
 public class NutritionPlanTemplate extends Auditable {
 
@@ -58,7 +65,7 @@ public class NutritionPlanTemplate extends Auditable {
             joinColumns = @JoinColumn(name = "nutrition_plan_template_id")
     )
     @Column(name = "food_tag")
-    private Set<FoodTag> excludedTags = new HashSet<>();
+    private final Set<FoodTag> excludedTags = new HashSet<>();
 
 
     public static NutritionPlanTemplate of(
@@ -75,12 +82,7 @@ public class NutritionPlanTemplate extends Auditable {
         requireText(description, "Description required");
         Objects.requireNonNull(targetGoal, "Goal required");
 
-        if (proteinPercentage < 0 || carbPercentage < 0 || fatPercentage < 0)
-            throw new IllegalArgumentException("Percentages cannot be negative");
-
-        int sum = proteinPercentage + carbPercentage + fatPercentage;
-        if (sum != 100)
-            throw new IllegalArgumentException("Macro percentages must sum 100");
+        validateMacros(proteinPercentage, carbPercentage, fatPercentage);
 
         NutritionPlanTemplate template = new NutritionPlanTemplate();
         template.name = name;
@@ -94,11 +96,6 @@ public class NutritionPlanTemplate extends Auditable {
             template.excludedTags.addAll(excludedTags);
 
         return template;
-    }
-
-    private static void requireText(String s, String msg) {
-        if (s == null || s.isBlank())
-            throw new IllegalArgumentException(msg);
     }
 
     public void update(
@@ -120,13 +117,28 @@ public class NutritionPlanTemplate extends Auditable {
     }
 
     public void updateMacros(int protein, int carb, int fat) {
-        if (protein < 0 || carb < 0 || fat < 0)
-            throw new IllegalArgumentException("Percentages cannot be negative");
-        if (protein + carb + fat != 100)
-            throw new IllegalArgumentException("Macro percentages must sum 100");
+
+        validateMacros(protein, carb, fat);
+
         this.proteinPercentage = protein;
         this.carbPercentage = carb;
         this.fatPercentage = fat;
+    }
+
+    private static void requireText(String s, String msg) {
+        if (s == null || s.isBlank())
+            throw new IllegalArgumentException(msg);
+    }
+
+    private static void validateMacros(int protein, int carb, int fat) {
+        if (protein < 0 || carb < 0 || fat < 0) {
+            throw new IllegalArgumentException("Percentages cannot be negative");
+        }
+        if (protein + carb + fat != 100) {
+            throw new UnprocessableEntityException(
+                    String.format("Macro percentages must sum to 100. Current sum: %d", (protein + carb + fat))
+            );
+        }
     }
 
 }
