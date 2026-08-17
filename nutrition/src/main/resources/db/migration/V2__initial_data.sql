@@ -1,3 +1,8 @@
+-- =====================================================================
+-- V2__initial_data.sql
+-- Datos de referencia y demo — Lirium Nutrition
+-- =====================================================================
+
 -- ---------------------------------------------------------------------
 -- Foods (37 filas)
 -- ---------------------------------------------------------------------
@@ -134,6 +139,8 @@ INSERT INTO nutrition_plan_template (
 
 -- ---------------------------------------------------------------------
 -- Nutrition plan template excluded tags (10 filas)
+-- RESTAURADO: se había perdido el cuerpo del INSERT en la versión
+-- anterior (quedaba un VALUES sin filas -> error de sintaxis SQL).
 -- ---------------------------------------------------------------------
 INSERT INTO nutrition_plan_template_excluded_tags (nutrition_plan_template_id, food_tag) VALUES
                                                                                              (3, 'MEAT'), (3, 'GELATIN'), (3, 'FISH'), (3, 'EGG'), (3, 'HONEY'), (3, 'LACTOSE'),
@@ -141,8 +148,7 @@ INSERT INTO nutrition_plan_template_excluded_tags (nutrition_plan_template_id, f
                                                                                              (5, 'FISH'), (5, 'ALCOHOL');
 
 -- ---------------------------------------------------------------------
--- Restrictions (5 filas) — se eliminó el segundo INSERT duplicado
--- que reinsertaba los mismos ids 1-5 (violaba la PK en Postgres)
+-- Restrictions (5 filas)
 -- ---------------------------------------------------------------------
 INSERT INTO restrictions (id, created_at, updated_at, code, name, category, description) VALUES
                                                                                              (1, TIMESTAMP '2026-05-07 14:45:17.371887', TIMESTAMP '2026-05-07 14:45:17.371887', 'GLUTEN_FREE', 'Gluten Free', 'INTOLERANCES', 'Avoid gluten containing foods'),
@@ -152,8 +158,7 @@ INSERT INTO restrictions (id, created_at, updated_at, code, name, category, desc
                                                                                              (5, TIMESTAMP '2026-05-07 14:45:17.429902', TIMESTAMP '2026-05-07 14:45:17.429902', 'VEGETARIAN', 'Vegetarian', 'DIETARY', 'Avoid meat and fish');
 
 -- ---------------------------------------------------------------------
--- Users (4 filas) — corregido: password_hash/created_by/role/updated_by
--- estaban desalineados en el INSERT posicional original
+-- Users (4 filas)
 -- ---------------------------------------------------------------------
 INSERT INTO users (
     birth_date, email_validated, enabled, created_at, id, updated_at,
@@ -165,8 +170,7 @@ INSERT INTO users (
       (NULL, FALSE, TRUE, TIMESTAMP '2026-08-02 16:51:57.999035', 4, TIMESTAMP '2026-08-02 16:51:57.999035', NULL, 'Admin', 'Lirium', 'admin@lirium.com', '$2a$10$8pn4Vs4dQEj714nquwNeku10ATxE89s34jiWpbFDVdRqaML/uj.tG', 'system', 'ADMIN', 'system');
 
 -- ---------------------------------------------------------------------
--- Patient profiles (3 filas) — corregido: activity_level/primary_goal/
--- sex estaban desalineados en el INSERT posicional original
+-- Patient profiles (3 filas)
 -- ---------------------------------------------------------------------
 INSERT INTO patient_profile (
     grams, height, created_at, updated_at, user_id,
@@ -178,8 +182,14 @@ INSERT INTO patient_profile (
 
 -- ---------------------------------------------------------------------
 -- Sincronización de secuencias para todas las tablas con IDs explícitos
+--
+-- IMPORTANTE: pg_get_serial_sequence() solo funciona con columnas
+-- IDENTITY (users.id). foods/nutrition_plan_template/restrictions usan
+-- secuencias standalone creadas en V1 via @SequenceGenerator -- no
+-- tienen vínculo automático que Postgres pueda descubrir, así que hay
+-- que nombrarlas explícitamente o setval(NULL, ...) rompe la migración.
 -- ---------------------------------------------------------------------
 SELECT setval(pg_get_serial_sequence('users', 'id'), (SELECT MAX(id) FROM users));
-SELECT setval(pg_get_serial_sequence('foods', 'id'), (SELECT MAX(id) FROM foods));
-SELECT setval(pg_get_serial_sequence('nutrition_plan_template', 'id'), (SELECT MAX(id) FROM nutrition_plan_template));
-SELECT setval(pg_get_serial_sequence('restrictions', 'id'), (SELECT MAX(id) FROM restrictions));
+SELECT setval('food_seq', (SELECT MAX(id) FROM foods));
+SELECT setval('nutrition_plan_template_seq', (SELECT MAX(id) FROM nutrition_plan_template));
+SELECT setval('restriction_seq', (SELECT MAX(id) FROM restrictions));
