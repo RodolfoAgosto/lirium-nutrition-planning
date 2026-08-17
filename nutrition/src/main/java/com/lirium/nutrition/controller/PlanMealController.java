@@ -7,8 +7,10 @@ import com.lirium.nutrition.dto.response.PlanMealResponseDTO;
 import com.lirium.nutrition.dto.response.PlanMealSummaryDTO;
 import com.lirium.nutrition.service.PlanMealService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,17 +19,18 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/plan-meals")
 @RequiredArgsConstructor
+@Validated
 public class PlanMealController {
 
     private final PlanMealService service;
 
     @GetMapping("/{id}")
-    public PlanMealResponseDTO getById(@PathVariable Long id) {
+    public PlanMealResponseDTO getById(@PathVariable @Positive Long id) {
         return service.getById(id);
     }
 
     @GetMapping("/day/{planDayId}")
-    public List<PlanMealSummaryDTO> getByPlanDay(@PathVariable Long planDayId) {
+    public List<PlanMealSummaryDTO> getByPlanDay(@PathVariable("planDayId") @Positive Long planDayId) {
         return service.getByPlanDay(planDayId);
     }
 
@@ -43,7 +46,7 @@ public class PlanMealController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public void delete(@PathVariable @Positive Long id) {
 
         log.info("Deleting plan meal id={}", id);
         service.delete(id);
@@ -52,20 +55,20 @@ public class PlanMealController {
     }
 
     @PostMapping("/{mealId}/portions")
-    public PlanMealResponseDTO addPortion(@PathVariable Long mealId, @RequestBody FoodPortionAddRequestDTO dto) {
+    public PlanMealResponseDTO addPortion(@PathVariable @Positive Long mealId,@Valid @RequestBody FoodPortionAddRequestDTO dto) {
             return service.addPortion(mealId, dto);
     }
 
     @DeleteMapping("/{mealId}/portions/{portionId}")
-    public PlanMealResponseDTO removePortion(@PathVariable Long mealId,
-                                             @PathVariable Long portionId) {
+    public PlanMealResponseDTO removePortion(@PathVariable @Positive Long mealId,
+                                             @PathVariable @Positive Long portionId) {
         return service.removePortion(mealId, portionId);
     }
 
     @PatchMapping("/{mealId}/portions/{portionId}")
-    public PlanMealResponseDTO updatePortion(@PathVariable Long mealId,
-                                             @PathVariable Long portionId,
-                                             @RequestBody PlanFoodPortionUpdateFoodRequestDTO dto) {
+    public PlanMealResponseDTO updatePortion(@PathVariable @Positive Long mealId,
+                                             @PathVariable @Positive Long portionId,
+                                             @Valid @RequestBody PlanFoodPortionUpdateFoodRequestDTO dto) {
         return service.updatePortion(mealId, portionId, dto);
     }
 
