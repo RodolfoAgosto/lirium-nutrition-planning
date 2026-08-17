@@ -5,6 +5,9 @@ import com.lirium.nutrition.dto.request.NutritionPlanTemplateUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanTemplateResponseDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanTemplateSummaryDTO;
 import com.lirium.nutrition.service.NutritionPlanTemplateService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -45,10 +48,28 @@ public class NutritionPlanTemplateController {
     }
 
 
+    @Operation(
+            summary = "Create basic plan template",
+            description = "Creates a new basic plan template. Validates that macronutrient percentages sum up to exactly 100%."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Template created successfully"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid request payload or malformed JSON"
+            ),
+            @ApiResponse(
+                    responseCode = "422",
+                    description = "Macro percentages do not sum to 100%"
+            )
+    })
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST')")
-    public ResponseEntity<NutritionPlanTemplateResponseDTO> create(
-            @Valid @RequestBody NutritionPlanTemplateCreateRequestDTO dto) {
+    public ResponseEntity<NutritionPlanTemplateResponseDTO> create(@Valid @RequestBody NutritionPlanTemplateCreateRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(dto));
     }
 
