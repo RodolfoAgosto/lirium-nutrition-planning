@@ -8,6 +8,8 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -24,6 +26,8 @@ import java.util.Set;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id", callSuper = false)
 @Table(name = "nutrition_plan_template")
+@SQLDelete(sql = "UPDATE nutrition_plan_template SET active = false WHERE id = ?")
+@SQLRestriction("active = true")
 public class NutritionPlanTemplate extends Auditable {
 
     @Id
@@ -53,6 +57,9 @@ public class NutritionPlanTemplate extends Auditable {
 
     @Column(name = "fat_percentage", nullable = false)
     private int fatPercentage;
+
+    @Column(nullable = false)
+    private boolean active = true;
 
     public Set<FoodTag> getExcludedTags() {
         return Set.copyOf(excludedTags);
