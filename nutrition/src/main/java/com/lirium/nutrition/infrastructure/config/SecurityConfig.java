@@ -64,6 +64,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/*/validate-email").authenticated()
 
                         // ADMIN and NUTRITIONIST
+                        .requestMatchers(HttpMethod.GET, "/api/plan-meals/*").authenticated()
                         .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "NUTRITIONIST")
                         .requestMatchers("/api/restrictions/**").hasAnyRole("ADMIN", "NUTRITIONIST")
                         .requestMatchers("/api/plan-meals", "/api/plan-meals/**").hasAnyRole("ADMIN", "NUTRITIONIST")

@@ -11,6 +11,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.method.P;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,8 +28,9 @@ public class PlanMealController {
 
     private final PlanMealService service;
 
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @planMealSecurity.isOwner(#id, authentication)")
     @GetMapping("/{id}")
-    public PlanMealResponseDTO getById(@PathVariable @Positive Long id) {
+    public PlanMealResponseDTO getById(@PathVariable @P("id") @Positive Long id) {
         return service.getById(id);
     }
 
