@@ -180,6 +180,11 @@ INSERT INTO patient_profile (
       (85000, 175, TIMESTAMP '2026-08-02 16:51:57.996521', TIMESTAMP '2026-08-02 16:51:58.062785', 2, 'MODERATE', 'system', NULL, 'WEIGHT_LOSS', 'MALE', 'system'),
       (58000, 160, TIMESTAMP '2026-08-02 16:51:57.999035', TIMESTAMP '2026-08-02 16:51:58.062785', 3, 'VERY_ACTIVE', 'system', NULL, 'MUSCLE_GAIN', 'FEMALE', 'system');
 
+INSERT INTO nutrition_plans (id, name, description, status, target_goal, daily_calories, protein_grams, carb_grams, fat_grams, start_date, end_date, patient_profile_id, created_at, updated_at, created_by, updated_by) VALUES
+      (nextval('nutrition_plan_seq'),'Lirium Muscle Gain Plan', 'High protein plan aimed at clean muscle mass gain', 'ACTIVE', 'MUSCLE_GAIN', 2800, 180, 320, 80, CURRENT_DATE - INTERVAL '10 days', NULL, 1, NOW(), NOW(), 'system', 'system'),
+      (nextval('nutrition_plan_seq'),'Initial Caloric Deficit Plan', 'Draft plan for pre-season macro adjustments', 'DRAFT', 'WEIGHT_LOSS', 1900, 150, 180, 60, NULL, NULL, 1, NOW(), NOW(), 'system', 'system'),
+      (nextval('nutrition_plan_seq'),'Maintenance Plan 2025', 'Previous closed plan replaced by current active plan', 'INACTIVE', 'WEIGHT_MAINTENANCE', 2200, 140, 240, 70, CURRENT_DATE - INTERVAL '90 days', CURRENT_DATE - INTERVAL '10 days', 1, NOW(), NOW(), 'system', 'system');
+
 -- ---------------------------------------------------------------------
 -- Sincronización de secuencias para todas las tablas con IDs explícitos
 --
@@ -193,3 +198,65 @@ SELECT setval(pg_get_serial_sequence('users', 'id'), (SELECT MAX(id) FROM users)
 SELECT setval('food_seq', (SELECT MAX(id) FROM foods));
 SELECT setval('nutrition_plan_template_seq', (SELECT MAX(id) FROM nutrition_plan_template));
 SELECT setval('restriction_seq', (SELECT MAX(id) FROM restrictions));
+-- ---------------------------------------------------------------------
+-- Daily plans (7 días para Plan 1 [IDs 1 al 7], 1 día para Plan 2 [ID 8])
+-- ---------------------------------------------------------------------
+INSERT INTO daily_plans (id, day_of_week, nutrition_plan_id) VALUES
+                                                                 (nextval('daily_plan_seq'), 'MONDAY', 1),    -- ID generado: 1
+                                                                 (nextval('daily_plan_seq'), 'TUESDAY', 1),   -- ID generado: 2
+                                                                 (nextval('daily_plan_seq'), 'WEDNESDAY', 1), -- ID generado: 3
+                                                                 (nextval('daily_plan_seq'), 'THURSDAY', 1),  -- ID generado: 4
+                                                                 (nextval('daily_plan_seq'), 'FRIDAY', 1),    -- ID generado: 5
+                                                                 (nextval('daily_plan_seq'), 'SATURDAY', 1),  -- ID generado: 6
+                                                                 (nextval('daily_plan_seq'), 'SUNDAY', 1),    -- ID generado: 7
+                                                                 (nextval('daily_plan_seq'), 'MONDAY', 2);    -- ID generado: 8
+
+-- ---------------------------------------------------------------------
+-- Plan meals
+-- ---------------------------------------------------------------------
+INSERT INTO plan_meals (id, meal_type, daily_plan_id, created_at, updated_at) VALUES
+                                                                                  -- Lunes Plan 1 (daily_plan_id = 1) -> Genera meal_ids 1, 2, 3, 4, 5
+                                                                                  (nextval('plan_meal_seq'), 'BREAKFAST', 1, NOW(), NOW()),   -- meal_id 1
+                                                                                  (nextval('plan_meal_seq'), 'MID_MORNING', 1, NOW(), NOW()), -- meal_id 2
+                                                                                  (nextval('plan_meal_seq'), 'LUNCH', 1, NOW(), NOW()),       -- meal_id 3
+                                                                                  (nextval('plan_meal_seq'), 'SNACK', 1, NOW(), NOW()),       -- meal_id 4
+                                                                                  (nextval('plan_meal_seq'), 'DINNER', 1, NOW(), NOW()),      -- meal_id 5
+
+                                                                                  -- Martes Plan 1 (daily_plan_id = 2) -> Genera meal_ids 6, 7, 8
+                                                                                  (nextval('plan_meal_seq'), 'BREAKFAST', 2, NOW(), NOW()),   -- meal_id 6
+                                                                                  (nextval('plan_meal_seq'), 'LUNCH', 2, NOW(), NOW()),       -- meal_id 7
+                                                                                  (nextval('plan_meal_seq'), 'DINNER', 2, NOW(), NOW());      -- meal_id 8
+
+-- ---------------------------------------------------------------------
+-- Plan food portions
+-- ---------------------------------------------------------------------
+-- ---------------------------------------------------------------------
+-- Plan food portions
+-- ---------------------------------------------------------------------
+INSERT INTO plan_food_portions (id, plan_meal_id, food_id, quantity, measure_unit) VALUES
+                                                                                       (nextval('plan_food_portion_seq'), 1, 11, 80.0, 'GRAM'),
+                                                                                       (nextval('plan_food_portion_seq'), 1, 10, 250.0, 'MILLILITER'),
+                                                                                       (nextval('plan_food_portion_seq'), 1, 6, 2.0, 'UNIT'),
+                                                                                       (nextval('plan_food_portion_seq'), 2, 23, 1.0, 'UNIT'),
+                                                                                       (nextval('plan_food_portion_seq'), 3, 1, 200.0, 'GRAM'),
+                                                                                       (nextval('plan_food_portion_seq'), 3, 12, 180.0, 'GRAM'),
+                                                                                       (nextval('plan_food_portion_seq'), 3, 30, 10.0, 'MILLILITER'),
+                                                                                       (nextval('plan_food_portion_seq'), 4, 9, 200.0, 'GRAM'),
+                                                                                       (nextval('plan_food_portion_seq'), 4, 24, 1.0, 'UNIT'),
+                                                                                       (nextval('plan_food_portion_seq'), 5, 2, 180.0, 'GRAM'),
+                                                                                       (nextval('plan_food_portion_seq'), 5, 14, 200.0, 'GRAM'),
+                                                                                       (nextval('plan_food_portion_seq'), 5, 17, 150.0, 'GRAM'),
+                                                                                       (nextval('plan_food_portion_seq'), 6, 15, 60.0, 'GRAM'),
+                                                                                       (nextval('plan_food_portion_seq'), 6, 6, 3.0, 'UNIT'),
+                                                                                       (nextval('plan_food_portion_seq'), 7, 4, 200.0, 'GRAM'),
+                                                                                       (nextval('plan_food_portion_seq'), 7, 13, 120.0, 'GRAM'),
+                                                                                       (nextval('plan_food_portion_seq'), 8, 3, 150.0, 'GRAM'),
+                                                                                       (nextval('plan_food_portion_seq'), 8, 18, 100.0, 'GRAM'),
+                                                                                       (nextval('plan_food_portion_seq'), 8, 27, 80.0, 'GRAM');
+
+-- ---------------------------------------------------------------------
+-- Sincronización de secuencias
+-- ---------------------------------------------------------------------
+SELECT setval('daily_plan_seq', (SELECT COALESCE(MAX(id), 1) FROM daily_plans));
+SELECT setval('plan_meal_seq', (SELECT COALESCE(MAX(id), 1) FROM plan_meals));
+SELECT setval('plan_food_portion_seq', (SELECT COALESCE(MAX(id), 1) FROM plan_food_portions));
