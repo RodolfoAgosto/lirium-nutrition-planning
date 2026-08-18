@@ -42,8 +42,8 @@ public class PlanMealMapper {
             PlanMealCreateRequestDTO dto,
             DailyPlan dailyPlan
     ) {
-        MealType type = MealType.valueOf(dto.type().toUpperCase());
-        return PlanMeal.of(type, dailyPlan);
+
+        return PlanMeal.of(dto.type(), dailyPlan);
     }
 
     /* ========= UPDATE ========= */

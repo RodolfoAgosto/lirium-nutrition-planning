@@ -187,7 +187,7 @@ class PlanMealControllerIT extends AbstractIntegrationTest {
     void shouldCreatePlanMeal() throws Exception {
 
         PlanMealCreateRequestDTO dto = new PlanMealCreateRequestDTO(
-                MealType.BREAKFAST.name(),
+                MealType.BREAKFAST,
                 dailyPlan.getId(),
                 List.of()
         );
@@ -209,7 +209,7 @@ class PlanMealControllerIT extends AbstractIntegrationTest {
     void shouldReturnNotFoundWhenCreatingMealForUnknownDailyPlan() throws Exception {
 
         PlanMealCreateRequestDTO dto = new PlanMealCreateRequestDTO(
-                MealType.BREAKFAST.name(),
+                MealType.BREAKFAST,
                 999999L,
                 List.of()
         );

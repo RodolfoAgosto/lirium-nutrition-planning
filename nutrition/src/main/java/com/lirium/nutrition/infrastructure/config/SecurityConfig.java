@@ -66,7 +66,7 @@ public class SecurityConfig {
                         // ADMIN and NUTRITIONIST
                         .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "NUTRITIONIST")
                         .requestMatchers("/api/restrictions/**").hasAnyRole("ADMIN", "NUTRITIONIST")
-                        .requestMatchers("/api/plan-meals/**").hasAnyRole("ADMIN", "NUTRITIONIST")
+                        .requestMatchers("/api/plan-meals", "/api/plan-meals/**").hasAnyRole("ADMIN", "NUTRITIONIST")
                         .requestMatchers("/api/plan-food-portions/**").hasAnyRole("ADMIN", "NUTRITIONIST")
                         .requestMatchers("/api/nutrition-plan-templates/**").hasAnyRole("ADMIN", "NUTRITIONIST")
                         .requestMatchers(HttpMethod.POST, "/api/nutrition-plans/**").hasAnyRole("ADMIN", "NUTRITIONIST")

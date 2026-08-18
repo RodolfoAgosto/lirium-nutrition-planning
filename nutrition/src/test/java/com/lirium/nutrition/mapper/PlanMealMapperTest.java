@@ -1,9 +1,10 @@
 package com.lirium.nutrition.mapper;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import com.lirium.nutrition.dto.request.*;
-import com.lirium.nutrition.dto.response.*;
+import com.lirium.nutrition.dto.request.PlanMealCreateRequestDTO;
+import com.lirium.nutrition.dto.request.PlanMealUpdateRequestDTO;
+import com.lirium.nutrition.dto.response.PlanFoodPortionSummaryDTO;
+import com.lirium.nutrition.dto.response.PlanMealResponseDTO;
+import com.lirium.nutrition.dto.response.PlanMealSummaryDTO;
 import com.lirium.nutrition.model.entity.DailyPlan;
 import com.lirium.nutrition.model.entity.Food;
 import com.lirium.nutrition.model.entity.PlanFoodPortion;
@@ -86,7 +87,7 @@ class PlanMealMapperTest {
 
         PlanMealCreateRequestDTO dto =
                 new PlanMealCreateRequestDTO(
-                        "BREAKFAST",
+                        MealType.BREAKFAST,
                         100L,
                         List.of()
                 );
