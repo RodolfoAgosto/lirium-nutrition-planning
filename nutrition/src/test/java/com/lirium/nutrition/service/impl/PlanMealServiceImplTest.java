@@ -9,10 +9,7 @@ import com.lirium.nutrition.exception.DuplicateFoodException;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.PlanFoodPortionMapper;
 import com.lirium.nutrition.mapper.PlanMealMapper;
-import com.lirium.nutrition.model.entity.DailyPlan;
-import com.lirium.nutrition.model.entity.Food;
-import com.lirium.nutrition.model.entity.PlanFoodPortion;
-import com.lirium.nutrition.model.entity.PlanMeal;
+import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.model.enums.MeasureUnit;
 import com.lirium.nutrition.repository.DailyPlanRepository;
 import com.lirium.nutrition.repository.PlanMealRepository;
@@ -77,6 +74,7 @@ class PlanMealServiceImplTest {
         Long dailyPlanId = 1L;
 
         DailyPlan dailyPlan = mock(DailyPlan.class);
+        NutritionPlan nutritionPlan = mock(NutritionPlan.class);
         PlanMeal entity = mock(PlanMeal.class);
         PlanMeal saved = mock(PlanMeal.class);
 
@@ -86,6 +84,8 @@ class PlanMealServiceImplTest {
 
         given(dailyPlanRepository.findById(dailyPlanId))
                 .willReturn(Optional.of(dailyPlan));
+
+        given(dailyPlan.getNutritionPlan()).willReturn(nutritionPlan);
 
         try (MockedStatic<PlanMealMapper> mapper = mockStatic(PlanMealMapper.class)) {
 
@@ -102,6 +102,7 @@ class PlanMealServiceImplTest {
             service.create(dto);
 
             // Then
+            verify(nutritionPlan).ensureEditable();
             verify(repository).save(entity);
         }
     }

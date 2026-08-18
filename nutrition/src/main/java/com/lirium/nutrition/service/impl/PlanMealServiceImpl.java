@@ -1,29 +1,22 @@
 package com.lirium.nutrition.service.impl;
 
-import com.lirium.nutrition.dto.response.FoodResponseDTO;
+import com.lirium.nutrition.dto.request.FoodPortionAddRequestDTO;
+import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateFoodRequestDTO;
+import com.lirium.nutrition.dto.request.PlanMealCreateRequestDTO;
 import com.lirium.nutrition.dto.response.PlanMealResponseDTO;
 import com.lirium.nutrition.dto.response.PlanMealSummaryDTO;
 import com.lirium.nutrition.exception.DuplicateFoodException;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
-import com.lirium.nutrition.mapper.FoodMapper;
 import com.lirium.nutrition.mapper.PlanFoodPortionMapper;
 import com.lirium.nutrition.mapper.PlanMealMapper;
-import com.lirium.nutrition.dto.request.*;
-import com.lirium.nutrition.model.entity.DailyPlan;
-import com.lirium.nutrition.model.entity.Food;
-import com.lirium.nutrition.model.entity.PlanFoodPortion;
-import com.lirium.nutrition.model.entity.PlanMeal;
+import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.repository.DailyPlanRepository;
 import com.lirium.nutrition.repository.PlanMealRepository;
-import com.lirium.nutrition.service.FoodService;
 import com.lirium.nutrition.service.PlanMealService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -71,7 +64,11 @@ public class PlanMealServiceImpl implements PlanMealService {
                     dto.type()
             );
 
-        PlanMeal   entity = PlanMealMapper.toEntity(dto, dailyPlan);
+        NutritionPlan nutritionPlan = dailyPlan.getNutritionPlan();
+
+        nutritionPlan.ensureEditable();
+
+        PlanMeal entity = PlanMealMapper.toEntity(dto, dailyPlan);
 
         PlanMeal saved = repository.save(entity);
 

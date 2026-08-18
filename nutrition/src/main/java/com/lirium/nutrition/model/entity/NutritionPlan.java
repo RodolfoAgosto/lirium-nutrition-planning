@@ -194,4 +194,12 @@ public class NutritionPlan extends Auditable{
         this.status = PlanStatus.INACTIVE;
     }
 
+    public void ensureEditable() {
+        if (status != PlanStatus.DRAFT) {
+            throw new UnprocessableEntityException(
+                    "Nutrition plan is not editable in its current status"
+            );
+        }
+    }
+
 }
