@@ -35,6 +35,7 @@ public class PlanMealController {
         return service.getById(id);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @planMealSecurity.isPlanDayOwner(#planDayId, authentication)")
     @GetMapping("/day/{planDayId}")
     public List<PlanMealSummaryDTO> getByPlanDay(@PathVariable("planDayId") @Positive Long planDayId) {
         return service.getByPlanDay(planDayId);

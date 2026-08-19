@@ -17,4 +17,7 @@ public interface DailyPlanRepository extends JpaRepository<DailyPlan, Long> {
 
     void deleteByNutritionPlan(NutritionPlan nutritionPlan);
 
+        // Navega: DailyPlan -> NutritionPlan -> Patient -> User (id)
+        boolean existsByIdAndNutritionPlan_PatientProfile_User_Id(Long planDayId, Long userId);
+
 }
