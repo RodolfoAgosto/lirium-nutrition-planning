@@ -7,6 +7,7 @@ import com.lirium.nutrition.dto.response.PlanMealResponseDTO;
 import com.lirium.nutrition.dto.response.PlanMealSummaryDTO;
 import com.lirium.nutrition.exception.DuplicateFoodException;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.UnprocessableEntityException;
 import com.lirium.nutrition.mapper.PlanFoodPortionMapper;
 import com.lirium.nutrition.mapper.PlanMealMapper;
 import com.lirium.nutrition.model.entity.*;
@@ -149,16 +150,55 @@ class PlanMealServiceImplTest {
     }
 
     @Test
-    void shouldDeletePlanMeal() {
+    void shouldDeletePlanMealWhenPlanIsDraft() {
+        Long id = 1L;
 
+        NutritionPlan nutritionPlan = mock(NutritionPlan.class);
+        DailyPlan dailyPlan = mock(DailyPlan.class);
+        PlanMeal planMeal = mock(PlanMeal.class);
+
+        when(planMeal.getDailyPlan()).thenReturn(dailyPlan);
+        when(dailyPlan.getNutritionPlan()).thenReturn(nutritionPlan);
+
+        when(repository.findById(id)).thenReturn(Optional.of(planMeal));
+
+        service.delete(id);
+
+        verify(nutritionPlan).ensureEditable();
+        verify(repository).delete(planMeal);
+    }
+
+    @Test
+    void shouldThrowResourceNotFoundExceptionWhenPlanMealDoesNotExist() {
+        // Given
+        Long id = 99L;
+        when(repository.findById(id)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(ResourceNotFoundException.class, () -> service.delete(id));
+        verify(repository, never()).delete(any());
+    }
+
+    @Test
+    void shouldThrowUnprocessableEntityExceptionWhenPlanIsNotDraft() {
         // Given
         Long id = 1L;
 
-        // When
-        service.delete(id);
+        NutritionPlan nutritionPlan = mock(NutritionPlan.class);
+        doThrow(new UnprocessableEntityException("Nutrition plan is not editable in its current status"))
+                .when(nutritionPlan).ensureEditable();
 
-        // Then
-        verify(repository).deleteById(id);
+        DailyPlan dailyPlan = mock(DailyPlan.class);
+        PlanMeal planMeal = mock(PlanMeal.class);
+
+        when(planMeal.getDailyPlan()).thenReturn(dailyPlan);
+        when(dailyPlan.getNutritionPlan()).thenReturn(nutritionPlan);
+        when(repository.findById(id)).thenReturn(Optional.of(planMeal));
+
+        // When & Then
+        assertThrows(UnprocessableEntityException.class, () -> service.delete(id));
+        // Nos aseguramos de que NUNCA se llamó al delete del repositorio
+        verify(repository, never()).delete(any());
     }
 
     @Test

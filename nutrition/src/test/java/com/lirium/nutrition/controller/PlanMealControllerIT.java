@@ -252,7 +252,7 @@ class PlanMealControllerIT extends AbstractIntegrationTest {
                         delete("/api/plan-meals/" + meal.getId())
                                 .header("Authorization", adminToken)
                 )
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         assertFalse(planMealRepository.findById(meal.getId()).isPresent());
     }
@@ -265,7 +265,7 @@ class PlanMealControllerIT extends AbstractIntegrationTest {
                         delete("/api/plan-meals/999999")
                                 .header("Authorization", adminToken)
                 )
-                .andExpect(status().isOk());
+                .andExpect(status().isNotFound());
     }
 
     @Test

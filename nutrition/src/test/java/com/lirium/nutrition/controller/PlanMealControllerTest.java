@@ -100,7 +100,7 @@ class PlanMealControllerTest {
         doNothing().when(planMealService).delete(1L);
 
         mockMvc.perform(delete("/api/plan-meals/1"))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         verify(planMealService).delete(1L);
     }
