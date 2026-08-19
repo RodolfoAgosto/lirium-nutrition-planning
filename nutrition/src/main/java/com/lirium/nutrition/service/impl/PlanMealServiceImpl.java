@@ -13,7 +13,7 @@ import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.repository.DailyPlanRepository;
 import com.lirium.nutrition.repository.PlanMealRepository;
 import com.lirium.nutrition.service.PlanMealService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,8 +39,13 @@ public class PlanMealServiceImpl implements PlanMealService {
         return PlanMealMapper.toResponse(meal);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<PlanMealSummaryDTO> getByPlanDay(Long planDayId) {
+
+        if (!dailyPlanRepository.existsById(planDayId)) {
+            throw new ResourceNotFoundException("Daily plan ", planDayId);
+        }
 
         return repository.findByDailyPlanId(planDayId)
                 .stream()
