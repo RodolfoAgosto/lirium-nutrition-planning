@@ -80,7 +80,17 @@ public class PlanMealServiceImpl implements PlanMealService {
 
     @Override
     public void delete(Long id) {
-        repository.deleteById(id);
+
+        PlanMeal planMeal = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Plan meal ", id));
+
+        NutritionPlan plan = planMeal.getDailyPlan().getNutritionPlan();
+        plan.ensureEditable();
+
+        repository.delete(planMeal);
+
+        log.info("PlanMeal id={} deleted physically because plan is in DRAFT", id);
+
     }
 
     @Override
