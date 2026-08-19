@@ -170,16 +170,16 @@ class PlanMealControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Debe retornar lista vacía cuando el día no tiene comidas")
-    void shouldReturnEmptyListWhenDailyPlanDoesNotExist() throws Exception {
+    @DisplayName("Debe retornar 404 Not Found cuando el plan diario no existe")
+    void shouldReturn404WhenDailyPlanDoesNotExist() throws Exception {
 
         mockMvc.perform(
                         get("/api/plan-meals/day/999999")
                                 .header("Authorization", adminToken)
                 )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("Daily plan  not found with id: 999999"));
     }
 
     @Test

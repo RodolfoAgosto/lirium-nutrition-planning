@@ -209,6 +209,9 @@ class PlanMealServiceImplTest {
         PlanMeal meal = mock(PlanMeal.class);
         PlanMealSummaryDTO summary = mock(PlanMealSummaryDTO.class);
 
+        given(dailyPlanRepository.existsById(dayId))
+                .willReturn(true);
+
         given(repository.findByDailyPlanId(dayId))
                 .willReturn(List.of(meal));
 
