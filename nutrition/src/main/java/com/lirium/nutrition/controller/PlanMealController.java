@@ -1,7 +1,7 @@
 package com.lirium.nutrition.controller;
 
 import com.lirium.nutrition.dto.request.FoodPortionAddRequestDTO;
-import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateFoodRequestDTO;
+import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateQuantityRequestDTO;
 import com.lirium.nutrition.dto.request.PlanMealCreateRequestDTO;
 import com.lirium.nutrition.dto.response.PlanMealResponseDTO;
 import com.lirium.nutrition.dto.response.PlanMealSummaryDTO;
@@ -65,7 +65,8 @@ public class PlanMealController {
 
     @PostMapping("/{mealId}/portions")
     @ResponseStatus(HttpStatus.CREATED)
-    public PlanMealResponseDTO addPortion(@PathVariable @Positive Long mealId,@Valid @RequestBody FoodPortionAddRequestDTO dto) {
+    public PlanMealResponseDTO addPortion(@PathVariable @Positive Long mealId,
+                                          @Valid @RequestBody FoodPortionAddRequestDTO dto) {
             return service.addPortion(mealId, dto);
     }
 
@@ -75,12 +76,13 @@ public class PlanMealController {
         return service.removePortion(mealId, portionId);
     }
 
-    @PatchMapping("/{mealId}/portions/{portionId}")
-    public PlanMealResponseDTO updatePortion(@PathVariable @Positive Long mealId,
-                                             @PathVariable @Positive Long portionId,
-                                             @Valid @RequestBody PlanFoodPortionUpdateFoodRequestDTO dto) {
-        return service.updatePortion(mealId, portionId, dto);
+    @PatchMapping("/{mealId}/portions/{portionId}/quantity")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
+    public PlanMealResponseDTO updateQuantity(
+            @PathVariable @Positive Long mealId,
+            @PathVariable @Positive Long portionId,
+            @Valid @RequestBody PlanFoodPortionUpdateQuantityRequestDTO dto) {
+        return service.updateQuantity(mealId, portionId, dto);
     }
-
 
 }

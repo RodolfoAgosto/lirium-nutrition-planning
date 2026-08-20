@@ -1,8 +1,10 @@
 package com.lirium.nutrition.service;
 
-import com.lirium.nutrition.dto.request.*;
-import com.lirium.nutrition.dto.response.*;
-import com.lirium.nutrition.model.entity.PlanFoodPortion;
+import com.lirium.nutrition.dto.request.FoodPortionAddRequestDTO;
+import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateQuantityRequestDTO;
+import com.lirium.nutrition.dto.request.PlanMealCreateRequestDTO;
+import com.lirium.nutrition.dto.response.PlanMealResponseDTO;
+import com.lirium.nutrition.dto.response.PlanMealSummaryDTO;
 
 import java.util.List;
 
@@ -20,6 +22,6 @@ public interface PlanMealService {
 
     PlanMealResponseDTO removePortion(Long mealId, Long portionId);
 
-    PlanMealResponseDTO updatePortion(Long mealId, Long portionId, PlanFoodPortionUpdateFoodRequestDTO dto);
+    PlanMealResponseDTO updateQuantity(Long mealId, Long portionId, PlanFoodPortionUpdateQuantityRequestDTO dto);
 
 }
