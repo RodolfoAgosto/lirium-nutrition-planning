@@ -2,7 +2,7 @@ package com.lirium.nutrition.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lirium.nutrition.dto.request.FoodPortionAddRequestDTO;
-import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateFoodRequestDTO;
+import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateQuantityRequestDTO;
 import com.lirium.nutrition.dto.request.PlanMealCreateRequestDTO;
 import com.lirium.nutrition.dto.response.PlanMealResponseDTO;
 import com.lirium.nutrition.dto.response.PlanMealSummaryDTO;
@@ -145,22 +145,19 @@ class PlanMealControllerTest {
     }
 
     @Test
-    void updatePortion_shouldReturnUpdatedMeal() throws Exception {
+    void updateQuantity_shouldReturnUpdatedMeal() throws Exception {
 
-        PlanFoodPortionUpdateFoodRequestDTO request =
-                new PlanFoodPortionUpdateFoodRequestDTO(
-                        100L,
-                        200.0
-                );
+        PlanFoodPortionUpdateQuantityRequestDTO request =
+                new PlanFoodPortionUpdateQuantityRequestDTO(200.0);
 
-        when(planMealService.updatePortion(
+        when(planMealService.updateQuantity(
                 eq(1L),
                 eq(2L),
-                any(PlanFoodPortionUpdateFoodRequestDTO.class)
+                any(PlanFoodPortionUpdateQuantityRequestDTO.class)
         )).thenReturn(mealResponse());
 
         mockMvc.perform(
-                        patch("/api/plan-meals/1/portions/2")
+                        patch("/api/plan-meals/1/portions/2/quantity") // URL actualizada
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request))
                 )
@@ -169,10 +166,10 @@ class PlanMealControllerTest {
                 .andExpect(jsonPath("$.type").value("BREAKFAST"));
 
         verify(planMealService)
-                .updatePortion(
+                .updateQuantity(
                         eq(1L),
                         eq(2L),
-                        any(PlanFoodPortionUpdateFoodRequestDTO.class)
+                        any(PlanFoodPortionUpdateQuantityRequestDTO.class)
                 );
     }
 

@@ -1,7 +1,7 @@
 package com.lirium.nutrition.service.impl;
 
 import com.lirium.nutrition.dto.request.FoodPortionAddRequestDTO;
-import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateFoodRequestDTO;
+import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateQuantityRequestDTO;
 import com.lirium.nutrition.dto.request.PlanMealCreateRequestDTO;
 import com.lirium.nutrition.dto.response.PlanMealResponseDTO;
 import com.lirium.nutrition.dto.response.PlanMealSummaryDTO;
@@ -351,17 +351,17 @@ class PlanMealServiceImplTest {
     }
 
     @Test
-    void shouldFailUpdateWhenMealNotFound() {
+    void shouldFailUpdateQuantityWhenMealNotFound() {
 
         given(repository.findById(1L))
                 .willReturn(Optional.empty());
 
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> service.updatePortion(
+                () -> service.updateQuantity(
                         1L,
                         1L,
-                        new PlanFoodPortionUpdateFoodRequestDTO(null, 100.0)
+                        new PlanFoodPortionUpdateQuantityRequestDTO(100.0)
                 )
         );
     }
@@ -370,73 +370,59 @@ class PlanMealServiceImplTest {
     void shouldUpdateQuantity() {
 
         PlanMeal meal = mock(PlanMeal.class);
-
+        DailyPlan dailyPlan = mock(DailyPlan.class);
+        NutritionPlan nutritionPlan = mock(NutritionPlan.class);
         PlanFoodPortion portion = mock(PlanFoodPortion.class);
 
-        given(portion.getId()).willReturn(1L);
+        given(meal.getDailyPlan()).willReturn(dailyPlan);
+        given(dailyPlan.getNutritionPlan()).willReturn(nutritionPlan);
+        given(portion.getMeal()).willReturn(meal);
+        given(meal.getId()).willReturn(1L);
 
-        given(meal.getFoodPortions())
-                .willReturn(List.of(portion));
-
-        given(repository.findById(1L))
-                .willReturn(Optional.of(meal));
+        given(repository.findById(1L)).willReturn(Optional.of(meal));
+        given(planFoodPortionRepository.findById(1L)).willReturn(Optional.of(portion));
 
         PlanMealResponseDTO response = mock(PlanMealResponseDTO.class);
 
         try (MockedStatic<PlanMealMapper> mapper = mockStatic(PlanMealMapper.class)) {
 
-            mapper.when(() -> PlanMealMapper.toResponse(meal))
-                    .thenReturn(response);
+            mapper.when(() -> PlanMealMapper.toResponse(meal)).thenReturn(response);
 
-            service.updatePortion(
+            PlanMealResponseDTO result = service.updateQuantity(
                     1L,
                     1L,
-                    new PlanFoodPortionUpdateFoodRequestDTO(null, 200.0)
+                    new PlanFoodPortionUpdateQuantityRequestDTO(200.0)
             );
 
             verify(portion).changeQuantity(200.0);
+            verify(planFoodPortionRepository).save(portion);
+            assertNotNull(result);
+
         }
     }
 
     @Test
-    void shouldUpdateFood() {
+    void shouldFailUpdateQuantityWhenPortionDoesNotBelongToMeal() {
 
         PlanMeal meal = mock(PlanMeal.class);
-
+        PlanMeal otherMeal = mock(PlanMeal.class);
         PlanFoodPortion portion = mock(PlanFoodPortion.class);
 
-        Food oldFood = mock(Food.class);
-        given(oldFood.getId()).willReturn(1L);
+        // Si tu servicio hace portion.getMeal().getId(), solo necesitas mockear otherMeal.getId()
+        given(otherMeal.getId()).willReturn(99L);
+        given(portion.getMeal()).willReturn(otherMeal);
 
-        given(portion.getId()).willReturn(1L);
-        given(portion.getFood()).willReturn(oldFood);
+        given(repository.findById(1L)).willReturn(Optional.of(meal));
+        given(planFoodPortionRepository.findById(1L)).willReturn(Optional.of(portion));
 
-        given(meal.getFoodPortions())
-                .willReturn(List.of(portion));
-
-        given(repository.findById(1L))
-                .willReturn(Optional.of(meal));
-
-        Food newFood = mock(Food.class);
-
-        given(foodService.findEntityById(2L))
-                .willReturn(newFood);
-
-        PlanMealResponseDTO response = mock(PlanMealResponseDTO.class);
-
-        try (MockedStatic<PlanMealMapper> mapper = mockStatic(PlanMealMapper.class)) {
-
-            mapper.when(() -> PlanMealMapper.toResponse(meal))
-                    .thenReturn(response);
-
-            service.updatePortion(
-                    1L,
-                    1L,
-                    new PlanFoodPortionUpdateFoodRequestDTO(2L, null)
-            );
-
-            verify(portion).changeFood(newFood);
-        }
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.updateQuantity(
+                        1L, // mealId = 1
+                        1L, // portionId = 1
+                        new PlanFoodPortionUpdateQuantityRequestDTO(150.0)
+                )
+        );
     }
 
 }

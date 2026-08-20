@@ -1,7 +1,7 @@
 package com.lirium.nutrition.controller;
 
 import com.lirium.nutrition.dto.request.FoodPortionAddRequestDTO;
-import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateFoodRequestDTO;
+import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateQuantityRequestDTO;
 import com.lirium.nutrition.dto.request.PlanMealCreateRequestDTO;
 import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.model.enums.FoodCategory;
@@ -381,59 +381,51 @@ class PlanMealControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("ADMIN puede actualizar alimento y cantidad de una porción")
-    void shouldUpdateFoodPortion() throws Exception {
+    @DisplayName("ADMIN puede actualizar la cantidad de una porción")
+    void shouldUpdateFoodPortionQuantity() throws Exception {
 
-        PlanFoodPortionUpdateFoodRequestDTO dto =
-                new PlanFoodPortionUpdateFoodRequestDTO(
-                        food2.getId(),
-                        250.0
-                );
+        PlanFoodPortionUpdateQuantityRequestDTO dto =
+                new PlanFoodPortionUpdateQuantityRequestDTO(250.0);
 
         mockMvc.perform(
                         patch("/api/plan-meals/" + meal.getId()
-                                + "/portions/" + portion.getId())
+                                + "/portions/" + portion.getId() + "/quantity")
                                 .header("Authorization", adminToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.foods[0].foodId").value(food2.getId()))
+                .andExpect(jsonPath("$.foods[0].id").value(portion.getId()))
                 .andExpect(jsonPath("$.foods[0].quantity").value(250.0));
     }
 
     @Test
-    @DisplayName("Debe retornar 404 cuando la comida no existe al actualizar una porción")
+    @DisplayName("Debe retornar 404 cuando la comida no existe al actualizar la cantidad de una porción")
     void shouldReturnNotFoundWhenUpdatingUnknownMeal() throws Exception {
 
-        PlanFoodPortionUpdateFoodRequestDTO dto =
-                new PlanFoodPortionUpdateFoodRequestDTO(
-                        food2.getId(),
-                        250.0
-                );
+        PlanFoodPortionUpdateQuantityRequestDTO dto =
+                new PlanFoodPortionUpdateQuantityRequestDTO(250.0);
 
         mockMvc.perform(
-                        patch("/api/plan-meals/999999/portions/" + portion.getId())
+                        patch("/api/plan-meals/999999/portions/" + portion.getId() + "/quantity")
                                 .header("Authorization", adminToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isNotFound());
     }
+
 
     @Test
     @DisplayName("Debe retornar 404 cuando la porción no existe al actualizar")
     void shouldReturnNotFoundWhenUpdatingUnknownPortion() throws Exception {
 
-        PlanFoodPortionUpdateFoodRequestDTO dto =
-                new PlanFoodPortionUpdateFoodRequestDTO(
-                        food2.getId(),
-                        250.0
-                );
+        PlanFoodPortionUpdateQuantityRequestDTO dto =
+                new PlanFoodPortionUpdateQuantityRequestDTO(250.0);
 
         mockMvc.perform(
                         patch("/api/plan-meals/" + meal.getId()
-                                + "/portions/999999")
+                                + "/portions/999999/quantity")
                                 .header("Authorization", adminToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
@@ -441,49 +433,42 @@ class PlanMealControllerIT extends AbstractIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+
     @Test
-    @DisplayName("Debe retornar 404 cuando el alimento no existe al actualizar")
-    void shouldReturnNotFoundWhenUpdatingWithUnknownFood() throws Exception {
+    @DisplayName("Debe retornar 400 Bad Request cuando la porción no pertenece a la comida")
+    void shouldReturnBadRequestWhenPortionDoesNotBelongToMeal() throws Exception {
 
-        PlanFoodPortionUpdateFoodRequestDTO dto =
-                new PlanFoodPortionUpdateFoodRequestDTO(
-                        999999L,
-                        250.0
-                );
+        // 1. Crear y guardar una segunda comida válida usando el método estático de fábrica
+        PlanMeal otherMeal = planMealRepository.save(
+                PlanMeal.of(MealType.LUNCH, meal.getDailyPlan())
+        );
 
+        PlanFoodPortionUpdateQuantityRequestDTO dto =
+                new PlanFoodPortionUpdateQuantityRequestDTO(250.0);
+
+        // 2. Intentar actualizar 'portion' (perteneciente a 'meal') enviando la URI de 'otherMeal'
         mockMvc.perform(
-                        patch("/api/plan-meals/" + meal.getId()
-                                + "/portions/" + portion.getId())
+                        patch("/api/plan-meals/" + otherMeal.getId() + "/portions/" + portion.getId() + "/quantity")
                                 .header("Authorization", adminToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
-                .andExpect(status().isNotFound());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    @DisplayName("Debe retornar 409 cuando el alimento ya existe en la comida al actualizar")
-    void shouldReturnConflictWhenUpdatingWithDuplicateFood() throws Exception {
+    @DisplayName("Debe retornar 409 Conflict al intentar agregar un alimento que ya existe en la comida")
+    void shouldReturnConflictWhenAddingDuplicateFood() throws Exception {
 
-        PlanFoodPortion existing = PlanFoodPortion.of(
-                meal,
-                food2,
-                100.0,
+        // Intentamos agregar el mismo alimento que ya existe en 'portion'
+        FoodPortionAddRequestDTO dto = new FoodPortionAddRequestDTO(
+                portion.getFood().getId(),
+                150.0,
                 MeasureUnit.GRAM
         );
 
-        meal.addFoodPortion(existing);
-        planFoodPortionRepository.save(existing);
-
-        PlanFoodPortionUpdateFoodRequestDTO dto =
-                new PlanFoodPortionUpdateFoodRequestDTO(
-                        food2.getId(),
-                        250.0
-                );
-
         mockMvc.perform(
-                        patch("/api/plan-meals/" + meal.getId()
-                                + "/portions/" + portion.getId())
+                        post("/api/plan-meals/" + meal.getId() + "/portions")
                                 .header("Authorization", adminToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
