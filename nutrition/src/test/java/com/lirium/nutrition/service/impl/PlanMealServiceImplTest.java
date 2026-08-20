@@ -13,6 +13,7 @@ import com.lirium.nutrition.mapper.PlanMealMapper;
 import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.model.enums.MeasureUnit;
 import com.lirium.nutrition.repository.DailyPlanRepository;
+import com.lirium.nutrition.repository.PlanFoodPortionRepository;
 import com.lirium.nutrition.repository.PlanMealRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,7 +22,6 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,6 +44,9 @@ class PlanMealServiceImplTest {
 
     @Mock
     private PlanFoodPortionServiceImpl planFoodPortionService;
+
+    @Mock
+    private PlanFoodPortionRepository planFoodPortionRepository;
 
     @InjectMocks
     private PlanMealServiceImpl service;
@@ -245,19 +248,17 @@ class PlanMealServiceImplTest {
     @Test
     void shouldFailAddPortionWhenFoodAlreadyExists() {
 
+        NutritionPlan nutritionPlan = mock(NutritionPlan.class);
+        DailyPlan dailyPlan = mock(DailyPlan.class);
+        given(dailyPlan.getNutritionPlan()).willReturn(nutritionPlan);
+
         PlanMeal meal = mock(PlanMeal.class);
+        given(meal.getDailyPlan()).willReturn(dailyPlan);
 
-        Food food = mock(Food.class);
-        given(food.getId()).willReturn(10L);
+        given(repository.findById(1L)).willReturn(Optional.of(meal));
 
-        PlanFoodPortion portion = mock(PlanFoodPortion.class);
-        given(portion.getFood()).willReturn(food);
-
-        given(meal.getFoodPortions())
-                .willReturn(List.of(portion));
-
-        given(repository.findById(1L))
-                .willReturn(Optional.of(meal));
+        given(planFoodPortionRepository.existsByMeal_IdAndFood_Id(1L, 10L))
+                .willReturn(true);
 
         FoodPortionAddRequestDTO dto =
                 new FoodPortionAddRequestDTO(10L, 100.0, MeasureUnit.GRAM);
@@ -266,20 +267,27 @@ class PlanMealServiceImplTest {
                 DuplicateFoodException.class,
                 () -> service.addPortion(1L, dto)
         );
+
     }
 
     @Test
     void shouldAddPortionSuccessfully() {
 
+        NutritionPlan nutritionPlan = mock(NutritionPlan.class);
+        DailyPlan dailyPlan = mock(DailyPlan.class);
+        given(dailyPlan.getNutritionPlan()).willReturn(nutritionPlan);
+
         PlanMeal meal = mock(PlanMeal.class);
+        given(meal.getDailyPlan()).willReturn(dailyPlan);
+
         Food food = mock(Food.class);
         PlanFoodPortion newPortion = mock(PlanFoodPortion.class);
 
-        given(meal.getFoodPortions())
-                .willReturn(new ArrayList<>());
-
         given(repository.findById(1L))
                 .willReturn(Optional.of(meal));
+
+        given(planFoodPortionRepository.existsByMeal_IdAndFood_Id(1L, 10L))
+                .willReturn(false);
 
         given(foodService.findEntityById(10L))
                 .willReturn(food);
@@ -308,6 +316,7 @@ class PlanMealServiceImplTest {
             PlanMealResponseDTO result =
                     service.addPortion(1L, dto);
 
+            verify(nutritionPlan).ensureEditable(); // Verifica la regla de dominio
             verify(meal).addFoodPortion(newPortion);
             assertSame(response, result);
         }

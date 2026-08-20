@@ -121,7 +121,7 @@ class PlanMealControllerTest {
         mockMvc.perform(post("/api/plan-meals/1/portions")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.type").value("BREAKFAST"));
 
