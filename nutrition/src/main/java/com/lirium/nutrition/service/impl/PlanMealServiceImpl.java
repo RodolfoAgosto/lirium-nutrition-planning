@@ -11,12 +11,13 @@ import com.lirium.nutrition.mapper.PlanFoodPortionMapper;
 import com.lirium.nutrition.mapper.PlanMealMapper;
 import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.repository.DailyPlanRepository;
+import com.lirium.nutrition.repository.PlanFoodPortionRepository;
 import com.lirium.nutrition.repository.PlanMealRepository;
 import com.lirium.nutrition.service.PlanMealService;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,6 +28,7 @@ public class PlanMealServiceImpl implements PlanMealService {
 
     private final PlanMealRepository repository;
     private final DailyPlanRepository dailyPlanRepository;
+    private final PlanFoodPortionRepository planFoodPortionRepository;
     private final FoodServiceImpl foodService;
     private final PlanFoodPortionServiceImpl planFoodPortionService;
 
@@ -105,8 +107,9 @@ public class PlanMealServiceImpl implements PlanMealService {
         PlanMeal planMeal = repository.findById(mealId)
                 .orElseThrow(() -> new ResourceNotFoundException("PlanMeal", mealId));
 
-        boolean exists = planMeal.getFoodPortions().stream()
-                .anyMatch(fp -> fp.getFood().getId().equals(dto.foodId()));
+        planMeal.getDailyPlan().getNutritionPlan().ensureEditable();
+
+        boolean exists = planFoodPortionRepository.existsByMeal_IdAndFood_Id(mealId, dto.foodId());
 
         if (exists) {
             throw new DuplicateFoodException(

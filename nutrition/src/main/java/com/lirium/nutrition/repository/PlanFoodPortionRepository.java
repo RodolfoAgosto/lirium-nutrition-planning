@@ -19,4 +19,6 @@ public interface PlanFoodPortionRepository extends JpaRepository<PlanFoodPortion
 
     List<PlanFoodPortion> findByMealAndFood(PlanMeal meal, Food food);
 
+    boolean existsByMeal_IdAndFood_Id(Long planMealId, Long foodId);
+
 }
