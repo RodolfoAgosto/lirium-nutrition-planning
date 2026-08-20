@@ -1,7 +1,7 @@
 package com.lirium.nutrition.service.impl;
 
 import com.lirium.nutrition.dto.request.FoodPortionAddRequestDTO;
-import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateFoodRequestDTO;
+import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateQuantityRequestDTO;
 import com.lirium.nutrition.dto.request.PlanMealCreateRequestDTO;
 import com.lirium.nutrition.dto.response.PlanMealResponseDTO;
 import com.lirium.nutrition.dto.response.PlanMealSummaryDTO;
@@ -141,37 +141,30 @@ public class PlanMealServiceImpl implements PlanMealService {
 
     @Override
     @Transactional
-    public PlanMealResponseDTO updatePortion(Long mealId, Long portionId,
-                                             PlanFoodPortionUpdateFoodRequestDTO dto) {
+    public PlanMealResponseDTO updateQuantity(Long mealId, Long portionId, PlanFoodPortionUpdateQuantityRequestDTO request) {
+
+        log.info("Updating quantity to {} for portionId={} in mealId={}", request.quantity(), portionId, mealId);
 
         PlanMeal meal = repository.findById(mealId)
                 .orElseThrow(() -> new ResourceNotFoundException("PlanMeal", mealId));
 
-        PlanFoodPortion portion = meal.getFoodPortions().stream()
-                .filter(p -> p.getId().equals(portionId))
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Portion", portionId));
+        PlanFoodPortion portion = planFoodPortionRepository.findById(portionId)
+                .orElseThrow(() -> new ResourceNotFoundException("PlanFoodPortion", portionId));
 
-        // cambio de food si viene
-        if (dto.foodId() != null) {
-
-            boolean exists = meal.getFoodPortions().stream()
-                    .anyMatch(p -> p.getFood().getId().equals(dto.foodId()));
-
-            if (exists) {
-                throw new DuplicateFoodException("Food already exists in meal");
-            }
-
-            Food food = foodService.findEntityById(dto.foodId());
-            portion.changeFood(food);
+        if (!portion.getMeal().getId().equals(mealId)) {
+            log.warn("Mismatch: portionId={} does not belong to mealId={}", portionId, mealId);
+            throw new IllegalArgumentException("Portion id=" + portionId + " does not belong to meal id=" + mealId);
         }
 
-        // cambio de cantidad si viene
-        if (dto.quantity() != null) {
-            portion.changeQuantity(dto.quantity());
-        }
+        meal.getDailyPlan().getNutritionPlan().ensureEditable();
+
+        portion.changeQuantity(request.quantity());
+        planFoodPortionRepository.save(portion);
+
+        log.info("Portion quantity updated successfully for portionId={} in mealId={}", portionId, mealId);
 
         return PlanMealMapper.toResponse(meal);
+
     }
 
 
