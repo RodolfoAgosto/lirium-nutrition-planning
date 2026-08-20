@@ -64,6 +64,7 @@ public class PlanMealController {
     }
 
     @PostMapping("/{mealId}/portions")
+    @ResponseStatus(HttpStatus.CREATED)
     public PlanMealResponseDTO addPortion(@PathVariable @Positive Long mealId,@Valid @RequestBody FoodPortionAddRequestDTO dto) {
             return service.addPortion(mealId, dto);
     }

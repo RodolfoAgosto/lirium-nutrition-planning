@@ -19,8 +19,6 @@ public interface PlanMealRepository extends JpaRepository<PlanMeal, Long> {
 
     List<PlanMeal> findByDailyPlanAndType(DailyPlan dailyPlan, MealType type);
 
-    //boolean existsByIdAndDailyPlan_NutritionPlan_PatientProfile_UserId(Long id, Long userId);
-
     @Query("""
         SELECT COUNT(pm) > 0 
         FROM PlanMeal pm 
