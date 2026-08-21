@@ -132,12 +132,22 @@ public class PlanMealServiceImpl implements PlanMealService {
         PlanMeal planMeal = repository.findById(mealId)
                 .orElseThrow(() -> new ResourceNotFoundException("PlanMeal", mealId));
 
+
+        planMeal.getDailyPlan().getNutritionPlan().ensureEditable();
+
         PlanFoodPortion planFoodPortion = planFoodPortionService.findEntityById(portionId);
+
+        if (!planFoodPortion.getMeal().getId().equals(mealId)) {
+            throw new IllegalArgumentException(
+                    "Portion with id " + portionId + " does not belong to meal with id " + mealId
+            );
+        }
 
         planMeal.removeFoodPortion(planFoodPortion);
 
         return PlanMealMapper.toResponse(planMeal);
     }
+
 
     @Override
     @Transactional
