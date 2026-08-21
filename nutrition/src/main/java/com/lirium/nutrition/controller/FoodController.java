@@ -6,6 +6,7 @@ import com.lirium.nutrition.dto.response.FoodResponseDTO;
 import com.lirium.nutrition.dto.response.FoodSummaryDTO;
 import com.lirium.nutrition.service.FoodService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -36,7 +37,8 @@ public class FoodController {
     }
 
     @PostMapping
-    public ResponseEntity<FoodSummaryDTO> create(@RequestBody FoodCreateRequestDTO dto) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<FoodSummaryDTO> create(@Valid @RequestBody FoodCreateRequestDTO dto) {
 
         log.info("Creating food name={}", dto.name());
         log.debug("Food create payload={}", dto);
@@ -45,6 +47,7 @@ public class FoodController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
     }
+
 
     @PutMapping("/{id}")
     public FoodSummaryDTO update(

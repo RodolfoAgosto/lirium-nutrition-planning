@@ -1,11 +1,11 @@
 package com.lirium.nutrition.mapper;
 
-import com.lirium.nutrition.dto.request.*;
-import com.lirium.nutrition.dto.response.*;
+import com.lirium.nutrition.dto.request.FoodCreateRequestDTO;
+import com.lirium.nutrition.dto.request.FoodUpdateRequestDTO;
+import com.lirium.nutrition.dto.response.FoodResponseDTO;
+import com.lirium.nutrition.dto.response.FoodSummaryDTO;
 import com.lirium.nutrition.model.entity.Food;
-import com.lirium.nutrition.model.enums.FoodCategory;
 import com.lirium.nutrition.model.enums.FoodTag;
-import com.lirium.nutrition.model.enums.MealType;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -60,7 +60,7 @@ public class FoodMapper {
 
         if (dto.tags() != null) {
             dto.tags().forEach(tag ->
-                    food.addTag(FoodTag.valueOf(tag.toUpperCase()))
+                    food.addTag(tag)
             );
         }
 
