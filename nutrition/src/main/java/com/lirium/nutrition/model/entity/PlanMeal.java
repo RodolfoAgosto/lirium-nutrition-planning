@@ -72,10 +72,10 @@ public class PlanMeal extends DateAuditable {
     }
 
     public void removeFoodPortion(PlanFoodPortion planFoodPortion) {
-
-        Objects.requireNonNull(planFoodPortion);
-        foods.remove(planFoodPortion);
-
+        Objects.requireNonNull(planFoodPortion, "The food portion cannot be null");
+        if (this.foods.remove(planFoodPortion)) {
+            planFoodPortion.assignToMeal(null);
+        }
     }
 
     void clearFoods() {
