@@ -54,6 +54,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                         .requestMatchers("/images/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
 
+                        // Specific GET permissions (Allows PATIENT access before blocking write operations)
+                        .requestMatchers(HttpMethod.GET, "/api/plan-food-portions/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/plan-meals/**").authenticated()
+
                         // Only ADMIN
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
                         .requestMatchers("/api/users/*/enabled").hasRole("ADMIN")
@@ -76,8 +80,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/nutrition-plans/**").authenticated()
                         .requestMatchers("/api/daily-records/**").authenticated()
                         .requestMatchers("/api/foods/**").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/plan-food-portions/**").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/plan-meals/**").authenticated()
                         .requestMatchers("/api/users/*/validate-email").authenticated()
 
                         .anyRequest().authenticated()
