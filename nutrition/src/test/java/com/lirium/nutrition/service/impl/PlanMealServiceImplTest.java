@@ -15,6 +15,7 @@ import com.lirium.nutrition.model.enums.MeasureUnit;
 import com.lirium.nutrition.repository.DailyPlanRepository;
 import com.lirium.nutrition.repository.PlanFoodPortionRepository;
 import com.lirium.nutrition.repository.PlanMealRepository;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -323,32 +324,36 @@ class PlanMealServiceImplTest {
     }
 
     @Test
+    @DisplayName("Debe eliminar la porción exitosamente")
     void shouldRemovePortionSuccessfully() {
 
         PlanMeal meal = mock(PlanMeal.class);
-
+        DailyPlan dailyPlan = mock(DailyPlan.class);
+        NutritionPlan nutritionPlan = mock(NutritionPlan.class);
         PlanFoodPortion portion = mock(PlanFoodPortion.class);
 
-        given(repository.findById(1L))
-                .willReturn(Optional.of(meal));
+        given(meal.getDailyPlan()).willReturn(dailyPlan);
+        given(dailyPlan.getNutritionPlan()).willReturn(nutritionPlan);
 
-        given(planFoodPortionService.findEntityById(2L))
-                .willReturn(portion);
+        given(portion.getMeal()).willReturn(meal);
+        given(meal.getId()).willReturn(1L);
+
+        given(repository.findById(1L)).willReturn(Optional.of(meal));
+        given(planFoodPortionService.findEntityById(2L)).willReturn(portion);
 
         PlanMealResponseDTO response = mock(PlanMealResponseDTO.class);
 
         try (MockedStatic<PlanMealMapper> mapper = mockStatic(PlanMealMapper.class)) {
 
-            mapper.when(() -> PlanMealMapper.toResponse(meal))
-                    .thenReturn(response);
+            mapper.when(() -> PlanMealMapper.toResponse(meal)).thenReturn(response);
 
-            PlanMealResponseDTO result =
-                    service.removePortion(1L, 2L);
+            PlanMealResponseDTO result = service.removePortion(1L, 2L);
 
             verify(meal).removeFoodPortion(portion);
             assertSame(response, result);
         }
     }
+
 
     @Test
     void shouldFailUpdateQuantityWhenMealNotFound() {
