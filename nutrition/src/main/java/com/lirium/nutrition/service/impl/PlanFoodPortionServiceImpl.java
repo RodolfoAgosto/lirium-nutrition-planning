@@ -36,12 +36,11 @@ public class PlanFoodPortionServiceImpl implements PlanFoodPortionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PlanFoodPortionResponseDTO getById(Long id) {
 
         PlanFoodPortion portion = repository.findById(id)
-        .orElseThrow(() ->
-                new ResourceNotFoundException("Food portion not found",id)
-        );
+                .orElseThrow(() -> new ResourceNotFoundException("PlanFoodPortion", id));
 
         return PlanFoodPortionMapper.toResponse(portion);
     }
