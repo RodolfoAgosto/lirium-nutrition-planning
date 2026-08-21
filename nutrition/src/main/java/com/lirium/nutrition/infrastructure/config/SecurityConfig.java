@@ -50,9 +50,9 @@ public class SecurityConfig {
 
                         // Public
                         .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers("/api/auth/**", "/oauth2/**","/login/oauth2/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
-                        .requestMatchers("/images/**","/swagger-ui/**","/swagger-ui.html","/v3/api-docs/**").permitAll()
+                        .requestMatchers("/images/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
 
                         // Only ADMIN
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
@@ -61,23 +61,24 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/foods/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/foods/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/foods/**").hasRole("ADMIN")
-                        .requestMatchers("/api/users/*/validate-email").authenticated()
 
                         // ADMIN and NUTRITIONIST
-                        .requestMatchers(HttpMethod.GET, "/api/plan-meals/**").authenticated()
                         .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "NUTRITIONIST")
                         .requestMatchers("/api/restrictions/**").hasAnyRole("ADMIN", "NUTRITIONIST")
                         .requestMatchers("/api/plan-meals", "/api/plan-meals/**").hasAnyRole("ADMIN", "NUTRITIONIST")
-                        .requestMatchers("/api/plan-food-portions/**").hasAnyRole("ADMIN", "NUTRITIONIST")
                         .requestMatchers("/api/nutrition-plan-templates/**").hasAnyRole("ADMIN", "NUTRITIONIST")
                         .requestMatchers(HttpMethod.POST, "/api/nutrition-plans/**").hasAnyRole("ADMIN", "NUTRITIONIST")
                         .requestMatchers(HttpMethod.PATCH, "/api/nutrition-plans/**").hasAnyRole("ADMIN", "NUTRITIONIST")
+                        .requestMatchers("/api/plan-food-portions/**").hasAnyRole("ADMIN", "NUTRITIONIST")
 
-                        // ADMIN, NUTRITIONIST and PATIENT (ownership in controller)
-                        .requestMatchers("/patients/**").authenticated()
+                        // MULTI-ROLE READING (Properly authenticated in Controller/Service)
+                        .requestMatchers("/api/patients/**").authenticated()
                         .requestMatchers("/api/nutrition-plans/**").authenticated()
                         .requestMatchers("/api/daily-records/**").authenticated()
                         .requestMatchers("/api/foods/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/plan-food-portions/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/plan-meals/**").authenticated()
+                        .requestMatchers("/api/users/*/validate-email").authenticated()
 
                         .anyRequest().authenticated()
 
