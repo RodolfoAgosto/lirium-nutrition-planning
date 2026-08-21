@@ -5,10 +5,12 @@ import com.lirium.nutrition.dto.request.FoodUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.FoodResponseDTO;
 import com.lirium.nutrition.dto.response.FoodSummaryDTO;
 import com.lirium.nutrition.service.FoodService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
@@ -17,11 +19,13 @@ import java.util.Set;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/foods")
+@SecurityRequirement(name = "bearerAuth")
 public class FoodController {
 
     private final FoodService foodService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST', 'PATIENT')")
     public Set<FoodSummaryDTO> findAll() {
         return foodService.findAll();
     }
