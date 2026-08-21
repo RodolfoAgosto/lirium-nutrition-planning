@@ -74,7 +74,7 @@ class FoodMapperTest {
                 3,
                 FoodCategory.PROTEIN,
                 Set.of(MealType.LUNCH, MealType.DINNER),
-                Set.of("FISH")
+                Set.of(FoodTag.FISH)
         );
 
         Food entity = FoodMapper.toEntity(dto);

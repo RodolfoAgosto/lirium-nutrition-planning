@@ -8,9 +8,9 @@ import com.lirium.nutrition.dto.response.FoodSummaryDTO;
 import com.lirium.nutrition.infrastructure.security.JwtService;
 import com.lirium.nutrition.infrastructure.security.UserDetailsServiceImpl;
 import com.lirium.nutrition.model.enums.FoodCategory;
+import com.lirium.nutrition.model.enums.FoodTag;
+import com.lirium.nutrition.model.enums.MealType;
 import com.lirium.nutrition.service.FoodService;
-import com.lirium.nutrition.service.UserService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -21,7 +21,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -89,15 +88,11 @@ class FoodControllerTest {
     @Test
     void shouldCreateFood() throws Exception {
 
-        FoodCreateRequestDTO request = new FoodCreateRequestDTO(
-                "Chicken Breast",
-                165,
-                31,
-                0,
-                4,
+        FoodCreateRequestDTO dto = new FoodCreateRequestDTO(
+                "Chicken Breast", 165, 31, 0, 3,
                 FoodCategory.PROTEIN,
-                Set.of(),
-                Set.of("HIGH_PROTEIN")
+                Set.of(MealType.LUNCH),
+                Set.of(FoodTag.MEAT)
         );
 
         FoodSummaryDTO response =
@@ -108,7 +103,8 @@ class FoodControllerTest {
 
         mockMvc.perform(post("/api/foods")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        // ✅ Cambiado 'request' por 'dto'
+                        .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Chicken Breast"));
