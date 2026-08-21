@@ -24,7 +24,8 @@ public class PlanFoodPortionController {
     private final PlanFoodPortionService service;
 
     @GetMapping("/meal/{planMealId}")
-    public ResponseEntity<List<PlanFoodPortionResponseDTO>> getByMeal(@PathVariable @Positive Long planMealId) {
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @planFoodPortionSecurity.isMealOwner(#planMealId, authentication)")
+    public ResponseEntity<List<PlanFoodPortionResponseDTO>> getByMeal(@P("planMealId") @PathVariable @Positive Long planMealId) {
         return ResponseEntity.ok(service.getByPlanMeal(planMealId));
     }
 

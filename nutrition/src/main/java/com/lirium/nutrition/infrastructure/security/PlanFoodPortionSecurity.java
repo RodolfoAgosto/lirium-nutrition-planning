@@ -1,6 +1,7 @@
 package com.lirium.nutrition.infrastructure.security;
 
 import com.lirium.nutrition.repository.PlanFoodPortionRepository;
+import com.lirium.nutrition.repository.PlanMealRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PlanFoodPortionSecurity {
 
     private final PlanFoodPortionRepository portionRepository;
+    private final PlanMealRepository mealRepository;
 
     @Transactional(readOnly = true)
     public boolean isPortionOwner(Long portionId, Authentication authentication) {
@@ -30,4 +32,23 @@ public class PlanFoodPortionSecurity {
                         .equals(userEmail))
                 .orElse(false);
     }
+
+    @Transactional(readOnly = true)
+    public boolean isMealOwner(Long mealId, Authentication authentication) {
+        if (mealId == null || authentication == null) {
+            return false;
+        }
+
+        String userEmail = authentication.getName();
+
+        return mealRepository.findById(mealId)
+                .map(meal -> meal.getDailyPlan()
+                        .getNutritionPlan()
+                        .getPatientProfile()
+                        .getUser()
+                        .getEmail()
+                        .equals(userEmail))
+                .orElse(false);
+    }
+
 }
