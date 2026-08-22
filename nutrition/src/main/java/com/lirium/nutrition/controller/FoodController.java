@@ -7,12 +7,14 @@ import com.lirium.nutrition.dto.response.FoodSummaryDTO;
 import com.lirium.nutrition.service.FoodService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
@@ -22,6 +24,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 @RequestMapping("/api/foods")
 @SecurityRequirement(name = "bearerAuth")
+@Validated
 public class FoodController {
 
     private final FoodService foodService;
@@ -65,11 +68,14 @@ public class FoodController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-
+    @PreAuthorize("hasAnyRole('NUTRITIONIST', 'ADMIN')")
+    public ResponseEntity<Void> deleteById(
+            @PathVariable("id") @NotNull(message = "ID is required") @Positive(message = "ID must be a positive number")
+            Long id
+    ){
         log.info("Deleting food id={}", id);
         foodService.deleteById(id);
         log.info("Food deleted successfully id={}", id);
-
+        return ResponseEntity.noContent().build();
     }
 }
