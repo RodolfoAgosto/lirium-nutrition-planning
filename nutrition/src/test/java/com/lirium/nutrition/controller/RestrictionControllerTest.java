@@ -1,7 +1,8 @@
 package com.lirium.nutrition.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lirium.nutrition.dto.request.*;
+import com.lirium.nutrition.dto.request.RestrictionCatalogUpdateDTO;
+import com.lirium.nutrition.dto.request.RestrictionCreateRequestDTO;
 import com.lirium.nutrition.dto.response.RestrictionResponseDTO;
 import com.lirium.nutrition.dto.response.RestrictionSummaryDTO;
 import com.lirium.nutrition.infrastructure.security.JwtService;
@@ -14,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Set;
@@ -69,21 +71,22 @@ class RestrictionControllerTest {
 
     // create
     @Test
+    @WithMockUser(roles = "ADMIN")
     void shouldCreateRestriction() throws Exception {
 
         RestrictionCreateRequestDTO request =
                 new RestrictionCreateRequestDTO(
                         "GLUTEN",
-                        "Gluten",
-                        "ALLERGY",
-                        "Contains gluten"
+                        "Gluten Free",
+                        "Contains gluten",
+                        RestrictionCategory.DIETARY
                 );
 
         RestrictionSummaryDTO response =
                 new RestrictionSummaryDTO(
                         1L,
                         "GLUTEN",
-                        "Gluten",
+                        "Gluten Free",
                         RestrictionCategory.DIETARY
                 );
 
@@ -96,7 +99,7 @@ class RestrictionControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.code").value("GLUTEN"))
-                .andExpect(jsonPath("$.name").value("Gluten"));
+                .andExpect(jsonPath("$.name").value("Gluten Free"));
 
         verify(restrictionService)
                 .create(any(RestrictionCreateRequestDTO.class));

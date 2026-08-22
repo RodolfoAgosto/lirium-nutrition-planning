@@ -7,6 +7,7 @@ import com.lirium.nutrition.dto.response.RestrictionSummaryDTO;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.RestrictionMapper;
 import com.lirium.nutrition.model.entity.Restriction;
+import com.lirium.nutrition.model.enums.RestrictionCategory;
 import com.lirium.nutrition.repository.RestrictionRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -123,7 +124,7 @@ class RestrictionServiceImplTest {
                         "GLUTEN",
                         "Gluten intolerance",
                         "INTOLERANCES",
-                        "FOOD"
+                        RestrictionCategory.INTOLERANCES
                 );
 
         Restriction savedRestriction = mock(Restriction.class);
@@ -261,7 +262,7 @@ class RestrictionServiceImplTest {
                         "GLUTEN",
                         "Gluten intolerance",
                         "INTOLERANCES",
-                        "FOOD"
+                        RestrictionCategory.INTOLERANCES
                 );
 
         Restriction savedRestriction = mock(Restriction.class);
