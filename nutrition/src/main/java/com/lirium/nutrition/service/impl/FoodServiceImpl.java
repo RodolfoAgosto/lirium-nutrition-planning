@@ -5,17 +5,17 @@ import com.lirium.nutrition.dto.request.FoodUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.FoodResponseDTO;
 import com.lirium.nutrition.dto.response.FoodSummaryDTO;
 import com.lirium.nutrition.exception.DuplicateFoodException;
-import com.lirium.nutrition.exception.FoodInUseException;
 import com.lirium.nutrition.exception.InvalidTagException;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.FoodMapper;
 import com.lirium.nutrition.model.entity.Food;
 import com.lirium.nutrition.model.enums.FoodTag;
+import com.lirium.nutrition.repository.FoodPortionRecordRepository;
 import com.lirium.nutrition.repository.FoodRepository;
+import com.lirium.nutrition.repository.PlanFoodPortionRepository;
 import com.lirium.nutrition.service.FoodService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +29,8 @@ import java.util.stream.Collectors;
 public class FoodServiceImpl implements FoodService {
 
     private final FoodRepository foodRepository;
+    private final PlanFoodPortionRepository planFoodPortionRepository;
+    private final FoodPortionRecordRepository foodPortionRecordRepository;
 
     @Override
     public Set<FoodSummaryDTO> findAll() {
@@ -50,7 +52,7 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public FoodSummaryDTO create(FoodCreateRequestDTO dto) {
+    public FoodSummaryDTO create(FoodCreateRequestDTO dto ) {
 
         log.info("Creating food name={}", dto.name());
 
@@ -71,8 +73,8 @@ public class FoodServiceImpl implements FoodService {
     }
 
     @Override
-    @Transactional
-    public FoodSummaryDTO update(Long id, FoodUpdateRequestDTO dto) {
+    @Transactional(readOnly = false)
+    public FoodSummaryDTO update(Long id, FoodUpdateRequestDTO dto ) {
 
         log.info("Updating food id={}", id);
 
@@ -109,22 +111,28 @@ public class FoodServiceImpl implements FoodService {
     }
 
     @Override
-    @Transactional
-    public void deleteById(Long id) {
-
-        log.info("Deleting food id={}", id);
+    @Transactional(readOnly = false)
+    public void deleteById(Long id )  {
+        log.info("Requesting deletion for food id={}", id);
 
         Food food = getFoodOrThrow(id);
-        try {
+
+        // We verify in the two tables that inherit from AbstractFoodPortion
+        boolean isUsedInPlans = planFoodPortionRepository.existsByFoodId(id);
+        boolean isUsedInRecords = foodPortionRecordRepository.existsByFoodId(id);
+
+        boolean isFoodInUse = isUsedInPlans || isUsedInRecords;
+
+        if (isFoodInUse) {
+            // If already used in diets or the patient's diary: Logical Deletion (Inactivation)
+            food.deactivate();
+            log.info("Food in use (plans={} or records={}) - soft deleted (deactivated) id={}",
+                    isUsedInPlans, isUsedInRecords, id);
+        } else {
+            // If never used: Actual physical deletion
             foodRepository.delete(food);
             foodRepository.flush();
-
-            log.info("Food deleted successfully id={}", id);
-        } catch (DataIntegrityViolationException e) {
-
-            log.error("Food deletion failed - food in use id={}", id);
-            throw new FoodInUseException("Food is in use and cannot be deleted", id);
-
+            log.info("Food has no references - physically deleted successfully id={}", id);
         }
     }
 

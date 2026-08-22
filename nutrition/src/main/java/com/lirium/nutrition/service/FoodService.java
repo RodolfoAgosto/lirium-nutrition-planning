@@ -21,4 +21,5 @@ public interface FoodService {
     FoodSummaryDTO update(Long id, FoodUpdateRequestDTO dto);
 
     void deleteById(Long id);
+
 }
