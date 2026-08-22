@@ -3,10 +3,13 @@ package com.lirium.nutrition.controller;
 import com.lirium.nutrition.dto.request.*;
 import com.lirium.nutrition.dto.response.*;
 import com.lirium.nutrition.service.RestrictionService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
@@ -15,11 +18,14 @@ import java.util.Set;
 @RestController
 @RequestMapping("/api/restrictions")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
+@Validated
 public class RestrictionController {
 
     private final RestrictionService restrictionService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST', 'PATIENT')")
     public ResponseEntity<Set<RestrictionSummaryDTO>> findAll() {
         Set<RestrictionSummaryDTO> restrictions = restrictionService.findAll();
         return ResponseEntity.ok(restrictions);
