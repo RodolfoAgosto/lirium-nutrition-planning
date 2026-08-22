@@ -7,6 +7,7 @@ import com.lirium.nutrition.dto.response.FoodSummaryDTO;
 import com.lirium.nutrition.service.FoodService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -32,7 +33,8 @@ public class FoodController {
     }
 
     @GetMapping("/{id}")
-    public FoodResponseDTO findById(@PathVariable Long id) {
+    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST', 'PATIENT')")
+    public FoodResponseDTO findById(@PathVariable @Positive Long id) {
         return foodService.findById(id);
     }
 
@@ -47,7 +49,6 @@ public class FoodController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
     }
-
 
     @PutMapping("/{id}")
     public FoodSummaryDTO update(
