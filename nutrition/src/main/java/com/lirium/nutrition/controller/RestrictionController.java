@@ -32,6 +32,7 @@ public class RestrictionController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RestrictionSummaryDTO> create(@Valid @RequestBody RestrictionCreateRequestDTO request) {
 
         log.info("Creating restriction name={}", request.name());
