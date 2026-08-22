@@ -51,15 +51,16 @@ public class FoodController {
     }
 
     @PutMapping("/{id}")
-    public FoodSummaryDTO update(
-            @PathVariable Long id,
-            @RequestBody FoodUpdateRequestDTO dto) {
+    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
+    public ResponseEntity<FoodSummaryDTO> update(
+            @PathVariable @Positive(message = "ID must be greater than 0") Long id,
+            @Valid @RequestBody FoodUpdateRequestDTO dto) {
 
         log.info("Updating food id={}", id);
         log.debug("Food update payload={}", dto.toString());
         FoodSummaryDTO response = foodService.update(id, dto);
         log.info("Food updated successfully id={}", id);
-        return response;
+        return ResponseEntity.ok(response);
 
     }
 
