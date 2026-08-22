@@ -5,7 +5,6 @@ import com.lirium.nutrition.dto.request.FoodUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.FoodResponseDTO;
 import com.lirium.nutrition.dto.response.FoodSummaryDTO;
 import com.lirium.nutrition.model.entity.Food;
-import com.lirium.nutrition.model.enums.FoodTag;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -92,7 +91,7 @@ public class FoodMapper {
         if (dto.tags() != null) {
             entity.clearTags();
             dto.tags().forEach(tag ->
-                    entity.addTag(FoodTag.valueOf(tag.toUpperCase()))
+                    entity.addTag(tag)
             );
         }
     }

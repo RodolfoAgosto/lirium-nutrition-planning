@@ -6,11 +6,10 @@ import com.lirium.nutrition.dto.response.FoodResponseDTO;
 import com.lirium.nutrition.dto.response.FoodSummaryDTO;
 import com.lirium.nutrition.exception.DuplicateFoodException;
 import com.lirium.nutrition.exception.FoodInUseException;
-import com.lirium.nutrition.exception.InvalidTagException;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
-import com.lirium.nutrition.mapper.FoodMapper;
 import com.lirium.nutrition.model.entity.Food;
 import com.lirium.nutrition.model.enums.FoodCategory;
+import com.lirium.nutrition.model.enums.FoodTag;
 import com.lirium.nutrition.model.enums.MealType;
 import com.lirium.nutrition.repository.FoodRepository;
 import org.junit.jupiter.api.Test;
@@ -23,7 +22,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -86,13 +84,13 @@ class FoodServiceImplTest {
                 0,
                 13,
                 20,
-                Set.of("FISH", "SOY")
+                Set.of(FoodTag.FISH, FoodTag.SOY)
         );
 
         when(foodRepository.findById(id))
                 .thenReturn(Optional.of(food));
 
-        when(foodRepository.existsByName("Salmon"))
+        when(foodRepository.existsByNameIgnoreCaseAndIdNot("Salmon", id))
                 .thenReturn(false);
 
         // When
@@ -102,7 +100,9 @@ class FoodServiceImplTest {
         assertEquals("Salmon", result.name());
 
         verify(foodRepository).findById(id);
-        verify(foodRepository).existsByName("Salmon");
+
+        verify(foodRepository).existsByNameIgnoreCaseAndIdNot("Salmon", id);
+
     }
 
     @Test
@@ -194,8 +194,6 @@ class FoodServiceImplTest {
 
         Food food = mock(Food.class);
 
-        when(food.getName()).thenReturn("Apple");
-
         FoodUpdateRequestDTO request =
                 new FoodUpdateRequestDTO(
                         "Banana",
@@ -209,7 +207,7 @@ class FoodServiceImplTest {
         when(foodRepository.findById(foodId))
                 .thenReturn(Optional.of(food));
 
-        when(foodRepository.existsByName("Banana"))
+        when(foodRepository.existsByNameIgnoreCaseAndIdNot("Banana", foodId))
                 .thenReturn(true);
 
         // When + Then
@@ -221,45 +219,9 @@ class FoodServiceImplTest {
         assertTrue(ex.getMessage().contains("Banana"));
 
         verify(foodRepository).findById(foodId);
-        verify(foodRepository).existsByName("Banana");
+        verify(foodRepository).existsByNameIgnoreCaseAndIdNot("Banana", foodId);
 
         verify(food, never()).changeName(any());
-    }
-
-    @Test
-    void shouldThrowWhenUpdatingFoodWithInvalidTag() {
-
-        // Given
-        Long foodId = 1L;
-
-        Food food = mock(Food.class);
-
-        when(foodRepository.findById(foodId))
-                .thenReturn(Optional.of(food));
-
-        FoodUpdateRequestDTO request =
-                new FoodUpdateRequestDTO(
-                        "Apple",
-                        52,
-                        1,
-                        14,
-                        0,
-                        Set.of("TAG_QUE_NO_EXISTE")
-                );
-
-        // When + Then
-        InvalidTagException ex = assertThrows(
-                InvalidTagException.class,
-                () -> service.update(foodId, request)
-        );
-
-        assertTrue(
-                ex.getMessage().contains("TAG_QUE_NO_EXISTE")
-        );
-
-        verify(foodRepository).findById(foodId);
-
-        verify(food, never()).replaceTags(any());
     }
 
     @Test

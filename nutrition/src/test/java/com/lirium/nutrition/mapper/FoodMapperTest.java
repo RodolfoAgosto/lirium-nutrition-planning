@@ -131,7 +131,7 @@ class FoodMapperTest {
                 4,
                 2,
                 2,
-                Set.of("SOY")
+                Set.of(FoodTag.SOY)
         );
 
         FoodMapper.updateEntity(entity, dto);

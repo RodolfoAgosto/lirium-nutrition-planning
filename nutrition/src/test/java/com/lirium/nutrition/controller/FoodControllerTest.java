@@ -115,14 +115,7 @@ class FoodControllerTest {
     @Test
     void shouldUpdateFood() throws Exception {
 
-        FoodUpdateRequestDTO request = new FoodUpdateRequestDTO(
-                "Updated Chicken",
-                180,
-                35,
-                0,
-                5,
-                Set.of("LEAN")
-        );
+        FoodUpdateRequestDTO dto = new FoodUpdateRequestDTO("Chicken", 100, 20, 0, 5, Set.of(FoodTag.GLUTEN));
 
         FoodSummaryDTO response =
                 new FoodSummaryDTO(1L, "Updated Chicken");
@@ -132,7 +125,7 @@ class FoodControllerTest {
 
         mockMvc.perform(put("/api/foods/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Updated Chicken"));
 
