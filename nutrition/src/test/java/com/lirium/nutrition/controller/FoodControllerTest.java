@@ -17,6 +17,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Set;
@@ -103,7 +104,6 @@ class FoodControllerTest {
 
         mockMvc.perform(post("/api/foods")
                         .contentType(MediaType.APPLICATION_JSON)
-                        // ✅ Cambiado 'request' por 'dto'
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
@@ -134,14 +134,18 @@ class FoodControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void shouldDeleteFood() throws Exception {
+        // Given
+        Long foodId = 1L;
+        doNothing().when(foodService).deleteById(foodId);
 
-        doNothing().when(foodService).deleteById(1L);
+        // When & Then (Sino podés remover doNothing() ya que es void por defecto en mocks)
+        mockMvc.perform(delete("/api/foods/{id}", foodId) // <-- Corregido sin /v1
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
 
-        mockMvc.perform(delete("/api/foods/1"))
-                .andExpect(status().isOk());
-
-        verify(foodService).deleteById(1L);
+        verify(foodService).deleteById(foodId);
     }
 
 }

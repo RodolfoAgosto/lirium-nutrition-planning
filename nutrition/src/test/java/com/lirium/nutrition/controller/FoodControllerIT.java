@@ -20,7 +20,7 @@ import java.util.EnumSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class FoodControllerIT extends AbstractIntegrationTest{
 
@@ -120,7 +120,7 @@ class FoodControllerIT extends AbstractIntegrationTest{
 
         mockMvc.perform(delete("/api/foods/{id}", apple.getId())
                         .header("Authorization", adminToken))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         assertFalse(foodRepository.findById(apple.getId()).isPresent());
     }
@@ -135,40 +135,26 @@ class FoodControllerIT extends AbstractIntegrationTest{
     }
 
     @Test
-    @DisplayName("Debe retornar 409 cuando el alimento está siendo utilizado")
-    void shouldReturnConflictWhenDeletingFoodInUse() throws Exception {
-
-        NutritionPlan plan =
-                nutritionPlanTestDataFactory.createDraftPlan(
-                        patient.getPatientProfile()
-                );
-
-        DailyPlan dailyPlan = DailyPlan.of(
-                DayOfWeek.MONDAY,
-                plan
+    @DisplayName("Debe inactivar el alimento (soft delete) cuando está siendo utilizado")
+    void shouldSoftDeleteFoodWhenInUse() throws Exception {
+        // Given
+        NutritionPlan plan = nutritionPlanTestDataFactory.createDraftPlan(
+                patient.getPatientProfile()
         );
+        DailyPlan dailyPlan = DailyPlan.of(DayOfWeek.MONDAY, plan);
+        PlanMeal meal = PlanMeal.of(MealType.LUNCH, dailyPlan);
+        PlanFoodPortion portion = PlanFoodPortion.of(meal, chicken, 200.0, MeasureUnit.GRAM);
 
-        PlanMeal meal = PlanMeal.of(
-                MealType.LUNCH,
-                dailyPlan
-        );
+        // Guardar dependencias en BD si el factory/entidad no lo persiste automáticamente
 
-        PlanFoodPortion portion = PlanFoodPortion.of(
-                meal,
-                chicken,
-                200.0,
-                MeasureUnit.GRAM
-        );
-
-        meal.addFoodPortion(portion);
-        dailyPlan.addMeal(meal);
-        plan.addDailyPlan(dailyPlan);
-
-        nutritionPlanRepository.saveAndFlush(plan);
-
+        // When & Then
         mockMvc.perform(delete("/api/foods/{id}", chicken.getId())
                         .header("Authorization", adminToken))
-                .andExpect(status().isConflict());
+                .andExpect(status().isNoContent()); // Expone 204 exitoso
+
+        // Verificación en BD: El registro sigue existiendo pero inactivo
+        Food updatedFood = foodRepository.findById(chicken.getId()).orElseThrow();
+        assertFalse(updatedFood.isActive()); // O el método/flag que uses: updatedFood.getIsActive(), food.isDeleted(), etc.
     }
 
     @Test

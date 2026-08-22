@@ -5,19 +5,19 @@ import com.lirium.nutrition.dto.request.FoodUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.FoodResponseDTO;
 import com.lirium.nutrition.dto.response.FoodSummaryDTO;
 import com.lirium.nutrition.exception.DuplicateFoodException;
-import com.lirium.nutrition.exception.FoodInUseException;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.model.entity.Food;
 import com.lirium.nutrition.model.enums.FoodCategory;
 import com.lirium.nutrition.model.enums.FoodTag;
 import com.lirium.nutrition.model.enums.MealType;
+import com.lirium.nutrition.repository.FoodPortionRecordRepository;
 import com.lirium.nutrition.repository.FoodRepository;
+import com.lirium.nutrition.repository.PlanFoodPortionRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +29,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class FoodServiceImplTest {
 
+    @Mock
+    private PlanFoodPortionRepository planFoodPortionRepository; // <-- AGREGAR
+    @Mock
+    private FoodPortionRecordRepository foodPortionRecordRepository; // <-- AGREGAR
     @Mock
     private FoodRepository foodRepository;
     @InjectMocks
@@ -225,34 +229,33 @@ class FoodServiceImplTest {
     }
 
     @Test
-    void shouldThrowFoodInUseExceptionWhenDeletingFoodInUse() {
-
+    void shouldDeactivateFoodWhenFoodIsInUse() {
         // Given
         Long foodId = 1L;
-
-        Food food = mock(Food.class);
+        Food food = Food.of(
+                "Pollo",
+                165,
+                31,
+                0,
+                3,
+                FoodCategory.PROTEIN,
+                Set.of(MealType.LUNCH)
+        );
 
         when(foodRepository.findById(foodId))
                 .thenReturn(Optional.of(food));
 
-        doThrow(new DataIntegrityViolationException("FK violation"))
-                .when(foodRepository)
-                .delete(food);
+        when(planFoodPortionRepository.existsByFoodId(foodId))
+                .thenReturn(true);
+        when(foodPortionRecordRepository.existsByFoodId(foodId))
+                .thenReturn(false);
 
-        // When + Then
-        FoodInUseException ex = assertThrows(
-                FoodInUseException.class,
-                () -> service.deleteById(foodId)
-        );
+        // When
+        service.deleteById(foodId);
 
-        assertTrue(
-                ex.getMessage().contains("cannot be deleted")
-        );
-
-        verify(foodRepository).findById(foodId);
-        verify(foodRepository).delete(food);
-
-        verify(foodRepository, never()).flush();
+        // Then
+        assertFalse(food.isActive());
+        verify(foodRepository, never()).delete(food);
     }
 
     @Test
