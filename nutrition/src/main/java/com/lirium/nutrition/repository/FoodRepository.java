@@ -35,4 +35,5 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
             @Param("excludedTags") Set<FoodTag> excludedTags
     );
 
+    boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
 }

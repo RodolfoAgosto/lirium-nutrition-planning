@@ -78,21 +78,29 @@ public class FoodServiceImpl implements FoodService {
 
         Food food = getFoodOrThrow(id);
 
-        if (dto.name() != null &&
-                !dto.name().equals(food.getName()) &&
-                foodRepository.existsByName(dto.name())) {
-            log.warn("Food update failed - duplicate name={} id={}", dto.name(), id);
-            throw new DuplicateFoodException("Food already exists: " + dto.name());
+        if (dto.name() != null && !dto.name().isBlank()) {
+            if (foodRepository.existsByNameIgnoreCaseAndIdNot(dto.name().trim(), id)) {
+                log.warn("Food update failed - duplicate name={} for other food id={}", dto.name(), id);
+                throw new DuplicateFoodException("Food already exists: " + dto.name());
+            }
+            food.changeName(dto.name().trim());
         }
 
-        log.debug("Food update payload id={} data={}", id, dto);
-
-        food.changeName(dto.name());
-        food.changeCalories(dto.caloriesPer100g());
-        food.changeCarbs(dto.carbsPer100g());
-        food.changeFat(dto.fatPer100g());
-        food.changeProtein(dto.proteinPer100g());
-        food.replaceTags(toFoodTags(dto.tags()));
+        if (dto.caloriesPer100g() != null) {
+            food.changeCalories(dto.caloriesPer100g());
+        }
+        if (dto.proteinPer100g() != null) {
+            food.changeProtein(dto.proteinPer100g());
+        }
+        if (dto.carbsPer100g() != null) {
+            food.changeCarbs(dto.carbsPer100g());
+        }
+        if (dto.fatPer100g() != null) {
+            food.changeFat(dto.fatPer100g());
+        }
+        if (dto.tags() != null) {
+            food.replaceTags(dto.tags());
+        }
 
         log.info("Food updated successfully id={}", id);
 
