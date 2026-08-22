@@ -6,6 +6,7 @@ import com.lirium.nutrition.dto.response.RestrictionResponseDTO;
 import com.lirium.nutrition.dto.response.RestrictionSummaryDTO;
 import com.lirium.nutrition.exception.InvalidEnumValueException;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.RestrictionAlreadyExistsException;
 import com.lirium.nutrition.mapper.RestrictionMapper;
 import com.lirium.nutrition.model.entity.Restriction;
 import com.lirium.nutrition.model.enums.RestrictionCategory;
@@ -51,12 +52,16 @@ public class RestrictionServiceImpl implements RestrictionService {
 
         log.info("Creating restriction code={} name={}", dto.code(), dto.name());
 
+        if (restrictionRepository.existsByCode(dto.code())) {
+            throw new RestrictionAlreadyExistsException("Restriction code already exists: " + dto.code());
+        }
+
         Restriction restriction = new Restriction();
 
         restriction.setCode(dto.code());
         restriction.setName(dto.name());
         restriction.setDescription(dto.description());
-        restriction.setCategory(parseCategory(dto.category()));
+        restriction.setCategory(dto.category());
 
         Restriction saved = restrictionRepository.save(restriction);
 

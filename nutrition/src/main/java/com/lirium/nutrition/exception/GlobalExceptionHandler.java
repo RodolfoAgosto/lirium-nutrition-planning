@@ -460,4 +460,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(RestrictionAlreadyExistsException.class)
+    public ResponseEntity<ApiError> handleRestrictionAlreadyExists(
+            RestrictionAlreadyExistsException ex,
+            HttpServletRequest request) {
+
+        log.warn("Restriction already exists path={} message={}", request.getRequestURI(), ex.getMessage());
+
+        ApiError error = new ApiError(
+                HttpStatus.CONFLICT.value(),
+                "Resource Conflict",
+                ex.getMessage(),
+                request.getRequestURI(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
 }

@@ -23,4 +23,5 @@ public interface RestrictionRepository extends JpaRepository<Restriction, Long> 
 
     List<Restriction> findByNameContainingIgnoreCase(String namePart);
 
+    boolean existsByCode(String code);
 }
