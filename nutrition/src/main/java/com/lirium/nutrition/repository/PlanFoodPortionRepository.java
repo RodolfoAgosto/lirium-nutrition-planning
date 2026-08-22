@@ -21,4 +21,6 @@ public interface PlanFoodPortionRepository extends JpaRepository<PlanFoodPortion
 
     boolean existsByMeal_IdAndFood_Id(Long planMealId, Long foodId);
 
+    boolean existsByFoodId(Long foodId);
+
 }

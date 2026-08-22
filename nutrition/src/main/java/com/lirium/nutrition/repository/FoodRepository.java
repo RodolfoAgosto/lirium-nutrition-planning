@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -36,4 +37,8 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
     );
 
     boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
+
+    @Query("SELECT f FROM Food f WHERE LOWER(f.name) LIKE LOWER(CONCAT('%', :term, '%')) AND f.active = true")
+    List<Food> searchActiveFoods(@Param("term") String term);
+
 }

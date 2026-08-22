@@ -12,4 +12,6 @@ public interface FoodPortionRecordRepository extends JpaRepository<FoodPortionRe
 
     List<FoodPortionRecord> findByMeal(MealRecord meal);
 
+    boolean existsByFoodId(Long foodId);
+
 }

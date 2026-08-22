@@ -78,6 +78,7 @@ create table foods (
                        category varchar(255) not null check (category in ('PROTEIN','CARB','DAIRY','VEGETABLE','FRUIT','SWEET','FAT','BEVERAGE')),
                        min_serving_grams float(53),
                        max_serving_grams float(53),
+                       active boolean not null default true,
                        primary key (id)
 );
 

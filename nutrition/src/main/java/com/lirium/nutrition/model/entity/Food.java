@@ -39,6 +39,9 @@ public class Food extends DateAuditable{
     @Column(nullable = false, unique = true, length = 120, name = "name")
     private String name;
 
+    @Column(nullable = false, name = "active")
+    private boolean active = true;
+
     @Column(name = "density")
     private Double density;
 
@@ -279,5 +282,13 @@ public class Food extends DateAuditable{
     public void removeTag(FoodTag tag) {
         Objects.requireNonNull(tag, "Tag cannot be null");
         foodTags.remove(tag);
+    }
+
+    public void deactivate() {
+        this.active = false;
+    }
+
+    public void activate() {
+        this.active = true;
     }
 }
