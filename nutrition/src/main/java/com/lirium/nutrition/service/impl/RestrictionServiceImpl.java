@@ -7,6 +7,7 @@ import com.lirium.nutrition.dto.response.RestrictionSummaryDTO;
 import com.lirium.nutrition.exception.InvalidEnumValueException;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.exception.RestrictionAlreadyExistsException;
+import com.lirium.nutrition.exception.RestrictionNotFoundException;
 import com.lirium.nutrition.mapper.RestrictionMapper;
 import com.lirium.nutrition.model.entity.Restriction;
 import com.lirium.nutrition.model.enums.RestrictionCategory;
@@ -79,18 +80,18 @@ public class RestrictionServiceImpl implements RestrictionService {
         log.info("Updating restriction id={}", id);
 
         Restriction restriction = restrictionRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Restriction not found id={}", id);
-                    return new ResourceNotFoundException("Restriction", id);
-                });
+                .orElseThrow(() -> new RestrictionNotFoundException(id));
 
-        log.debug("Update payload id={} code={} category={}",
-                    id, dto.code(), dto.category());
+        if (!restriction.getCode().equals(dto.code()) && restrictionRepository.existsByCode(dto.code())) {
+            throw new RestrictionAlreadyExistsException("Restriction code already exists: " + dto.code());
+        }
+
+        log.debug("Update payload id={} code={} category={}", id, dto.code(), dto.category());
 
         restriction.setCode(dto.code());
         restriction.setName(dto.name());
         restriction.setDescription(dto.description());
-        restriction.setCategory(parseCategory(dto.category()));
+        restriction.setCategory(dto.category());
 
         restrictionRepository.save(restriction);
 
