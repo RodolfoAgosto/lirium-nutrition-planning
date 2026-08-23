@@ -1,13 +1,18 @@
 package com.lirium.nutrition.controller;
 
-import com.lirium.nutrition.dto.request.*;
-import com.lirium.nutrition.dto.response.*;
+import com.lirium.nutrition.dto.request.RestrictionCatalogUpdateDTO;
+import com.lirium.nutrition.dto.request.RestrictionCreateRequestDTO;
+import com.lirium.nutrition.dto.response.RestrictionResponseDTO;
+import com.lirium.nutrition.dto.response.RestrictionSummaryDTO;
 import com.lirium.nutrition.service.RestrictionService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -44,8 +49,15 @@ public class RestrictionController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<RestrictionResponseDTO> findById(@PathVariable Long id) {
-        return ResponseEntity.ok(restrictionService.findById(id));
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<RestrictionResponseDTO> findById(
+            @PathVariable("id")
+            @NotNull(message = "ID is required")
+            @Positive(message = "ID must be a positive number")
+            Long id ){
+        log.info("Fetching restriction id={}", id);
+        RestrictionResponseDTO response = restrictionService.findById(id);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")

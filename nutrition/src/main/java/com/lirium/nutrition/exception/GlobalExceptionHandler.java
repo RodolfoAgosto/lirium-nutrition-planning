@@ -478,4 +478,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
+    @ExceptionHandler(RestrictionNotFoundException.class)
+    public ResponseEntity<ApiError> handleRestrictionNotFound(
+            RestrictionNotFoundException ex,
+            HttpServletRequest request) {
+
+        log.warn("Restriction not found path={} message={}", request.getRequestURI(), ex.getMessage());
+
+        ApiError error = new ApiError(
+                HttpStatus.NOT_FOUND.value(),
+                "Resource Not Found",
+                ex.getMessage(),
+                request.getRequestURI(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
 }
