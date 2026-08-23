@@ -61,8 +61,12 @@ public class RestrictionController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RestrictionSummaryDTO> update(
-            @PathVariable Long id,
+            @PathVariable("id")
+            @NotNull(message = "ID is required")
+            @Positive(message = "ID must be a positive number")
+            Long id,
             @Valid @RequestBody RestrictionCatalogUpdateDTO request) {
 
         log.info("Updating restriction id={}", id);
