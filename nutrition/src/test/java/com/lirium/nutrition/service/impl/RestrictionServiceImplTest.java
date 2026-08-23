@@ -5,6 +5,7 @@ import com.lirium.nutrition.dto.request.RestrictionCreateRequestDTO;
 import com.lirium.nutrition.dto.response.RestrictionResponseDTO;
 import com.lirium.nutrition.dto.response.RestrictionSummaryDTO;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.RestrictionNotFoundException;
 import com.lirium.nutrition.mapper.RestrictionMapper;
 import com.lirium.nutrition.model.entity.Restriction;
 import com.lirium.nutrition.model.enums.RestrictionCategory;
@@ -153,39 +154,45 @@ class RestrictionServiceImplTest {
         // Given
         Long id = 1L;
 
-        Restriction restriction = mock(Restriction.class);
+        Restriction existingRestriction = Restriction.builder()
+                .id(id)
+                .code("LACTOSE")
+                .name("Lactose")
+                .description("Avoid lactose")
+                .category(RestrictionCategory.INTOLERANCES)
+                .build();
 
-        RestrictionCatalogUpdateDTO request =
-                new RestrictionCatalogUpdateDTO(
-                        "LACTOSE",
-                        "Lactose intolerance",
-                        "INTOLERANCES",
-                        "FOOD"
-                );
+        RestrictionCatalogUpdateDTO request = new RestrictionCatalogUpdateDTO(
+                "LACTOSE",
+                "Lactose Intolerance",
+                "Avoid dairy products",
+                RestrictionCategory.INTOLERANCES
+        );
 
-        RestrictionSummaryDTO responseDTO = mock(RestrictionSummaryDTO.class);
+        RestrictionSummaryDTO responseDTO = new RestrictionSummaryDTO(
+                id,
+                "LACTOSE",
+                "Lactose Intolerance",
+                RestrictionCategory.INTOLERANCES
+        );
 
         when(restrictionRepository.findById(id))
-                .thenReturn(Optional.of(restriction));
+                .thenReturn(Optional.of(existingRestriction));
 
-        when(restrictionRepository.save(restriction))
-                .thenReturn(restriction);
-
-        when(restrictionMapper.toSummaryDTO(restriction))
+        when(restrictionMapper.toSummaryDTO(existingRestriction))
                 .thenReturn(responseDTO);
 
         // When
-        RestrictionSummaryDTO result =
-                restrictionService.update(id, request);
+        RestrictionSummaryDTO result = restrictionService.update(id, request);
 
         // Then
+        assertNotNull(result);
         assertEquals(responseDTO, result);
+        assertEquals("Lactose Intolerance", existingRestriction.getName());
+        assertEquals("Avoid dairy products", existingRestriction.getDescription());
 
         verify(restrictionRepository).findById(id);
-
-        verify(restrictionRepository).save(restriction);
-
-        verify(restrictionMapper).toSummaryDTO(restriction);
+        verify(restrictionMapper).toSummaryDTO(existingRestriction);
     }
 
     @Test
@@ -197,21 +204,21 @@ class RestrictionServiceImplTest {
         RestrictionCatalogUpdateDTO request =
                 new RestrictionCatalogUpdateDTO(
                         "LACTOSE",
-                        "Lactose intolerance",
-                        "Avoid dairy",
-                        "FOOD"
+                        "Lactose Intolerance",
+                        "Avoid dairy products",
+                        RestrictionCategory.INTOLERANCES
                 );
 
         when(restrictionRepository.findById(id))
                 .thenReturn(Optional.empty());
 
         // When + Then
-        ResourceNotFoundException ex = assertThrows(
-                ResourceNotFoundException.class,
+        RestrictionNotFoundException ex = assertThrows(
+                RestrictionNotFoundException.class,
                 () -> restrictionService.update(id, request)
         );
 
-        assertTrue(ex.getMessage().contains("Restriction"));
+        assertTrue(ex.getMessage().contains("Restriction not found with id: " + id));
 
         verify(restrictionRepository).findById(id);
         verifyNoMoreInteractions(restrictionRepository);

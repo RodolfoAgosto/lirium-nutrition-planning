@@ -139,7 +139,7 @@ class RestrictionControllerTest {
                         "GLUTEN",
                         "Updated Gluten",
                         "ALLERGY",
-                        "Updated description"
+                        RestrictionCategory.INTOLERANCES
                 );
 
         RestrictionSummaryDTO response =
