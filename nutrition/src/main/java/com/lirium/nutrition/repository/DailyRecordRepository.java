@@ -26,5 +26,8 @@ public interface DailyRecordRepository extends JpaRepository<DailyRecord, Long> 
     @Query("SELECT dr FROM DailyRecord dr JOIN dr.meals m WHERE m.id = :mealRecordId")
     Optional<DailyRecord> findByMealRecordId(@Param("mealRecordId") Long mealRecordId);
 
+    boolean existsByMeals_IdAndPatient_User_Id(Long mealRecordId, Long userId);
+
+    boolean existsByPatient_IdAndDate(Long patientId, LocalDate date);
 }
 
