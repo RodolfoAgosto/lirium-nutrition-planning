@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface DailyRecordService {
 
-    DailyRecordResponseDTO getOrCreateToday(Long patientId);
+    DailyRecordResponseDTO getOrCreateForDate(Long patientId, LocalDate date);
 
     DailyRecordResponseDTO getById(Long id);
 
@@ -28,4 +28,7 @@ public interface DailyRecordService {
     boolean isDailyRecordOwnedByUser(Long dailyRecordId, Long userId);
 
     boolean isMealRecordOwnedByUser(Long mealRecordId, Long userId);
+
+    boolean existsForPatientAndDate(Long patientId, LocalDate date);
+
 }

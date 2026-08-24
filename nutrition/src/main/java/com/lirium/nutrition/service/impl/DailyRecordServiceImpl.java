@@ -16,6 +16,7 @@ import com.lirium.nutrition.service.FoodService;
 import com.lirium.nutrition.service.NutritionPlanService;
 import com.lirium.nutrition.service.PatientProfileService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -35,43 +37,52 @@ public class DailyRecordServiceImpl implements DailyRecordService {
     private final FoodService foodService;
     private final MealRecordRepository mealRecordRepository;
 
-    @Override
     @Transactional
-    public DailyRecordResponseDTO getOrCreateToday(Long patientId) {
-        LocalDate today = LocalDate.now();
-        return dailyRecordRepository
-                .findByPatient_IdAndDate(patientId, today)
+    public DailyRecordResponseDTO getOrCreateForDate(Long patientId, LocalDate date) {
+
+        LocalDate targetDate = (date != null) ? date : LocalDate.now();
+
+        if (targetDate.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("Cannot create daily records for future dates");
+        }
+
+        return dailyRecordRepository.findByPatient_IdAndDate(patientId, targetDate)
                 .map(DailyRecordMapper::toResponse)
-                .orElseGet(() -> createTodayRecord(patientId, today));
+                .orElseGet(() -> {
+                    return createRecordForDate(patientId, targetDate);
+                });
     }
 
-    private DailyRecordResponseDTO createTodayRecord(Long patientId, LocalDate today) {
+    private DailyRecordResponseDTO createRecordForDate(Long patientId, LocalDate targetDate) {
 
         PatientProfile patient = patientProfileService.findById(patientId);
 
-        // Si no tiene plan activo no puede registrar comidas
         NutritionPlan activePlan = nutritionPlanService.findActivePlan(patientId)
-                .orElseThrow(() -> new IllegalStateException(
-                        "Patient has no active nutrition plan. Cannot create daily record."));
+                .orElseThrow(() -> new IllegalStateException("Patient has no active nutrition plan. Cannot create daily record."));
 
-        DailyRecord dailyRecord = DailyRecord.of(patient, today);
+        if (targetDate.isBefore(activePlan.getStartDate())) {
+            throw new IllegalArgumentException(
+                    "Cannot create daily record for a date (" + targetDate + ") prior to active nutrition plan start date (" + activePlan.getStartDate() + ")");
+        }
+
+        DailyRecord dailyRecord = DailyRecord.of(patient, targetDate);
 
         activePlan.getWeek().stream()
-                .filter(dp -> dp.getDayOfWeek() == today.getDayOfWeek())
+                .filter(dp -> dp.getDayOfWeek() == targetDate.getDayOfWeek())
                 .findFirst()
                 .ifPresent(dailyPlan ->
                         dailyPlan.getMeals().forEach(planMeal -> {
                             MealRecord meal = MealRecord.fromPlan(
                                     planMeal,
-                                    today.atTime(defaultTimeFor(planMeal.getType())),
+                                    targetDate.atTime(defaultTimeFor(planMeal.getType())),
                                     dailyRecord
                             );
                             dailyRecord.addMeal(meal);
                         })
                 );
 
-        dailyRecordRepository.save(dailyRecord);
-        return DailyRecordMapper.toResponse(dailyRecord);
+        DailyRecord savedRecord = dailyRecordRepository.save(dailyRecord);
+        return DailyRecordMapper.toResponse(savedRecord);
     }
 
     private LocalTime defaultTimeFor(MealType type) {
@@ -123,6 +134,9 @@ public class DailyRecordServiceImpl implements DailyRecordService {
     @Override
     @Transactional
     public MealRecordResponseDTO addPortion(Long mealRecordId, FoodPortionAddRequestDTO request) {
+
+        log.info("Adding food portion mealRecordId={} foodId={}", mealRecordId, request.foodId());
+
         DailyRecord dailyRecord = dailyRecordRepository
                 .findByMealRecordId(mealRecordId)
                 .orElseThrow(() -> new ResourceNotFoundException("DailyRecord for meal", mealRecordId));
@@ -133,8 +147,8 @@ public class DailyRecordServiceImpl implements DailyRecordService {
                 .orElseThrow(() -> new ResourceNotFoundException("MealRecord", mealRecordId));
 
         Food food = foodService.findEntityById(request.foodId());
-        meal.addFoodPortion(food, request.quantity(), request.unit());
 
+        meal.addFoodPortion(food, request.quantity(), request.unit());
 
         dailyRecordRepository.save(dailyRecord);
         return DailyRecordMapper.toMealResponse(meal);
@@ -155,7 +169,7 @@ public class DailyRecordServiceImpl implements DailyRecordService {
                 .filter(p -> p.getId().equals(portionId))
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("FoodPortionRecord", portionId));
-      //  meal.markAsOverridden();
+        meal.markAsOverridden();
         meal.removeFoodPortion(portion);
         dailyRecordRepository.save(dailyRecord);
     }
@@ -241,6 +255,11 @@ public class DailyRecordServiceImpl implements DailyRecordService {
                                 .equals(userId)
                 )
                 .orElse(false);
+    }
+
+    @Override
+    public boolean existsForPatientAndDate(Long patientId, LocalDate date) {
+        return dailyRecordRepository.existsByPatient_IdAndDate(patientId, date);
     }
 
 }
