@@ -10,10 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -96,24 +93,27 @@ public class MealRecord extends DateAuditable {
     }
 
     public void addFoodPortion(Food food, Double quantity , MeasureUnit unit) {
-        Objects.requireNonNull(food);
-        Objects.requireNonNull(quantity);
-        Objects.requireNonNull(unit);
-        FoodPortionRecord foodPortionRecord = FoodPortionRecord.of(this, food, quantity, unit);
-        boolean exists = foods.stream()
-                .anyMatch(fp ->
-                        fp.getFood().equals(food) &&
-                                fp.getQuantity().equals(quantity)
-                );
-
-        if (!exists) {
-            foods.add(foodPortionRecord);
+        Objects.requireNonNull(food, "Food must not be null");
+        Objects.requireNonNull(quantity, "Quantity must not be null");
+        Objects.requireNonNull(unit, "Measure unit must not be null");
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
         }
+        // Busca si ya existe el mismo alimento con la misma unidad para acumular la cantidad
+        Optional<FoodPortionRecord> existingPortion = foods.stream()
+                .filter(fp -> fp.getFood().equals(food) && fp.getUnit() == unit)
+                .findFirst();
+        this.overridden = true;
+
+        existingPortion.ifPresent(foodPortionRecord -> foods.remove(foodPortionRecord));
+        foods.add(FoodPortionRecord.of(this, food, quantity, unit));
+
     }
 
     public void removeFoodPortion(FoodPortionRecord foodPortionRecord) {
 
         Objects.requireNonNull(foodPortionRecord);
+        this.overridden = true;
         foods.remove(foodPortionRecord);
 
     }
