@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -146,33 +147,30 @@ class DailyRecordServiceImplTest {
 
     @Test
     void shouldReturnExistingDailyRecord() {
-
         // Given
         Long patientId = 1L;
         LocalDate today = LocalDate.now();
 
         PatientProfile patient = patientProfile();
-
         DailyRecord record = DailyRecord.of(patient, today);
 
         when(dailyRecordRepository.findByPatient_IdAndDate(patientId, today))
                 .thenReturn(Optional.of(record));
 
-        // When
-        DailyRecordResponseDTO result = service.getOrCreateToday(patientId);
+        // When (pasando null o today a getOrCreateForDate)
+        DailyRecordResponseDTO result = service.getOrCreateForDate(patientId, null);
 
         // Then
         assertNotNull(result);
+        assertEquals(today, result.date());
 
         verify(dailyRecordRepository).findByPatient_IdAndDate(patientId, today);
-
         verifyNoInteractions(patientProfileService);
         verifyNoInteractions(nutritionPlanService);
     }
 
     @Test
     void shouldCreateDailyRecordWhenNotExists() {
-
         // Given
         Long patientId = 1L;
         LocalDate today = LocalDate.now();
@@ -180,6 +178,8 @@ class DailyRecordServiceImplTest {
         PatientProfile patient = patientProfile();
 
         NutritionPlan plan = mock(NutritionPlan.class);
+        when(plan.getStartDate()).thenReturn(today.minusDays(10));
+        when(plan.getWeek()).thenReturn(Collections.emptyList()); // O con DailyPlans si querés testear comidas
 
         when(dailyRecordRepository.findByPatient_IdAndDate(patientId, today))
                 .thenReturn(Optional.empty());
@@ -190,24 +190,25 @@ class DailyRecordServiceImplTest {
         when(nutritionPlanService.findActivePlan(patientId))
                 .thenReturn(Optional.of(plan));
 
+        when(dailyRecordRepository.save(any(DailyRecord.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
         // When
-        DailyRecordResponseDTO result = service.getOrCreateToday(patientId);
+        DailyRecordResponseDTO result = service.getOrCreateForDate(patientId, today);
 
         // Then
         assertNotNull(result);
+        assertEquals(today, result.date());
 
         ArgumentCaptor<DailyRecord> captor = ArgumentCaptor.forClass(DailyRecord.class);
-
         verify(dailyRecordRepository).save(captor.capture());
 
         DailyRecord saved = captor.getValue();
-
         assertEquals(today, saved.getDate());
         assertEquals(patient, saved.getPatient());
 
         verify(patientProfileService).findById(patientId);
         verify(nutritionPlanService).findActivePlan(patientId);
-        verify(dailyRecordRepository).save(any(DailyRecord.class));
     }
 
     @Test
@@ -229,12 +230,14 @@ class DailyRecordServiceImplTest {
                 .thenReturn(Optional.empty());
 
         // When + Then
-        assertThrows(
+        IllegalStateException exception = assertThrows(
                 IllegalStateException.class,
-                () -> service.getOrCreateToday(patientId)
+                () -> service.getOrCreateForDate(patientId, today)
         );
 
-        verify(patientProfileService).findById(1L);
+        assertEquals("Patient has no active nutrition plan. Cannot create daily record.", exception.getMessage());
+
+        verify(patientProfileService).findById(patientId);
         verify(nutritionPlanService).findActivePlan(patientId);
         verify(dailyRecordRepository, never()).save(any());
     }
@@ -737,13 +740,14 @@ class DailyRecordServiceImplTest {
 
         // Given
         Long patientId = 1L;
-
         LocalDate today = LocalDate.now();
 
         PatientProfile patient = mock(PatientProfile.class);
         NutritionPlan activePlan = mock(NutritionPlan.class);
         DailyPlan dailyPlan = mock(DailyPlan.class);
         PlanMeal planMeal = mock(PlanMeal.class);
+
+        when(activePlan.getStartDate()).thenReturn(today.minusDays(1));
 
         when(dailyRecordRepository.findByPatient_IdAndDate(patientId, today))
                 .thenReturn(Optional.empty());
@@ -766,19 +770,23 @@ class DailyRecordServiceImplTest {
         when(planMeal.getType())
                 .thenReturn(MealType.BREAKFAST);
 
+        when(dailyRecordRepository.save(any(DailyRecord.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
         // When
-        DailyRecordResponseDTO result =
-                service.getOrCreateToday(patientId);
+        DailyRecordResponseDTO result = service.getOrCreateForDate(patientId, today);
 
         // Then
         assertNotNull(result);
 
-        verify(dailyRecordRepository)
-                .save(any(DailyRecord.class));
+        ArgumentCaptor<DailyRecord> captor = ArgumentCaptor.forClass(DailyRecord.class);
+        verify(dailyRecordRepository).save(captor.capture());
 
-        verify(dailyPlan)
-                .getMeals();
+        DailyRecord savedRecord = captor.getValue();
+        assertEquals(1, savedRecord.getMeals().size());
+        assertEquals(MealType.BREAKFAST, savedRecord.getMeals().get(0).getType());
 
+        verify(dailyPlan).getMeals();
     }
 
     @Test
@@ -786,20 +794,19 @@ class DailyRecordServiceImplTest {
 
         // Given
         Long patientId = 1L;
+        LocalDate today = LocalDate.now();
 
         User user = generateUser();
         PatientProfile patient = user.getPatientProfile();
 
         NutritionPlan plan = mock(NutritionPlan.class);
 
+        when(plan.getStartDate()).thenReturn(today.minusDays(1));
+
         DailyPlan otherDay = mock(DailyPlan.class);
 
         when(otherDay.getDayOfWeek())
-                .thenReturn(
-                        LocalDate.now()
-                                .getDayOfWeek()
-                                .plus(1)
-                );
+                .thenReturn(today.getDayOfWeek().plus(1));
 
         when(plan.getWeek())
                 .thenReturn(List.of(otherDay));
@@ -813,15 +820,18 @@ class DailyRecordServiceImplTest {
         when(dailyRecordRepository.save(any(DailyRecord.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        // When
-        DailyRecordResponseDTO result =
-                service.getOrCreateToday(patientId);
+        DailyRecordResponseDTO result = service.getOrCreateForDate(patientId, today);
 
         // Then
         assertNotNull(result);
 
-        verify(dailyRecordRepository)
-                .save(any(DailyRecord.class));
+        ArgumentCaptor<DailyRecord> captor = ArgumentCaptor.forClass(DailyRecord.class);
+        verify(dailyRecordRepository).save(captor.capture());
+
+        DailyRecord saved = captor.getValue();
+        assertTrue(saved.getMeals().isEmpty(), "El registro debería crearse con la lista de comidas vacía");
+
+        verify(otherDay, never()).getMeals();
     }
 
     @ParameterizedTest
@@ -830,13 +840,14 @@ class DailyRecordServiceImplTest {
 
         // Given
         Long patientId = 1L;
-
         LocalDate today = LocalDate.now();
 
         PatientProfile patient = mock(PatientProfile.class);
         NutritionPlan activePlan = mock(NutritionPlan.class);
         DailyPlan dailyPlan = mock(DailyPlan.class);
         PlanMeal planMeal = mock(PlanMeal.class);
+
+        when(activePlan.getStartDate()).thenReturn(today.minusDays(1));
 
         when(dailyRecordRepository.findByPatient_IdAndDate(patientId, today))
                 .thenReturn(Optional.empty());
@@ -859,15 +870,21 @@ class DailyRecordServiceImplTest {
         when(planMeal.getType())
                 .thenReturn(mealType);
 
-        // When
-        DailyRecordResponseDTO result =
-                service.getOrCreateToday(patientId);
+        when(dailyRecordRepository.save(any(DailyRecord.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        DailyRecordResponseDTO result = service.getOrCreateForDate(patientId, today);
 
         // Then
         assertNotNull(result);
 
-        verify(dailyRecordRepository)
-                .save(any(DailyRecord.class));
+        ArgumentCaptor<DailyRecord> captor = ArgumentCaptor.forClass(DailyRecord.class);
+        verify(dailyRecordRepository).save(captor.capture());
+
+        DailyRecord savedRecord = captor.getValue();
+        assertEquals(1, savedRecord.getMeals().size());
+
+        assertEquals(mealType, savedRecord.getMeals().get(0).getType());
     }
 
     @Test

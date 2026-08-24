@@ -2,41 +2,38 @@ package com.lirium.nutrition.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lirium.nutrition.dto.response.DailyRecordResponseDTO;
+import com.lirium.nutrition.infrastructure.security.JwtAuthenticationFilter; // Importalo
 import com.lirium.nutrition.infrastructure.security.PatientSecurity;
 import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.repository.PatientProfileRepository;
 import com.lirium.nutrition.repository.UserRepository;
 import com.lirium.nutrition.service.AdherenceReportService;
 import com.lirium.nutrition.service.DailyRecordService;
-import com.lirium.nutrition.infrastructure.security.JwtAuthenticationFilter; // Importalo
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Collection;
+import java.time.LocalDate;
 import java.util.Collections;
-import java.util.List;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(
@@ -175,7 +172,8 @@ public class DailyRecordControllerSecurityTest {
                 .thenReturn(false);
         when(principal.getUsername()).thenReturn("patient@test.com");
 
-        mvc.perform(get("/api/daily-records/today/{patientId}", targetPatientId)
+        // Endpoint actualizado: GET /api/daily-records/patient/{patientId}
+        mvc.perform(get("/api/daily-records/patient/{patientId}", targetPatientId)
                         .with(user(principal)))
                 .andExpect(status().isForbidden());
 
@@ -243,31 +241,54 @@ public class DailyRecordControllerSecurityTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void shouldAllowAdminToAccessAnyPatientRecord() throws Exception {
+        // Arrange
+        Long patientId = 99L;
+        LocalDate targetDate = LocalDate.now();
 
-        DailyRecordResponseDTO response = mock(DailyRecordResponseDTO.class);
+        DailyRecordResponseDTO mockResponse = new DailyRecordResponseDTO(
+                1L,
+                targetDate,
+                Collections.emptyList()
+        );
 
-        when(dailyRecordService.getOrCreateToday(99L))
-                .thenReturn(response);
+        when(dailyRecordService.getOrCreateForDate(eq(patientId), any(LocalDate.class)))
+                .thenReturn(mockResponse);
 
-        mvc.perform(get("/api/daily-records/today/{patientId}", 99L))
-                .andExpect(status().isOk());
+        // Act & Assert
+        mvc.perform(post("/api/daily-records/patient/{patientId}/ensure", patientId)
+                        .param("date", targetDate.toString())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1L));
 
-        verify(dailyRecordService).getOrCreateToday(99L);
+        verify(dailyRecordService).getOrCreateForDate(eq(patientId), eq(targetDate));
     }
+
 
     @Test
     @WithMockUser(roles = "NUTRITIONIST")
     void shouldAllowNutritionistToAccessAnyPatientRecord() throws Exception {
+        // Arrange
+        Long patientId = 99L;
+        LocalDate targetDate = LocalDate.now();
 
-        DailyRecordResponseDTO response = mock(DailyRecordResponseDTO.class);
+        DailyRecordResponseDTO mockResponse = new DailyRecordResponseDTO(
+                1L,
+                targetDate,
+                Collections.emptyList()
+        );
 
-        when(dailyRecordService.getOrCreateToday(99L))
-                .thenReturn(response);
+        when(dailyRecordService.getOrCreateForDate(eq(patientId), any(LocalDate.class)))
+                .thenReturn(mockResponse);
 
-        mvc.perform(get("/api/daily-records/today/{patientId}", 99L))
-                .andExpect(status().isOk());
+        // Act & Assert
+        mvc.perform(post("/api/daily-records/patient/{patientId}/ensure", patientId)
+                        .param("date", targetDate.toString())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1L));
 
-        verify(dailyRecordService).getOrCreateToday(99L);
+        verify(dailyRecordService).getOrCreateForDate(eq(patientId), eq(targetDate));
     }
 
 }

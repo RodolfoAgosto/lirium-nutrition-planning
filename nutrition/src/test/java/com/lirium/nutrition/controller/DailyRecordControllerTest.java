@@ -1,8 +1,12 @@
 package com.lirium.nutrition.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lirium.nutrition.dto.request.*;
-import com.lirium.nutrition.dto.response.*;
+import com.lirium.nutrition.dto.request.FoodPortionAddRequestDTO;
+import com.lirium.nutrition.dto.request.MealRecordUpdateRequestDTO;
+import com.lirium.nutrition.dto.response.AdherenceReportDTO;
+import com.lirium.nutrition.dto.response.DailyRecordResponseDTO;
+import com.lirium.nutrition.dto.response.MealRecordResponseDTO;
+import com.lirium.nutrition.dto.response.NutritionComparisonReportDTO;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.infrastructure.security.JwtService;
 import com.lirium.nutrition.infrastructure.security.UserDetailsServiceImpl;
@@ -17,11 +21,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.*;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -48,28 +54,30 @@ class DailyRecordControllerTest {
     @Autowired
     ObjectMapper mapper;
 
-    // getOrCreateToday
-
     @Test
-    void shouldReturnTodayRecordWhenPatientAccessesOwnRecord() throws Exception {
+    @WithMockUser(roles = "ADMIN")
+    void shouldAllowAdminToAccessAnyPatientRecord() throws Exception {
+        // Arrange
+        Long patientId = 99L;
+        LocalDate targetDate = LocalDate.now();
 
-        // Given
-        Long patiendId = 1L;
-        LocalDate today = LocalDate.now();
-        DailyRecordResponseDTO dailyRecordResponseDTO = new DailyRecordResponseDTO(1L, today,List.of());
+        DailyRecordResponseDTO mockResponse = new DailyRecordResponseDTO(
+                1L,
+                targetDate,
+                Collections.emptyList()
+        );
 
-        // When
-        when(dailyRecordService.getOrCreateToday(1L)).thenReturn(dailyRecordResponseDTO);
+        when(dailyRecordService.getOrCreateForDate(eq(patientId), any(LocalDate.class)))
+                .thenReturn(mockResponse);
 
-        // Then
-        mvc.perform(get("/api/daily-records/today/"+ patiendId)
+        // Act & Assert
+        mvc.perform(post("/api/daily-records/patient/{patientId}/ensure", patientId)
+                        .param("date", targetDate.toString())
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.date").value(today.toString()));
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1L));
 
-        verify(dailyRecordService).getOrCreateToday(1L);
-
+        verify(dailyRecordService).getOrCreateForDate(eq(patientId), eq(targetDate));
     }
 
     // getById
@@ -242,7 +250,7 @@ class DailyRecordControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(request))
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.type").value("LUNCH"))

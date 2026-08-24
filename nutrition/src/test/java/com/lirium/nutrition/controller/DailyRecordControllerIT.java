@@ -109,7 +109,7 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
     void shouldReturnTodayDailyRecordWhenAdminRequestsPatientRecord() throws Exception {
 
         mockMvc.perform(
-                        get("/api/daily-records/today/" + patientProfile.getId())
+                        post("/api/daily-records/patient/" + patientId + "/ensure")
                                 .header("Authorization", adminToken)
                 )
                 .andExpect(status().isOk())
@@ -118,9 +118,10 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
 
     @Test
     @DisplayName("should return today's daily record when nutritionist requests patient record")
-    void shouldReturnTodayDailyRecordWhenNutritionistRequestsPatientRecord()
-            throws Exception {
-        mockMvc.perform(get("/api/daily-records/today/" + patientProfile.getId())
+    void shouldReturnTodayDailyRecordWhenNutritionistRequestsPatientRecord() throws Exception {
+
+        mockMvc.perform(
+                        post("/api/daily-records/patient/" + patientId + "/ensure")
                                 .header("Authorization", nutritionistToken)
                 )
                 .andExpect(status().isOk());
@@ -131,7 +132,7 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
     void shouldReturnTodayDailyRecordWhenPatientRequestsOwnRecord() throws Exception {
 
         mockMvc.perform(
-                        get("/api/daily-records/today/" + patientProfile.getId())
+                        post("/api/daily-records/patient/" + patientId + "/ensure")
                                 .header("Authorization", patientToken)
                 )
                 .andExpect(status().isOk());
@@ -142,7 +143,7 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
     void shouldReturnForbiddenWhenPatientRequestsAnotherPatientsTodayRecord()
             throws Exception {
         mockMvc.perform(
-                        get("/api/daily-records/today/" + otherPatientId)
+                        post("/api/daily-records/patient/" + otherPatientId + "/ensure")
                                 .header("Authorization", patientToken)
                 )
                 .andExpect(status().isForbidden());
@@ -163,7 +164,7 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
     @DisplayName("should return not found when patient does not exist")
     void shouldReturnNotFoundWhenPatientDoesNotExist() throws Exception {
         mockMvc.perform(
-                        get("/api/daily-records/today/99999")
+                        post("/api/daily-records/patient/99999/ensure")
                                 .header("Authorization", adminToken)
                 )
                 .andExpect(status().isNotFound());
@@ -408,10 +409,8 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated()); // <-- Cambiado de isOk() a isCreated()
     }
-
-
 
     @Test
     void shouldUpdateMeal() throws Exception {

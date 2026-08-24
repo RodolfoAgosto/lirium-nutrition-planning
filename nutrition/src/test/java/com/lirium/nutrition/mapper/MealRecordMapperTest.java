@@ -2,7 +2,9 @@ package com.lirium.nutrition.mapper;
 
 import com.lirium.nutrition.dto.request.FoodPortionCreateDTO;
 import com.lirium.nutrition.dto.request.MealRecordCreateRequestDTO;
-import com.lirium.nutrition.dto.response.*;
+import com.lirium.nutrition.dto.response.FoodPortionRecordResponseDTO;
+import com.lirium.nutrition.dto.response.MealRecordResponseDTO;
+import com.lirium.nutrition.dto.response.MealRecordSummaryDTO;
 import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.model.enums.FoodCategory;
 import com.lirium.nutrition.model.enums.MealType;
@@ -16,7 +18,6 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 class MealRecordMapperTest {
 
@@ -63,7 +64,7 @@ class MealRecordMapperTest {
         MealRecordResponseDTO dto = MealRecordMapper.toResponse(meal);
 
         assertThat(dto.type()).isEqualTo(MealType.LUNCH);
-        assertThat(dto.overridden()).isFalse();
+        assertThat(dto.overridden()).isTrue();
         assertThat(dto.notes()).isNull();
         assertThat(dto.eatenAt()).isEqualTo(meal.getEatenAt());
 
@@ -161,7 +162,7 @@ class MealRecordMapperTest {
 
         assertThat(meal.getType()).isEqualTo(MealType.LUNCH);
         assertThat(meal.getNotes()).isEqualTo("Good meal");
-        assertThat(meal.isOverridden()).isFalse();
+        assertThat(meal.isOverridden()).isTrue();
 
         assertThat(meal.getFoodPortions()).hasSize(1);
 

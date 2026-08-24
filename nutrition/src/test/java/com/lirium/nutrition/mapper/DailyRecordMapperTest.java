@@ -79,7 +79,7 @@ class DailyRecordMapperTest {
 
         assertThat(mealDto.id()).isNull();
         assertThat(mealDto.type()).isEqualTo(MealType.BREAKFAST);
-        assertThat(mealDto.overridden()).isFalse();
+        assertThat(mealDto.overridden()).isTrue();
         assertThat(mealDto.notes()).isNull();
         assertThat(mealDto.eatenAt())
                 .isEqualTo(LocalDateTime.of(2026, 6, 30, 8, 0));
