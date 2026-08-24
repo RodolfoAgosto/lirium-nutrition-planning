@@ -225,7 +225,32 @@ INSERT INTO plan_meals (id, meal_type, daily_plan_id, created_at, updated_at) VA
                                                                                   -- Martes Plan 1 (daily_plan_id = 2) -> Genera meal_ids 6, 7, 8
                                                                                   (nextval('plan_meal_seq'), 'BREAKFAST', 2, NOW(), NOW()),   -- meal_id 6
                                                                                   (nextval('plan_meal_seq'), 'LUNCH', 2, NOW(), NOW()),       -- meal_id 7
-                                                                                  (nextval('plan_meal_seq'), 'DINNER', 2, NOW(), NOW());      -- meal_id 8
+                                                                                  (nextval('plan_meal_seq'), 'DINNER', 2, NOW(), NOW()),      -- meal_id 8
+
+                                                                                  -- Miércoles (daily_plan_id = 3)
+                                                                                  (nextval('plan_meal_seq'), 'BREAKFAST', 3, NOW(), NOW()),
+                                                                                  (nextval('plan_meal_seq'), 'LUNCH', 3, NOW(), NOW()),
+                                                                                  (nextval('plan_meal_seq'), 'DINNER', 3, NOW(), NOW()),
+
+                                                                                  -- Jueves (daily_plan_id = 4)
+                                                                                  (nextval('plan_meal_seq'), 'BREAKFAST', 4, NOW(), NOW()),
+                                                                                  (nextval('plan_meal_seq'), 'LUNCH', 4, NOW(), NOW()),
+                                                                                  (nextval('plan_meal_seq'), 'DINNER', 4, NOW(), NOW()),
+
+                                                                                  -- Viernes (daily_plan_id = 5)
+                                                                                  (nextval('plan_meal_seq'), 'BREAKFAST', 5, NOW(), NOW()),
+                                                                                  (nextval('plan_meal_seq'), 'LUNCH', 5, NOW(), NOW()),
+                                                                                  (nextval('plan_meal_seq'), 'DINNER', 5, NOW(), NOW()),
+
+                                                                                  -- Sábado (daily_plan_id = 6)
+                                                                                  (nextval('plan_meal_seq'), 'BREAKFAST', 6, NOW(), NOW()),
+                                                                                  (nextval('plan_meal_seq'), 'LUNCH', 6, NOW(), NOW()),
+                                                                                  (nextval('plan_meal_seq'), 'DINNER', 6, NOW(), NOW()),
+
+                                                                                  -- Domingo (daily_plan_id = 7)
+                                                                                  (nextval('plan_meal_seq'), 'BREAKFAST', 7, NOW(), NOW()),
+                                                                                  (nextval('plan_meal_seq'), 'LUNCH', 7, NOW(), NOW()),
+                                                                                  (nextval('plan_meal_seq'), 'DINNER', 7, NOW(), NOW());
 
 -- ---------------------------------------------------------------------
 -- Plan food portions
