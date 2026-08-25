@@ -184,10 +184,30 @@ public class DailyRecordServiceImpl implements DailyRecordService {
     public NutritionComparisonReportDTO getNutritionComparison(
             Long patientId, LocalDate from, LocalDate to) {
 
-        // Targets del plan activo
+        if (from == null || to == null) {
+            throw new IllegalArgumentException("Date range is required");
+        }
+
+        if (from.isAfter(to)) {
+            throw new IllegalArgumentException(
+                    "The 'from' date cannot be after the 'to' date"
+            );
+        }
+
+        if (!patientProfileRepository.existsById(patientId)) {
+            throw new ResourceNotFoundException("Patient", patientId);
+        }
+
         NutritionPlan activePlan = nutritionPlanService.findActivePlan(patientId)
-                .orElseThrow(() -> new IllegalStateException(
-                        "Patient has no active plan"));
+                .orElseThrow(() -> new ResourceNotFoundException("Active nutrition plan not found for patient with id:", patientId));
+
+        LocalDate effectiveFrom = from.isBefore(activePlan.getStartDate())
+                ? activePlan.getStartDate()
+                : from;
+
+        if (effectiveFrom.isAfter(to)) {
+            return new NutritionComparisonReportDTO(from, to, List.of());
+        }
 
         int targetCal  = activePlan.getDailyCalories();
         int targetProt = activePlan.getProteinGrams();
@@ -196,9 +216,9 @@ public class DailyRecordServiceImpl implements DailyRecordService {
 
         // Registros del rango
         List<DailyRecord> records = dailyRecordRepository
-                .findByPatient_IdAndDateBetween(patientId, from, to);
+                .findByPatient_IdAndDateBetween(patientId, effectiveFrom, to);
 
-        List<DailyNutritionComparisonDTO> days = from.datesUntil(to.plusDays(1))
+        List<DailyNutritionComparisonDTO> days = effectiveFrom.datesUntil(to.plusDays(1))
                 .map(date -> {
                     Optional<DailyRecord> record = records.stream()
                             .filter(r -> r.getDate().equals(date))
@@ -235,7 +255,7 @@ public class DailyRecordServiceImpl implements DailyRecordService {
                 })
                 .toList();
 
-        return new NutritionComparisonReportDTO(from, to, days);
+        return new NutritionComparisonReportDTO(effectiveFrom, to, days);
     }
 
     @Override
