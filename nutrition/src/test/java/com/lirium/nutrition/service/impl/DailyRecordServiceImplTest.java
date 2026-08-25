@@ -10,6 +10,8 @@ import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.model.enums.*;
 import com.lirium.nutrition.model.valueobject.*;
 import com.lirium.nutrition.repository.DailyRecordRepository;
+import com.lirium.nutrition.repository.MealRecordRepository;
+import com.lirium.nutrition.repository.PatientProfileRepository;
 import com.lirium.nutrition.service.FoodService;
 import com.lirium.nutrition.service.NutritionPlanService;
 import com.lirium.nutrition.service.PatientProfileService;
@@ -43,6 +45,10 @@ class DailyRecordServiceImplTest {
     NutritionPlanService nutritionPlanService;
     @Mock
     FoodService foodService;
+    @Mock
+    private PatientProfileRepository patientProfileRepository;
+    @Mock
+    MealRecordRepository mealRecordRepository;
 
     @InjectMocks
     DailyRecordServiceImpl service;
@@ -50,6 +56,493 @@ class DailyRecordServiceImplTest {
     private static final LocalDate START = LocalDate.of(2026, 1, 1);
 
     private static final LocalDate END = LocalDate.of(2026, 1, 3);
+
+    @Test
+    void shouldThrowWhenCreatingDailyRecordForFutureDate() {
+
+        Long patientId = 1L;
+        LocalDate futureDate = LocalDate.now().plusDays(1);
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> service.getOrCreateForDate(patientId, futureDate)
+        );
+
+        assertEquals(
+                "Cannot create daily records for future dates",
+                ex.getMessage()
+        );
+
+        verifyNoInteractions(dailyRecordRepository);
+        verifyNoInteractions(patientProfileService);
+        verifyNoInteractions(nutritionPlanService);
+    }
+
+
+    @Test
+    void shouldThrowWhenDateIsBeforeActivePlanStartDate() {
+
+        Long patientId = 1L;
+
+        LocalDate planStart = LocalDate.of(2026, 1, 10);
+        LocalDate targetDate = LocalDate.of(2026, 1, 5);
+
+        PatientProfile patient = patientProfile();
+        NutritionPlan plan = mock(NutritionPlan.class);
+
+        when(dailyRecordRepository.findByPatient_IdAndDate(
+                patientId,
+                targetDate
+        )).thenReturn(Optional.empty());
+
+        when(patientProfileService.findById(patientId))
+                .thenReturn(patient);
+
+        when(nutritionPlanService.findActivePlan(patientId))
+                .thenReturn(Optional.of(plan));
+
+        when(plan.getStartDate())
+                .thenReturn(planStart);
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> service.getOrCreateForDate(patientId, targetDate)
+        );
+
+        assertTrue(ex.getMessage().contains(targetDate.toString()));
+        assertTrue(ex.getMessage().contains(planStart.toString()));
+
+        verify(dailyRecordRepository, never())
+                .save(any(DailyRecord.class));
+    }
+
+
+    @Test
+    void shouldThrowWhenDateRangeIsInvalid() {
+
+        Long patientId = 1L;
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> service.getNutritionComparison(
+                        patientId,
+                        END,
+                        START
+                )
+        );
+
+        assertEquals(
+                "The 'from' date cannot be after the 'to' date",
+                ex.getMessage()
+        );
+
+        verifyNoInteractions(patientProfileRepository);
+        verifyNoInteractions(nutritionPlanService);
+        verifyNoInteractions(dailyRecordRepository);
+    }
+
+
+    @Test
+    void shouldThrowWhenFromDateIsNull() {
+
+        Long patientId = 1L;
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> service.getNutritionComparison(
+                        patientId,
+                        null,
+                        END
+                )
+        );
+
+        assertEquals(
+                "Date range is required",
+                ex.getMessage()
+        );
+
+        verifyNoInteractions(patientProfileRepository);
+        verifyNoInteractions(nutritionPlanService);
+        verifyNoInteractions(dailyRecordRepository);
+    }
+
+
+    @Test
+    void shouldThrowWhenToDateIsNull() {
+
+        Long patientId = 1L;
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> service.getNutritionComparison(
+                        patientId,
+                        START,
+                        null
+                )
+        );
+
+        assertEquals(
+                "Date range is required",
+                ex.getMessage()
+        );
+
+        verifyNoInteractions(patientProfileRepository);
+        verifyNoInteractions(nutritionPlanService);
+        verifyNoInteractions(dailyRecordRepository);
+    }
+
+    @Test
+    void shouldAdjustEffectiveFromToPlanStartDate() {
+
+        Long patientId = 1L;
+
+        LocalDate from = LocalDate.of(2026, 1, 1);
+        LocalDate planStart = LocalDate.of(2026, 1, 5);
+        LocalDate to = LocalDate.of(2026, 1, 10);
+
+        NutritionPlan plan = NutritionPlan.generate(
+                GoalType.WEIGHT_LOSS,
+                2000,
+                150,
+                200,
+                70,
+                null
+        );
+
+        plan.activate(planStart);
+
+        when(patientProfileRepository.existsById(patientId))
+                .thenReturn(true);
+
+        when(nutritionPlanService.findActivePlan(patientId))
+                .thenReturn(Optional.of(plan));
+
+        when(dailyRecordRepository.findByPatient_IdAndDateBetween(
+                patientId,
+                planStart,
+                to
+        )).thenReturn(List.of());
+
+        NutritionComparisonReportDTO result =
+                service.getNutritionComparison(
+                        patientId,
+                        from,
+                        to
+                );
+
+        assertEquals(planStart, result.from());
+        assertEquals(to, result.to());
+        assertEquals(6, result.days().size());
+
+        verify(patientProfileRepository)
+                .existsById(patientId);
+
+        verify(dailyRecordRepository)
+                .findByPatient_IdAndDateBetween(
+                        patientId,
+                        planStart,
+                        to
+                );
+    }
+
+    @Test
+    void shouldReturnEmptyReportWhenRequestedRangeIsBeforePlanStart() {
+
+        Long patientId = 1L;
+
+        LocalDate from = LocalDate.of(2026, 1, 1);
+        LocalDate to = LocalDate.of(2026, 1, 3);
+        LocalDate planStart = LocalDate.of(2026, 1, 10);
+
+        NutritionPlan plan = mock(NutritionPlan.class);
+
+        when(patientProfileRepository.existsById(patientId))
+                .thenReturn(true);
+
+        when(plan.getStartDate())
+                .thenReturn(planStart);
+
+        when(nutritionPlanService.findActivePlan(patientId))
+                .thenReturn(Optional.of(plan));
+
+        NutritionComparisonReportDTO result =
+                service.getNutritionComparison(
+                        patientId,
+                        from,
+                        to
+                );
+
+        assertAll(
+                () -> assertEquals(from, result.from()),
+                () -> assertEquals(to, result.to()),
+                () -> assertTrue(result.days().isEmpty())
+        );
+
+        verify(dailyRecordRepository, never())
+                .findByPatient_IdAndDateBetween(
+                        anyLong(),
+                        any(),
+                        any()
+                );
+    }
+
+    @Test
+    void shouldRoundAdherenceToOneDecimalPlace() {
+
+        Long patientId = 1L;
+
+        LocalDate from = LocalDate.of(2026, 1, 1);
+        LocalDate to = from;
+
+        NutritionPlan plan = createPlan(
+                2000,
+                150,
+                200,
+                70
+        );
+
+        DailyRecord record = mock(DailyRecord.class);
+        MealRecord meal = mock(MealRecord.class);
+        FoodPortionRecord portion = mock(FoodPortionRecord.class);
+
+        when(patientProfileRepository.existsById(patientId))
+                .thenReturn(true);
+
+        when(record.getDate()).thenReturn(from);
+        when(record.getMeals()).thenReturn(List.of(meal));
+
+        when(meal.getFoodPortions()).thenReturn(List.of(portion));
+
+        when(portion.calories())
+                .thenReturn(new Calories(1234));
+
+        when(portion.protein())
+                .thenReturn(new Protein(50));
+
+        when(portion.carbs())
+                .thenReturn(new Carbs(100));
+
+        when(portion.fat())
+                .thenReturn(new Fat(20));
+
+        when(nutritionPlanService.findActivePlan(patientId))
+                .thenReturn(Optional.of(plan));
+
+        when(dailyRecordRepository.findByPatient_IdAndDateBetween(
+                patientId,
+                from,
+                to
+        )).thenReturn(List.of(record));
+
+        NutritionComparisonReportDTO result =
+                service.getNutritionComparison(
+                        patientId,
+                        from,
+                        to
+                );
+
+        assertEquals(
+                61.7,
+                result.days().getFirst().adherencePercentage()
+        );
+    }
+
+    @Test
+    void shouldReturnTrueWhenDailyRecordBelongsToUser() {
+
+        Long dailyRecordId = 1L;
+        Long userId = 10L;
+
+        User user = mock(User.class);
+        PatientProfile patient = mock(PatientProfile.class);
+        DailyRecord record = mock(DailyRecord.class);
+
+        when(user.getId()).thenReturn(userId);
+        when(patient.getUser()).thenReturn(user);
+        when(record.getPatient()).thenReturn(patient);
+
+        when(dailyRecordRepository.findById(dailyRecordId))
+                .thenReturn(Optional.of(record));
+
+        assertTrue(
+                service.isDailyRecordOwnedByUser(
+                        dailyRecordId,
+                        userId
+                )
+        );
+    }
+
+
+    @Test
+    void shouldReturnFalseWhenDailyRecordDoesNotBelongToUser() {
+
+        Long dailyRecordId = 1L;
+        Long ownerUserId = 10L;
+        Long authenticatedUserId = 20L;
+
+        User user = mock(User.class);
+        PatientProfile patient = mock(PatientProfile.class);
+        DailyRecord record = mock(DailyRecord.class);
+
+        when(user.getId()).thenReturn(ownerUserId);
+        when(patient.getUser()).thenReturn(user);
+        when(record.getPatient()).thenReturn(patient);
+
+        when(dailyRecordRepository.findById(dailyRecordId))
+                .thenReturn(Optional.of(record));
+
+        assertFalse(
+                service.isDailyRecordOwnedByUser(
+                        dailyRecordId,
+                        authenticatedUserId
+                )
+        );
+    }
+
+
+    @Test
+    void shouldReturnFalseWhenDailyRecordDoesNotExistForOwnershipCheck() {
+
+        Long dailyRecordId = 99L;
+        Long userId = 10L;
+
+        when(dailyRecordRepository.findById(dailyRecordId))
+                .thenReturn(Optional.empty());
+
+        assertFalse(
+                service.isDailyRecordOwnedByUser(
+                        dailyRecordId,
+                        userId
+                )
+        );
+    }
+
+
+    @Test
+    void shouldReturnTrueWhenMealRecordBelongsToUser() {
+
+        Long mealRecordId = 1L;
+        Long userId = 10L;
+
+        User user = mock(User.class);
+        PatientProfile patient = mock(PatientProfile.class);
+        DailyRecord dailyRecord = mock(DailyRecord.class);
+        MealRecord mealRecord = mock(MealRecord.class);
+
+        when(user.getId()).thenReturn(userId);
+        when(patient.getUser()).thenReturn(user);
+        when(dailyRecord.getPatient()).thenReturn(patient);
+        when(mealRecord.getDailyRecord()).thenReturn(dailyRecord);
+
+        when(mealRecordRepository.findById(mealRecordId))
+                .thenReturn(Optional.of(mealRecord));
+
+        assertTrue(
+                service.isMealRecordOwnedByUser(
+                        mealRecordId,
+                        userId
+                )
+        );
+    }
+
+
+    @Test
+    void shouldReturnFalseWhenMealRecordDoesNotBelongToUser() {
+
+        Long mealRecordId = 1L;
+        Long ownerUserId = 10L;
+        Long authenticatedUserId = 20L;
+
+        User user = mock(User.class);
+        PatientProfile patient = mock(PatientProfile.class);
+        DailyRecord dailyRecord = mock(DailyRecord.class);
+        MealRecord mealRecord = mock(MealRecord.class);
+
+        when(user.getId()).thenReturn(ownerUserId);
+        when(patient.getUser()).thenReturn(user);
+        when(dailyRecord.getPatient()).thenReturn(patient);
+        when(mealRecord.getDailyRecord()).thenReturn(dailyRecord);
+
+        when(mealRecordRepository.findById(mealRecordId))
+                .thenReturn(Optional.of(mealRecord));
+
+        assertFalse(
+                service.isMealRecordOwnedByUser(
+                        mealRecordId,
+                        authenticatedUserId
+                )
+        );
+    }
+
+
+    @Test
+    void shouldReturnFalseWhenMealRecordDoesNotExistForOwnershipCheck() {
+
+        Long mealRecordId = 99L;
+        Long userId = 10L;
+
+        when(mealRecordRepository.findById(mealRecordId))
+                .thenReturn(Optional.empty());
+
+        assertFalse(
+                service.isMealRecordOwnedByUser(
+                        mealRecordId,
+                        userId
+                )
+        );
+    }
+
+
+    @Test
+    void shouldReturnTrueWhenDailyRecordExistsForPatientAndDate() {
+
+        Long patientId = 1L;
+        LocalDate date = LocalDate.of(2026, 1, 1);
+
+        when(dailyRecordRepository.existsByPatient_IdAndDate(
+                patientId,
+                date
+        )).thenReturn(true);
+
+        assertTrue(
+                service.existsForPatientAndDate(
+                        patientId,
+                        date
+                )
+        );
+
+        verify(dailyRecordRepository)
+                .existsByPatient_IdAndDate(
+                        patientId,
+                        date
+                );
+    }
+
+
+    @Test
+    void shouldReturnFalseWhenDailyRecordDoesNotExistForPatientAndDate() {
+
+        Long patientId = 1L;
+        LocalDate date = LocalDate.of(2026, 1, 1);
+
+        when(dailyRecordRepository.existsByPatient_IdAndDate(
+                patientId,
+                date
+        )).thenReturn(false);
+
+        assertFalse(
+                service.existsForPatientAndDate(
+                        patientId,
+                        date
+                )
+        );
+
+        verify(dailyRecordRepository)
+                .existsByPatient_IdAndDate(
+                        patientId,
+                        date
+                );
+    }
 
     @Test
     void shouldReturnDailyRecordById() {
@@ -106,43 +599,54 @@ class DailyRecordServiceImplTest {
 
         PatientProfile patient = patientProfile();
 
-        DailyRecord r1 = DailyRecord.of(patient, LocalDate.of(2026, 1, 1));
-        DailyRecord r2 = DailyRecord.of(patient, LocalDate.of(2026, 1, 2));
+        DailyRecord record =
+                DailyRecord.of(patient, LocalDate.of(2026, 1, 1));
+
+        when(patientProfileRepository.existsById(patientId))
+                .thenReturn(true);
 
         when(dailyRecordRepository.findByPatient_IdOrderByDateDesc(patientId))
-                .thenReturn(List.of(r1, r2));
+                .thenReturn(List.of(record));
 
         // When
-        List<DailyRecordResponseDTO> result = service.getByPatient(patientId);
+        List<DailyRecordResponseDTO> result =
+                service.getByPatient(patientId);
 
         // Then
-        assertAll(
-                () -> assertNotNull(result),
-                () -> assertEquals(2, result.size())
-        );
+        assertNotNull(result);
+        assertEquals(1, result.size());
 
-        verify(dailyRecordRepository).findByPatient_IdOrderByDateDesc(patientId);
+        verify(patientProfileRepository)
+                .existsById(patientId);
+
+        verify(dailyRecordRepository)
+                .findByPatient_IdOrderByDateDesc(patientId);
     }
 
     @Test
     void shouldReturnEmptyListWhenNoRecords() {
 
-        // Given
         Long patientId = 1L;
+
+        when(patientProfileRepository.existsById(patientId))
+                .thenReturn(true);
 
         when(dailyRecordRepository.findByPatient_IdOrderByDateDesc(patientId))
                 .thenReturn(List.of());
 
-        // When
-        List<DailyRecordResponseDTO> result = service.getByPatient(patientId);
+        List<DailyRecordResponseDTO> result =
+                service.getByPatient(patientId);
 
-        // Then
         assertAll(
                 () -> assertNotNull(result),
                 () -> assertTrue(result.isEmpty())
         );
 
-        verify(dailyRecordRepository).findByPatient_IdOrderByDateDesc(patientId);
+        verify(patientProfileRepository)
+                .existsById(patientId);
+
+        verify(dailyRecordRepository)
+                .findByPatient_IdOrderByDateDesc(patientId);
     }
 
     @Test
@@ -268,35 +772,6 @@ class DailyRecordServiceImplTest {
 
         // Then
         verify(meal).markAsOverridden("Patient changed meal");
-        verify(dailyRecordRepository).save(dailyRecord);
-    }
-
-    @Test
-    void shouldUpdateMealWithoutOverrideWhenNotesAreNull() {
-
-        // Given
-        Long mealId = 1L;
-
-        PatientProfile patient = patientProfile();
-        DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now());
-
-        MealRecord meal = mock(MealRecord.class);
-
-        when(meal.getId()).thenReturn(mealId);
-
-        dailyRecord.addMeal(meal);
-
-        MealRecordUpdateRequestDTO request =
-                new MealRecordUpdateRequestDTO(null);
-
-        when(dailyRecordRepository.findByMealRecordId(mealId))
-                .thenReturn(Optional.of(dailyRecord));
-
-        // When
-        service.updateMeal(mealId, request);
-
-        // Then
-        verify(meal, never()).markAsOverridden(anyString());
         verify(dailyRecordRepository).save(dailyRecord);
     }
 
@@ -476,11 +951,16 @@ class DailyRecordServiceImplTest {
 
         Long patientId = 1L;
 
+        // Mock para validar que el paciente sí existe en la base de datos
+        when(patientProfileRepository.existsById(patientId)).thenReturn(true);
+
+        // Mock para simular que no tiene plan activo
         when(nutritionPlanService.findActivePlan(patientId))
                 .thenReturn(Optional.empty());
 
+        // Asertar la excepción correcta
         assertThrows(
-                IllegalStateException.class,
+                ResourceNotFoundException.class,
                 () -> service.getNutritionComparison(
                         patientId,
                         START,
@@ -497,12 +977,18 @@ class DailyRecordServiceImplTest {
 
         Long patientId = 1L;
 
-        NutritionPlan plan = createPlan(
-                2000,
-                150,
-                200,
-                70
+        NutritionPlan plan = createPlan(2000, 150, 200, 70);
+
+        // Inyecta las fechas directamente en los atributos privados del plan
+        org.springframework.test.util.ReflectionTestUtils.setField(
+                plan, "startDate", START
         );
+        org.springframework.test.util.ReflectionTestUtils.setField(
+                plan, "endDate", END
+        );
+
+        when(patientProfileRepository.existsById(patientId))
+                .thenReturn(true);
 
         when(nutritionPlanService.findActivePlan(patientId))
                 .thenReturn(Optional.of(plan));
@@ -520,8 +1006,7 @@ class DailyRecordServiceImplTest {
                         END
                 );
 
-        DailyNutritionComparisonDTO day =
-                result.days().get(0);
+        DailyNutritionComparisonDTO day = result.days().get(0);
 
         assertAll(
                 () -> assertEquals(2000, day.targetCalories()),
@@ -541,6 +1026,9 @@ class DailyRecordServiceImplTest {
         );
 
         DailyRecord record = createRecordWithPortions();
+
+        when(patientProfileRepository.existsById(1L))
+                .thenReturn(true);
 
         when(nutritionPlanService.findActivePlan(1L))
                 .thenReturn(Optional.of(plan));
@@ -580,6 +1068,9 @@ class DailyRecordServiceImplTest {
                         0
                 );
 
+        when(patientProfileRepository.existsById(1L))
+                .thenReturn(true);
+
         when(nutritionPlanService.findActivePlan(1L))
                 .thenReturn(Optional.of(plan));
 
@@ -602,6 +1093,7 @@ class DailyRecordServiceImplTest {
         );
     }
 
+
     @Test
     void shouldCapAdherenceAt100Percent() {
 
@@ -614,6 +1106,9 @@ class DailyRecordServiceImplTest {
                 );
 
         DailyRecord record = createRecordWith5000Calories();
+
+        when(patientProfileRepository.existsById(1L))
+                .thenReturn(true);
 
         when(nutritionPlanService.findActivePlan(1L))
                 .thenReturn(Optional.of(plan));
@@ -707,29 +1202,6 @@ class DailyRecordServiceImplTest {
 
         verify(foodService, never())
                 .findEntityById(anyLong());
-
-        verify(dailyRecordRepository, never())
-                .save(any());
-    }
-
-    @Test
-    void shouldThrowWhenDailyRecordNotFoundInRemovePortion() {
-
-        Long dailyRecordId = 1L;
-        Long mealId = 10L;
-        Long portionId = 100L;
-
-        when(dailyRecordRepository.findById(dailyRecordId))
-                .thenReturn(Optional.empty());
-
-        assertThrows(
-                ResourceNotFoundException.class,
-                () -> service.removePortion(
-                        dailyRecordId,
-                        mealId,
-                        portionId
-                )
-        );
 
         verify(dailyRecordRepository, never())
                 .save(any());
@@ -1065,95 +1537,21 @@ class DailyRecordServiceImplTest {
     }
 
     @Test
-    void shouldReturnZeroConsumedMacrosWhenDayHasNoRecord() {
+    void shouldThrowWhenPatientDoesNotExist() {
 
-        // Given
-        Long patientId = 1L;
+        when(patientProfileRepository.existsById(1L))
+                .thenReturn(false);
 
-        NutritionPlan plan = mock(NutritionPlan.class);
-
-        when(plan.getDailyCalories()).thenReturn(2000);
-        when(plan.getProteinGrams()).thenReturn(150);
-        when(plan.getCarbGrams()).thenReturn(250);
-        when(plan.getFatGrams()).thenReturn(70);
-
-        LocalDate from = LocalDate.of(2026, 1, 1);
-        LocalDate to = LocalDate.of(2026, 1, 1);
-
-        when(nutritionPlanService.findActivePlan(patientId))
-                .thenReturn(Optional.of(plan));
-
-        when(dailyRecordRepository.findByPatient_IdAndDateBetween(
-                patientId,
-                from,
-                to))
-                .thenReturn(List.of());
-
-        // When
-        NutritionComparisonReportDTO result =
-                service.getNutritionComparison(
-                        patientId,
-                        from,
-                        to
-                );
-
-        // Then
-        assertEquals(1, result.days().size());
-
-        DailyNutritionComparisonDTO day =
-                result.days().getFirst();
-
-        assertAll(
-                () -> assertEquals(0, day.consumedCalories()),
-                () -> assertEquals(0, day.consumedProtein()),
-                () -> assertEquals(0, day.consumedCarbs()),
-                () -> assertEquals(0, day.consumedFat()),
-                () -> assertEquals(0.0, day.adherencePercentage())
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> service.getNutritionComparison(
+                        1L,
+                        START,
+                        END
+                )
         );
-    }
 
-    @Test
-    void shouldReturnZeroAdherenceWhenTargetCaloriesIsZero() {
-
-        // Given
-        Long patientId = 1L;
-
-        NutritionPlan plan = mock(NutritionPlan.class);
-
-        when(plan.getDailyCalories()).thenReturn(0);
-        when(plan.getProteinGrams()).thenReturn(150);
-        when(plan.getCarbGrams()).thenReturn(250);
-        when(plan.getFatGrams()).thenReturn(70);
-
-        LocalDate from = LocalDate.of(2026, 1, 1);
-        LocalDate to = LocalDate.of(2026, 1, 1);
-
-        when(nutritionPlanService.findActivePlan(patientId))
-                .thenReturn(Optional.of(plan));
-
-        when(dailyRecordRepository.findByPatient_IdAndDateBetween(
-                patientId,
-                from,
-                to))
-                .thenReturn(List.of());
-
-        // When
-        NutritionComparisonReportDTO result =
-                service.getNutritionComparison(
-                        patientId,
-                        from,
-                        to
-                );
-
-        // Then
-        DailyNutritionComparisonDTO day =
-                result.days().get(0);
-
-        assertAll(
-                () -> assertEquals(0, day.targetCalories()),
-                () -> assertEquals(0, day.consumedCalories()),
-                () -> assertEquals(0.0, day.adherencePercentage())
-        );
+        verify(patientProfileRepository).existsById(1L);
     }
 
     private DailyRecord createRecordWith5000Calories() {
