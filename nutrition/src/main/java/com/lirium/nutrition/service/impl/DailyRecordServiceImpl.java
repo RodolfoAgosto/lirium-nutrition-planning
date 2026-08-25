@@ -61,7 +61,7 @@ public class DailyRecordServiceImpl implements DailyRecordService {
         NutritionPlan activePlan = nutritionPlanService.findActivePlan(patientId)
                 .orElseThrow(() -> new IllegalStateException("Patient has no active nutrition plan. Cannot create daily record."));
 
-        if (targetDate.isBefore(activePlan.getStartDate())) {
+        if (activePlan.getStartDate() != null && targetDate.isBefore(activePlan.getStartDate())) {
             throw new IllegalArgumentException(
                     "Cannot create daily record for a date (" + targetDate + ") prior to active nutrition plan start date (" + activePlan.getStartDate() + ")");
         }
@@ -201,8 +201,9 @@ public class DailyRecordServiceImpl implements DailyRecordService {
         NutritionPlan activePlan = nutritionPlanService.findActivePlan(patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Active nutrition plan not found for patient with id:", patientId));
 
-        LocalDate effectiveFrom = from.isBefore(activePlan.getStartDate())
-                ? activePlan.getStartDate()
+        LocalDate planStart = activePlan.getStartDate();
+        LocalDate effectiveFrom = (planStart != null && from.isBefore(planStart))
+                ? planStart
                 : from;
 
         if (effectiveFrom.isAfter(to)) {
