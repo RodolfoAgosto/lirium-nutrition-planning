@@ -1,12 +1,17 @@
 package com.lirium.nutrition.mapper;
 
-import com.lirium.nutrition.dto.request.*;
-import com.lirium.nutrition.dto.response.*;
-import com.lirium.nutrition.model.entity.*;
+import com.lirium.nutrition.dto.request.FoodPortionCreateDTO;
+import com.lirium.nutrition.dto.request.MealRecordCreateRequestDTO;
+import com.lirium.nutrition.dto.response.FoodPortionRecordResponseDTO;
+import com.lirium.nutrition.dto.response.MealRecordResponseDTO;
+import com.lirium.nutrition.dto.response.MealRecordSummaryDTO;
+import com.lirium.nutrition.model.entity.DailyRecord;
+import com.lirium.nutrition.model.entity.Food;
+import com.lirium.nutrition.model.entity.MealRecord;
 import com.lirium.nutrition.model.enums.MealType;
-import com.lirium.nutrition.model.valueobject.Grams;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MealRecordMapper {
@@ -58,12 +63,15 @@ public class MealRecordMapper {
             meal.updateNotes(dto.notes());
         }
 
-        if (dto.foods() != null) {
-            for (int i = 0; i < dto.foods().size(); i++) {
+        if (dto.foods() != null && !dto.foods().isEmpty()) {
+            Map<Long, Food> foodMap = foodsFromDB.stream()
+                    .collect(Collectors.toMap(Food::getId, f -> f));
 
-                FoodPortionCreateDTO portionDTO = dto.foods().get(i);
-                Food food = foodsFromDB.get(i); // mismo orden
-
+            for (FoodPortionCreateDTO portionDTO : dto.foods()) {
+                Food food = foodMap.get(portionDTO.foodId());
+                if (food == null) {
+                    throw new IllegalArgumentException("Food not found for ID: " + portionDTO.foodId());
+                }
                 meal.addFoodPortion(food, portionDTO.quantity(), portionDTO.unit());
             }
         }
