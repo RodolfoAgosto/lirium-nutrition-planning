@@ -9,12 +9,18 @@ import com.lirium.nutrition.model.entity.MealRecord;
 
 public class DailyRecordMapper {
 
+    private DailyRecordMapper() {}
+
     public static DailyRecordResponseDTO toResponse(DailyRecord record) {
+        if (record == null) {
+            return null;
+        }
+
         return new DailyRecordResponseDTO(
                 record.getId(),
                 record.getDate(),
                 record.getMeals().stream()
-                        .map(DailyRecordMapper::toMealResponse)
+                        .map(MealRecordMapper::toResponse)
                         .toList()
         );
     }
