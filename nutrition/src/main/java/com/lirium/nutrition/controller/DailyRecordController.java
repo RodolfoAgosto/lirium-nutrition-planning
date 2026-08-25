@@ -207,10 +207,27 @@ public class DailyRecordController {
 
     @GetMapping("/patient/{patientId}/nutrition-comparison")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#patientId, authentication)")
+    @Operation(
+            summary = "Get nutrition comparison report",
+            description = "Compares consumed nutrition against the active plan targets for a patient within a date range."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Report generated successfully",
+                    content = @Content(schema = @Schema(implementation = NutritionComparisonReportDTO.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid inputs or 'from' date is after 'to' date"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT required"),
+            @ApiResponse(responseCode = "403", description = "Forbidden - Not authorized"),
+            @ApiResponse(responseCode = "404", description = "Patient or active plan not found")
+    })
     public ResponseEntity<NutritionComparisonReportDTO> getNutritionComparison(
-            @PathVariable Long patientId,
-            @RequestParam LocalDate from,
-            @RequestParam LocalDate to) {
+            @PathVariable("patientId")
+            @NotNull(message = "Patient ID is required")
+            @Positive(message = "Patient ID must be positive") Long patientId,
+            @RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
 
         log.info("Generating nutrition comparison for patientId={} from={} to={}", patientId, from, to);
         NutritionComparisonReportDTO response = dailyRecordService.getNutritionComparison(patientId, from, to);
