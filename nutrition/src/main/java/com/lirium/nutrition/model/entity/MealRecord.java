@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Aggregate root representing a consumed meal.
@@ -53,6 +52,7 @@ public class MealRecord extends DateAuditable {
 
     // Creates a record linked to a plan. Initially, 'overriden' is false as it follows the prescription.
     private MealRecord(PlanMeal planMeal, LocalDateTime eatenAt, DailyRecord dailyRecord){
+        System.out.println(">>> PlanMeal ID: " + planMeal.getId() + " - Cantidad de alimentos en getFoods(): " + (planMeal.getFoods() != null ? planMeal.getFoods().size() : "NULL"));
         Objects.requireNonNull(planMeal, "PlanMeal must be provided");
         Objects.requireNonNull(eatenAt, "Date must be provided.");
         Objects.requireNonNull(dailyRecord, "DailyRecord must be provided");
@@ -64,9 +64,17 @@ public class MealRecord extends DateAuditable {
         this.eatenAt = eatenAt;
         this.dailyRecord = dailyRecord;
         this.overridden = false;
-        this.foods = planMeal.getFoods().stream()
-                .map(food -> FoodPortionRecord.of(this, food.getFood(), food.getQuantity(), food.getMeasureUnit()))
-                .collect(Collectors.toList());
+
+        planMeal.getFoods().forEach(food -> {
+            FoodPortionRecord portion = FoodPortionRecord.of(
+                    this,
+                    food.getFood(),
+                    food.getQuantity(),
+                    food.getMeasureUnit()
+            );
+            this.foods.add(portion);
+        });
+
     }
 
 
