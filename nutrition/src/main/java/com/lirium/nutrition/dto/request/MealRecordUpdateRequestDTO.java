@@ -1,10 +1,12 @@
 package com.lirium.nutrition.dto.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import java.time.LocalDateTime;
-import java.util.List;
 
+@Schema(description = "Payload for updating a meal record (e.g. adding notes and overriding)")
 public record MealRecordUpdateRequestDTO(
-        @NotBlank String notes
+
+        @Schema(description = "Notes or reason for overriding the meal", example = "Replaced side dish with salad")
+        @NotBlank(message = "Notes cannot be empty")
+        String notes
 ) {}
