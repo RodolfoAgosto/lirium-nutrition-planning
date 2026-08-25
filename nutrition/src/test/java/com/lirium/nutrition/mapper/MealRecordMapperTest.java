@@ -11,6 +11,7 @@ import com.lirium.nutrition.model.enums.MealType;
 import com.lirium.nutrition.model.enums.MeasureUnit;
 import com.lirium.nutrition.model.enums.Role;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -125,6 +126,8 @@ class MealRecordMapperTest {
                 Set.of(MealType.LUNCH)
         );
 
+        ReflectionTestUtils.setField(rice, "id", 1L);
+
         MealRecordCreateRequestDTO dto =
                 new MealRecordCreateRequestDTO(
                         "LUNCH",
@@ -172,4 +175,5 @@ class MealRecordMapperTest {
         assertThat(portion.getQuantity()).isEqualTo(150.0);
         assertThat(portion.getUnit()).isEqualTo(MeasureUnit.GRAM);
     }
+
 }
