@@ -122,10 +122,13 @@ public class DailyRecordController {
     }
 
     @PatchMapping("/meals/{mealRecordId}")
-    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordServiceImpl.isMealRecordOwnedByUser(#mealRecordId, authentication.principal.id)")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordSecurity.isMealRecordOwner(#mealRecordId, authentication)")
     public ResponseEntity<MealRecordResponseDTO> updateMeal(
-            @PathVariable Long mealRecordId,
-            @Valid @RequestBody MealRecordUpdateRequestDTO request) {
+    @PathVariable("mealRecordId")
+    @NotNull(message = "Meal record ID is required")
+    @Positive(message = "Meal record ID must be positive")
+    Long mealRecordId,
+    @Valid @RequestBody MealRecordUpdateRequestDTO request ) {
 
         log.info("Updating mealRecordId={} (request received)", mealRecordId);
         log.debug("Meal update payload={}", request);
