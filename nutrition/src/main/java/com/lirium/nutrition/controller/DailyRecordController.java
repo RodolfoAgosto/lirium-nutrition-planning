@@ -121,7 +121,10 @@ public class DailyRecordController {
 
     @GetMapping("/patient/{patientId}")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#patientId, authentication)")
-    public ResponseEntity<List<DailyRecordResponseDTO>> getByPatient(@PathVariable Long patientId) {
+    public ResponseEntity<List<DailyRecordResponseDTO>> getByPatient(
+            @PathVariable("patientId")
+            @NotNull(message = "Patient ID is required")
+            @Positive(message = "Patient ID must be positive") Long patientId) {
         return ResponseEntity.ok(dailyRecordService.getByPatient(patientId));
     }
 

@@ -36,6 +36,7 @@ public class DailyRecordServiceImpl implements DailyRecordService {
     private final NutritionPlanService nutritionPlanService;
     private final FoodService foodService;
     private final MealRecordRepository mealRecordRepository;
+    private final PatientProfileRepository patientProfileRepository;
 
     @Transactional
     public DailyRecordResponseDTO getOrCreateForDate(Long patientId, LocalDate date) {
@@ -104,6 +105,11 @@ public class DailyRecordServiceImpl implements DailyRecordService {
 
     @Override
     public List<DailyRecordResponseDTO> getByPatient(Long patientId) {
+
+        if (!patientProfileRepository.existsById(patientId)) {
+            throw new ResourceNotFoundException("Patient", patientId);
+        }
+
         return dailyRecordRepository
                 .findByPatient_IdOrderByDateDesc(patientId)
                 .stream()

@@ -56,4 +56,6 @@ public interface PatientProfileRepository extends JpaRepository<PatientProfile, 
 
     Optional<PatientProfile> findByUserId(Long userId);
 
+    boolean existsById(Long id);
+
 }
