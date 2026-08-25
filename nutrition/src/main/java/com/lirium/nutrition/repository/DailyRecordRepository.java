@@ -29,5 +29,7 @@ public interface DailyRecordRepository extends JpaRepository<DailyRecord, Long> 
     boolean existsByMeals_IdAndPatient_User_Id(Long mealRecordId, Long userId);
 
     boolean existsByPatient_IdAndDate(Long patientId, LocalDate date);
+
+    boolean existsByIdAndPatient_User_Id(Long dailyRecordId, Long userId);
 }
 

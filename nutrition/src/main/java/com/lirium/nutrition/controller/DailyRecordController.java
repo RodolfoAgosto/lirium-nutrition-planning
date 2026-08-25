@@ -109,9 +109,13 @@ public class DailyRecordController {
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         }
     }
+
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordServiceImpl.isDailyRecordOwnedByUser(#id, authentication.principal.id)")
-    public ResponseEntity<DailyRecordResponseDTO> getById(@PathVariable Long id) {
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordSecurity.isDailyRecordOwner(#id, authentication)")
+    public ResponseEntity<DailyRecordResponseDTO> getById(
+            @PathVariable("id")
+            @NotNull(message = "Daily record ID is required")
+            @Positive(message = "Daily record ID must be positive") Long id) {
         return ResponseEntity.ok(dailyRecordService.getById(id));
     }
 

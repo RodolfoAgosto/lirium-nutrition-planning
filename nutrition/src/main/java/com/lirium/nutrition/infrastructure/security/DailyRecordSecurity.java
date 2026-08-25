@@ -23,4 +23,16 @@ public class DailyRecordSecurity {
 
         return dailyRecordRepository.existsByMeals_IdAndPatient_User_Id(mealRecordId, principal.getId());
     }
+
+    @Transactional(readOnly = true)
+    public boolean isDailyRecordOwner(Long dailyRecordId, Authentication authentication) {
+        if (dailyRecordId == null || authentication == null || !authentication.isAuthenticated()) {
+            return false;
+        }
+
+        User principal = (User) authentication.getPrincipal();
+
+        return dailyRecordRepository.existsByIdAndPatient_User_Id(dailyRecordId, principal.getId());
+    }
+
 }
