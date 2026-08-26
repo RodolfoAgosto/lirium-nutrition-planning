@@ -145,7 +145,6 @@ public class NutritionPlanController {
     }
 
     @GetMapping("/patient/{patientId}")
-    //In the case where the PATIENT accesses by plan ID (not by PatientId)
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or #patientId == authentication.principal.id")
     public ResponseEntity<List<NutritionPlanSummaryDTO>> findByPatient(@PathVariable Long patientId) {
         return ResponseEntity.ok(nutritionPlanService.findByPatient(patientId));
