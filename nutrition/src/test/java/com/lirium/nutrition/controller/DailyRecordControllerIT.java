@@ -430,6 +430,20 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
     @Test
     void shouldRemovePortion() throws Exception {
 
+        NutritionPlan activePlan = NutritionPlan.generate(
+                GoalType.WEIGHT_LOSS,
+                2000,
+                150,
+                200,
+                70,
+                patientProfile // instancia de PatientProfile usada en el IT
+        );
+        activePlan.completeBasic("Plan Inicial", "Plan de prueba para IT");
+        activePlan.activate(LocalDate.now().minusDays(10));
+
+        nutritionPlanRepository.save(activePlan);
+
+        // When + Then
         mockMvc.perform(
                         delete("/api/daily-records/"
                                 + dailyRecordId
@@ -439,7 +453,7 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
                                 + portionId)
                                 .header("Authorization", patientToken)
                 )
-                .andExpect(status().isNoContent());
+                .andExpect(status().isNoContent()); // 204
     }
 
 
