@@ -198,7 +198,7 @@ class PlanMealControllerIT extends AbstractIntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated()) // <-- Cambiado de isOk() a isCreated()
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.type").value(MealType.BREAKFAST.name()))
                 .andExpect(jsonPath("$.dailyPlanId").value(dailyPlan.getId()));
