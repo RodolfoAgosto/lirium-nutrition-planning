@@ -860,13 +860,19 @@ class DailyRecordServiceImplTest {
         PatientProfile patient = patientProfile();
         DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now());
 
+        // 1. Mockear el plan de nutrición activo para el paciente
+        NutritionPlan activePlan = mock(NutritionPlan.class);
+        when(nutritionPlanService.findActivePlan(patient.getId()))
+                .thenReturn(Optional.of(activePlan));
+        when(activePlan.getStartDate())
+                .thenReturn(LocalDate.now().minusDays(5));
+
         MealRecord meal = mock(MealRecord.class);
         FoodPortionRecord portion = mock(FoodPortionRecord.class);
 
         when(meal.getId()).thenReturn(mealId);
-        when(portion.getId()).thenReturn(portionId);
-
         when(meal.getFoodPortions()).thenReturn(List.of(portion));
+        when(portion.getId()).thenReturn(portionId);
 
         dailyRecord.addMeal(meal);
 
@@ -874,13 +880,10 @@ class DailyRecordServiceImplTest {
                 .thenReturn(Optional.of(dailyRecord));
 
         // When
-        service.removePortion(
-                dailyRecordId,
-                mealId,
-                portionId
-        );
+        service.removePortion(dailyRecordId, mealId, portionId);
 
         // Then
+        verify(meal).markAsOverridden();
         verify(meal).removeFoodPortion(portion);
         verify(dailyRecordRepository).save(dailyRecord);
     }
@@ -894,7 +897,15 @@ class DailyRecordServiceImplTest {
         Long portionId = 100L;
 
         PatientProfile patient = patientProfile();
-        DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now());
+        DailyRecord dailyRecord = mock(DailyRecord.class);
+        when(dailyRecord.getPatient()).thenReturn(patient);
+        when(dailyRecord.getDate()).thenReturn(LocalDate.now());
+
+        NutritionPlan activePlan = mock(NutritionPlan.class);
+        when(nutritionPlanService.findActivePlan(patient.getId())).thenReturn(Optional.of(activePlan));
+        when(activePlan.getStartDate()).thenReturn(LocalDate.now().minusDays(5));
+
+        when(dailyRecord.getMeals()).thenReturn(Collections.emptyList());
 
         when(dailyRecordRepository.findById(dailyRecordId))
                 .thenReturn(Optional.of(dailyRecord));
@@ -923,8 +934,12 @@ class DailyRecordServiceImplTest {
         PatientProfile patient = patientProfile();
         DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now());
 
-        MealRecord meal = mock(MealRecord.class);
+        // 1. Simular el plan activo para superar la validación del servicio
+        NutritionPlan activePlan = mock(NutritionPlan.class);
+        when(nutritionPlanService.findActivePlan(patient.getId())).thenReturn(Optional.of(activePlan));
+        when(activePlan.getStartDate()).thenReturn(LocalDate.now().minusDays(5));
 
+        MealRecord meal = mock(MealRecord.class);
         when(meal.getId()).thenReturn(mealId);
         when(meal.getFoodPortions()).thenReturn(List.of());
 
@@ -1463,7 +1478,17 @@ class DailyRecordServiceImplTest {
         Long mealRecordId = 2L;
         Long portionId = 3L;
 
+        PatientProfile patient = mock(PatientProfile.class);
+        when(patient.getId()).thenReturn(50L);
+
         DailyRecord dailyRecord = mock(DailyRecord.class);
+        when(dailyRecord.getPatient()).thenReturn(patient);
+        when(dailyRecord.getDate()).thenReturn(LocalDate.now());
+
+        // Configuración del plan activo para superar la validación inicial
+        NutritionPlan activePlan = mock(NutritionPlan.class);
+        when(nutritionPlanService.findActivePlan(patient.getId())).thenReturn(Optional.of(activePlan));
+        when(activePlan.getStartDate()).thenReturn(LocalDate.now().minusDays(5));
 
         MealRecord anotherMeal = mock(MealRecord.class);
         when(anotherMeal.getId()).thenReturn(999L);
@@ -1501,7 +1526,19 @@ class DailyRecordServiceImplTest {
         Long mealRecordId = 2L;
         Long portionId = 3L;
 
+        // 1. Mockear paciente y fecha para evitar NPEs en la validación inicial
+        PatientProfile patient = mock(PatientProfile.class);
+        when(patient.getId()).thenReturn(50L);
+
         DailyRecord dailyRecord = mock(DailyRecord.class);
+        when(dailyRecord.getPatient()).thenReturn(patient);
+        when(dailyRecord.getDate()).thenReturn(LocalDate.now());
+
+        // 2. Mockear el plan activo
+        NutritionPlan activePlan = mock(NutritionPlan.class);
+        when(nutritionPlanService.findActivePlan(patient.getId())).thenReturn(Optional.of(activePlan));
+        when(activePlan.getStartDate()).thenReturn(LocalDate.now().minusDays(5));
+
         MealRecord mealRecord = mock(MealRecord.class);
         FoodPortionRecord anotherPortion = mock(FoodPortionRecord.class);
 
