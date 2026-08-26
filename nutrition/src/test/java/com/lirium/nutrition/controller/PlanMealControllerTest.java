@@ -86,7 +86,7 @@ class PlanMealControllerTest {
         mockMvc.perform(post("/api/plan-meals")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated()) // <-- Cambiado de isOk() a isCreated()
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.type").value("BREAKFAST"))
                 .andExpect(jsonPath("$.dailyPlanId").value(1));
