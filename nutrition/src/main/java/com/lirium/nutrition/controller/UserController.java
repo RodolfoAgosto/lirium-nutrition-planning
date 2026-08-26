@@ -29,7 +29,6 @@ import java.util.List;
 @Tag(name = "Users", description = "Endpoints for user management, registration, and account updates.")
 @RestController
 @RequestMapping("/api/users")
-@SecurityRequirement(name = "bearerAuth")
 public class UserController {
 
     private final UserService userService;
@@ -87,6 +86,7 @@ public class UserController {
             description = "Creates a new user account with patient profile details. Restricted to ADMIN and NUTRITIONIST roles.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "201",
@@ -129,6 +129,7 @@ public class UserController {
             summary = "Find user by ID",
             description = "Retrieves user details based on their unique database ID."
     )
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -155,6 +156,7 @@ public class UserController {
             summary = "Find user by email",
             description = "Retrieves user details using their registered email address."
     )
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -187,6 +189,7 @@ public class UserController {
             description = "Returns a list of all registered users. Restricted to ADMIN and NUTRITIONIST roles.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -216,6 +219,7 @@ public class UserController {
             summary = "Update user basic information",
             description = "Updates editable basic profile fields for a specific user."
     )
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -255,6 +259,7 @@ public class UserController {
             summary = "Enable or disable user account",
             description = "Administrative endpoint to change a user's active/enabled status."
     )
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -294,6 +299,7 @@ public class UserController {
             summary = "Validate user email",
             description = "Marks a user's email address as verified."
     )
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -339,6 +345,7 @@ public class UserController {
             summary = "Disable user by ID",
             description = "Deactivates a user account in the system (Soft delete)."
     )
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "204",
