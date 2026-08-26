@@ -19,6 +19,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.method.P;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -53,8 +54,8 @@ public class PlanMealController {
     })
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @planMealSecurity.isOwner(#id, authentication)")
     @GetMapping("/{id}")
-    public PlanMealResponseDTO getById(@PathVariable @P("id") @Positive Long id) {
-        return service.getById(id);
+    public ResponseEntity<PlanMealResponseDTO> getById(@PathVariable @P("id") @Positive Long id) {
+        return ResponseEntity.ok(service.getById(id));
     }
 
     @Operation(
@@ -92,13 +93,13 @@ public class PlanMealController {
             )
     })
     @PostMapping
-    public PlanMealResponseDTO create(@Valid @RequestBody PlanMealCreateRequestDTO dto){
+    public ResponseEntity<PlanMealResponseDTO> create(@Valid @RequestBody PlanMealCreateRequestDTO dto){
 
         log.info("Creating plan meal for dailyPlanDayId={}", dto.dailyPlanId());
         log.debug("PlanMeal create payload={}", dto);
         PlanMealResponseDTO response = service.create(dto);
         log.info("Plan meal created successfully for dailyPlanDayId={}", dto.dailyPlanId());
-        return response;
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
     }
 
@@ -115,12 +116,12 @@ public class PlanMealController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
-    public void delete(@PathVariable @Positive Long id) {
+    public ResponseEntity<Void> delete(@PathVariable @Positive Long id) {
 
         log.info("Deleting plan meal id={}", id);
         service.delete(id);
         log.info("Plan meal deleted successfully id={}", id);
-
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(
@@ -139,9 +140,13 @@ public class PlanMealController {
     })
     @PostMapping("/{mealId}/portions")
     @ResponseStatus(HttpStatus.CREATED)
-    public PlanMealResponseDTO addPortion(@PathVariable @Positive Long mealId,
+    public ResponseEntity<PlanMealResponseDTO> addPortion(@PathVariable @Positive Long mealId,
                                           @Valid @RequestBody FoodPortionAddRequestDTO dto) {
-            return service.addPortion(mealId, dto);
+        log.info("Adding food portion to plan mealId={} with foodId={}", mealId, dto.foodId());
+        log.debug("Portion payload={}", dto);
+        PlanMealResponseDTO response = service.addPortion(mealId, dto);
+        log.info("Food portion added successfully to plan mealId={}", mealId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(
@@ -159,9 +164,11 @@ public class PlanMealController {
             )
     })
     @DeleteMapping("/{mealId}/portions/{portionId}")
-    public PlanMealResponseDTO removePortion(@PathVariable @Positive Long mealId,
+    public ResponseEntity<PlanMealResponseDTO> removePortion(@PathVariable @Positive Long mealId,
                                              @PathVariable @Positive Long portionId) {
-        return service.removePortion(mealId, portionId);
+        log.info("Removing portionId={} from plan mealId={}", portionId, mealId);
+        PlanMealResponseDTO response = service.removePortion(mealId, portionId);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(
@@ -180,11 +187,15 @@ public class PlanMealController {
     })
     @PatchMapping("/{mealId}/portions/{portionId}/quantity")
     @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
-    public PlanMealResponseDTO updateQuantity(
+    public ResponseEntity<PlanMealResponseDTO> updateQuantity(
             @PathVariable @Positive Long mealId,
             @PathVariable @Positive Long portionId,
             @Valid @RequestBody PlanFoodPortionUpdateQuantityRequestDTO dto) {
-        return service.updateQuantity(mealId, portionId, dto);
+        log.info("Updating quantity for portionId={} in plan mealId={}", portionId, mealId);
+        log.debug("Update quantity payload={}", dto);
+        PlanMealResponseDTO response = service.updateQuantity(mealId, portionId, dto);
+        log.info("Quantity updated successfully for portionId={} in plan mealId={}", portionId, mealId);
+        return ResponseEntity.ok(response);
     }
 
 }
