@@ -8,6 +8,7 @@ import com.lirium.nutrition.service.NutritionPlanService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -118,14 +119,14 @@ public class NutritionPlanController {
             description = "Creates a new DRAFT nutrition plan for the specified patient by adapting the caloric and macronutrient distribution from a base template."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Nutrition plan successfully generated from template", content = @Content(schema = @Schema(implementation = NutritionPlanDetailDTO.class))),
+            @ApiResponse(responseCode = "201", description = "Nutrition plan successfully generated from template", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NutritionPlanDetailDTO.class))),
             @ApiResponse(responseCode = "404", description = "Patient or template not found",  content = @Content),
             @ApiResponse(responseCode = "422", description = "Missing required physical metrics or goals for patient", content = @Content),
             @ApiResponse(responseCode = "409", description = "Patient already has a plan in DRAFT status", content = @Content)
     })
     @PostMapping("/generate-from-template/{patientId}/{templateId}")
     @SecurityRequirement(name = "bearerAuth")
-    public NutritionPlanDetailDTO generateFromTemplate(
+    public ResponseEntity<NutritionPlanDetailDTO> generateFromTemplate(
             @Parameter(description = "ID of the target patient", example = "1")
             @PathVariable Long patientId,
             @Parameter(description = "ID of the source template", example = "2")
@@ -134,16 +135,30 @@ public class NutritionPlanController {
         log.info("Generating nutrition plan from template templateId={} for patientId={}", templateId, patientId);
         NutritionPlanDetailDTO response = nutritionPlanGenerator.generateFromTemplate(patientId, templateId);
         log.info("Nutrition plan generated from template templateId={} for patientId={}", templateId, patientId);
-        return response;
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
     }
 
+    @Operation(
+            summary = "Get nutrition plan by ID",
+            description = "Retrieves details of a specific nutrition plan. Accessible by ADMIN, NUTRITIONIST, or the patient who owns the plan."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Nutrition plan retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NutritionPlanDetailDTO.class))),
+    })
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @nutritionPlanService.belongsToPatient(#id, authentication.principal.id)")
     public ResponseEntity<NutritionPlanDetailDTO> findById(@PathVariable Long id) {
         return ResponseEntity.ok(nutritionPlanService.findById(id));
     }
 
+    @Operation(
+            summary = "Get nutrition plans by patient ID",
+            description = "Retrieves all nutrition plans associated with a specific patient. Accessible by ADMIN, NUTRITIONIST, or the target patient."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Nutrition plans retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = NutritionPlanSummaryDTO.class)))),
+    })
     @GetMapping("/patient/{patientId}")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or #patientId == authentication.principal.id")
     public ResponseEntity<List<NutritionPlanSummaryDTO>> findByPatient(@PathVariable Long patientId) {
