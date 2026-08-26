@@ -27,4 +27,6 @@ public interface NutritionPlanRepository extends JpaRepository<NutritionPlan, Lo
 
     boolean existsByPatientProfileIdAndStatus(Long patientId, PlanStatus status);
 
+    Optional<NutritionPlan> findFirstByPatientProfile_IdOrderByStartDateAsc(Long patientId);
+
 }
