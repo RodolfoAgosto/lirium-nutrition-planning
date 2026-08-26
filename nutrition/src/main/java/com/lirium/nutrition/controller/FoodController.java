@@ -114,7 +114,7 @@ public class FoodController {
                     description = "The updated food conflicts with an existing catalog entry"
             )
     })
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
     public ResponseEntity<FoodSummaryDTO> update(
             @PathVariable @Positive(message = "ID must be greater than 0") Long id,
