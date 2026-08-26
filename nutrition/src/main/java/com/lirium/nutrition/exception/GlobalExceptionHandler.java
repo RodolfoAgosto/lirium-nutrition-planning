@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -446,7 +447,17 @@ public class GlobalExceptionHandler {
             MethodArgumentTypeMismatchException ex,
             HttpServletRequest request) {
 
-        String message = String.format("Parameter '%s' has an invalid value '%s'", ex.getName(), ex.getValue());
+        String paramName = ex.getName();
+        Object value = ex.getValue();
+
+        String message;
+        // Si la propiedad destino es LocalDate (o asignable), detallamos el formato esperado ISO (YYYY-MM-DD)
+        if (ex.getRequiredType() != null && LocalDate.class.isAssignableFrom(ex.getRequiredType())) {
+            message = String.format("Parameter '%s' has an invalid date value '%s'. Expected format: YYYY-MM-DD", paramName, value);
+        } else {
+            message = String.format("Parameter '%s' has an invalid value '%s'", paramName, value);
+        }
+
         log.warn("Type mismatch path={} message={}", request.getRequestURI(), message);
 
         ApiError error = new ApiError(
