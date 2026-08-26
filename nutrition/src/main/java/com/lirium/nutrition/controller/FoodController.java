@@ -5,7 +5,12 @@ import com.lirium.nutrition.dto.request.FoodUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.FoodResponseDTO;
 import com.lirium.nutrition.dto.response.FoodSummaryDTO;
 import com.lirium.nutrition.service.FoodService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -24,23 +29,65 @@ import java.util.Set;
 @RequiredArgsConstructor
 @RequestMapping("/api/foods")
 @SecurityRequirement(name = "bearerAuth")
+@Tag(name = "Food Catalog", description = "Endpoints for generating, retrieving, and managing food catalog.")
 @Validated
 public class FoodController {
 
     private final FoodService foodService;
 
+    @Operation(
+            summary = "Get all foods",
+            description = "Returns all foods available in the nutrition catalog."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Foods retrieved successfully"
+            )
+    })
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST', 'PATIENT')")
     public Set<FoodSummaryDTO> findAll() {
         return foodService.findAll();
     }
 
+    @Operation(
+            summary = "Get food by ID",
+            description = "Returns the complete information of a food from the nutrition catalog."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Food retrieved successfully"
+            )
+    })
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST', 'PATIENT')")
-    public FoodResponseDTO findById(@PathVariable @Positive Long id) {
+    public FoodResponseDTO findById(
+            @Parameter(
+                    description = "Unique identifier of the food",
+                    example = "1"
+            )
+            @PathVariable
+            @Positive(message = "Food ID must be a positive number")
+            Long id) {
         return foodService.findById(id);
     }
 
+    @Operation(
+            summary = "Create a food",
+            description = "Creates a new food in the nutrition catalog. Only administrators can perform this operation."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Food created successfully"
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "A food with the same unique attributes already exists"
+            )
+    })
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<FoodSummaryDTO> create(@Valid @RequestBody FoodCreateRequestDTO dto) {
@@ -53,6 +100,20 @@ public class FoodController {
 
     }
 
+    @Operation(
+            summary = "Update a food",
+            description = "Updates an existing food in the nutrition catalog. Administrators and nutritionists can perform this operation."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Food updated successfully"
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "The updated food conflicts with an existing catalog entry"
+            )
+    })
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
     public ResponseEntity<FoodSummaryDTO> update(
@@ -67,6 +128,20 @@ public class FoodController {
 
     }
 
+    @Operation(
+            summary = "Delete a food",
+            description = "Deletes a food from the nutrition catalog. Administrators and nutritionists can perform this operation."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "Food deleted successfully"
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Food cannot be deleted because it is currently in use"
+            )
+    })
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('NUTRITIONIST', 'ADMIN')")
     public ResponseEntity<Void> deleteById(
