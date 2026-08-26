@@ -166,6 +166,13 @@ public class DailyRecordServiceImpl implements DailyRecordService {
         DailyRecord dailyRecord = dailyRecordRepository.findById(dailyRecordId)
                 .orElseThrow(() -> new ResourceNotFoundException("DailyRecord", dailyRecordId));
 
+        NutritionPlan activePlan = nutritionPlanService.findActivePlan(dailyRecord.getPatient().getId())
+                .orElseThrow(() -> new IllegalStateException("Patient has no active nutrition plan. Cannot modify daily record."));
+
+        if (dailyRecord.getDate().isBefore(activePlan.getStartDate())) {
+            throw new IllegalArgumentException("Cannot modify records prior to the active plan start date: " + activePlan.getStartDate());
+        }
+
         MealRecord meal = dailyRecord.getMeals().stream()
                 .filter(m -> m.getId().equals(mealRecordId))
                 .findFirst()
@@ -175,6 +182,7 @@ public class DailyRecordServiceImpl implements DailyRecordService {
                 .filter(p -> p.getId().equals(portionId))
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("FoodPortionRecord", portionId));
+
         meal.markAsOverridden();
         meal.removeFoodPortion(portion);
         dailyRecordRepository.save(dailyRecord);

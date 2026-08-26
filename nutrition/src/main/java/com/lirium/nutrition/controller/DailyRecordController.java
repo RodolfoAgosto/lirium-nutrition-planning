@@ -177,12 +177,28 @@ public class DailyRecordController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Operation(
+            summary = "Remove a food portion",
+            description = "Removes a specific food portion (FoodPortionRecord) from a meal (MealRecord) " +
+                    "within a daily record (DailyRecord). Marks the meal as overridden."
+    )
     @DeleteMapping("/{dailyRecordId}/meals/{mealRecordId}/portions/{portionId}")
-    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordServiceImpl.isDailyRecordOwnedByUser(#dailyRecordId, authentication.principal.id)")
+    @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordSecurity.isMealRecordOwner(#mealRecordId, authentication)")
     public ResponseEntity<Void> removePortion(
-            @PathVariable Long dailyRecordId,
-            @PathVariable Long mealRecordId,
-            @PathVariable Long portionId) {
+            @PathVariable("dailyRecordId")
+            @NotNull(message = "Daily record ID is required")
+            @Positive(message = "Daily record ID must be positive")
+            Long dailyRecordId,
+
+            @PathVariable("mealRecordId")
+            @NotNull(message = "Meal record ID is required")
+            @Positive(message = "Meal record ID must be positive")
+            Long mealRecordId,
+
+            @PathVariable("portionId")
+            @NotNull(message = "Portion record ID is required")
+            @Positive(message = "Portion record ID must be positive")
+            Long portionId) {
 
         log.info("Removing portionId={} from mealRecordId={} dailyRecordId={}", portionId, mealRecordId, dailyRecordId);
         dailyRecordService.removePortion(dailyRecordId, mealRecordId, portionId);
