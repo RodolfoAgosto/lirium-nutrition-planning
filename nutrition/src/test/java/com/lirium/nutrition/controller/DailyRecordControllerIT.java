@@ -7,6 +7,7 @@ import com.lirium.nutrition.model.enums.GoalType;
 import com.lirium.nutrition.model.enums.MeasureUnit;
 import com.lirium.nutrition.model.enums.Role;
 import com.lirium.nutrition.repository.NutritionPlanRepository;
+import com.lirium.nutrition.repository.PatientProfileRepository;
 import com.lirium.nutrition.testdata.DailyRecordTestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,9 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class DailyRecordControllerIT  extends AbstractIntegrationTest{
-
-    // setup
+class DailyRecordControllerIT extends AbstractIntegrationTest {
 
     private String adminToken;
     private String nutritionistToken;
@@ -42,12 +41,16 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
     private NutritionPlanRepository nutritionPlanRepository;
 
     @Autowired
+    private PatientProfileRepository patientProfileRepository;
+
+    @Autowired
     private DailyRecordTestDataFactory dailyRecordTestDataFactory;
 
     @BeforeEach
     void setup() {
 
         dailyRecordRepository.deleteAll();
+        nutritionPlanRepository.deleteAll();
 
         admin = userRepository.save(new User(
                 "admin@test.com",
@@ -75,6 +78,16 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
         patientProfile = patient.getPatientProfile();
         otherPatientProfile = otherPatient.getPatientProfile();
 
+        // Garantizar que el paciente principal tenga un plan activo para el reporte de adherencia
+        NutritionPlan plan = NutritionPlan.generate(
+                GoalType.WEIGHT_MAINTENANCE,
+                2000, 150, 200, 60,
+                patientProfile
+        );
+        plan.completeBasic("Plan Inicial", "Descripción de prueba");
+        plan.activate(LocalDate.now().minusMonths(1));
+        nutritionPlanRepository.save(plan);
+
         adminToken = "Bearer " + jwtService.generateToken(admin);
         nutritionistToken = "Bearer " + jwtService.generateToken(nutritionist);
         patientToken = "Bearer " + jwtService.generateToken(patient);
@@ -93,15 +106,10 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
                 .getFirst()
                 .getId();
 
-        portionId = meal.getFoodPortions()
-                .getFirst()
-                .getId();
-
         foodId = meal.getFoodPortions()
                 .getFirst()
                 .getFood()
                 .getId();
-
     }
 
     @Test
@@ -176,17 +184,15 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
     void shouldReturnDailyRecordWhenAdminRequestsById() throws Exception {
 
         mockMvc.perform(get("/api/daily-records/" + dailyRecordId)
-                                .header("Authorization", adminToken)
+                        .header("Authorization", adminToken)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(dailyRecordId));
-
     }
 
     @Test
     @DisplayName("NUTRITIONIST puede obtener DailyRecord por id")
     void shouldReturnDailyRecordWhenNutritionistRequestsById() throws Exception {
-
 
         mockMvc.perform(
                         get("/api/daily-records/" + dailyRecordId)
@@ -194,7 +200,6 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(dailyRecordId));
-
     }
 
     @Test
@@ -214,30 +219,20 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
     void shouldReturnForbiddenWhenPatientRequestsAnotherPatientsRecordById()
             throws Exception {
 
+        User other = userRepository.findById(otherPatientId).orElseThrow();
 
-        User other =
-                userRepository.findById(otherPatientId)
-                        .orElseThrow();
+        DailyRecord otherRecord = DailyRecord.of(
+                other.getPatientProfile(),
+                LocalDate.now()
+        );
 
-
-        DailyRecord otherRecord =
-                DailyRecord.of(
-                        other.getPatientProfile(),
-                        LocalDate.now()
-                );
-
-
-        Long otherRecordId =
-                dailyRecordRepository.save(otherRecord).getId();
-
-
+        Long otherRecordId = dailyRecordRepository.save(otherRecord).getId();
 
         mockMvc.perform(
                         get("/api/daily-records/" + otherRecordId)
                                 .header("Authorization", patientToken)
                 )
                 .andExpect(status().isForbidden());
-
     }
 
     @Test
@@ -245,13 +240,11 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
     void shouldReturnNotFoundWhenDailyRecordDoesNotExist()
             throws Exception {
 
-
         mockMvc.perform(
                         get("/api/daily-records/999999")
                                 .header("Authorization", adminToken)
                 )
                 .andExpect(status().isNotFound());
-
     }
 
     // GET /patient/{patientId}
@@ -269,7 +262,6 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
                 .andExpect(jsonPath("$[0].id").value(dailyRecordId));
     }
 
-
     @Test
     @DisplayName("NUTRITIONIST puede obtener los DailyRecords de cualquier paciente")
     void shouldReturnPatientDailyRecordsWhenNutritionistRequests() throws Exception {
@@ -283,7 +275,6 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
                 .andExpect(jsonPath("$[0].id").value(dailyRecordId));
     }
 
-
     @Test
     @DisplayName("PATIENT dueño puede obtener sus propios DailyRecords")
     void shouldReturnPatientDailyRecordsWhenOwnerPatientRequests() throws Exception {
@@ -296,7 +287,6 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$[0].id").value(dailyRecordId));
     }
-
 
     @Test
     @DisplayName("PATIENT no puede obtener DailyRecords de otro paciente")
@@ -313,7 +303,6 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
     @DisplayName("Paciente sin DailyRecords devuelve lista vacía")
     void shouldReturnEmptyListWhenPatientHasNoDailyRecords() throws Exception {
 
-        // paciente creado en setup pero sin registros
         Long patientWithoutRecordsId = otherPatientId;
 
         mockMvc.perform(
@@ -369,20 +358,6 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
     @DisplayName("ADMIN puede obtener nutrition comparison")
     void shouldReturnNutritionComparisonWhenAdminRequests() throws Exception {
 
-        NutritionPlan plan = NutritionPlan.generate(
-                GoalType.WEIGHT_LOSS,
-                2000,
-                150,
-                200,
-                70,
-                patientProfile
-        );
-
-        plan.activate(LocalDate.now());
-
-        nutritionPlanRepository.save(plan);
-
-
         mockMvc.perform(
                         get("/api/daily-records/patient/" + patientId + "/nutrition-comparison")
                                 .param("from", LocalDate.now().minusDays(7).toString())
@@ -409,7 +384,7 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(dto))
                 )
-                .andExpect(status().isCreated()); // <-- Cambiado de isOk() a isCreated()
+                .andExpect(status().isCreated());
     }
 
     @Test
@@ -430,20 +405,6 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
     @Test
     void shouldRemovePortion() throws Exception {
 
-        NutritionPlan activePlan = NutritionPlan.generate(
-                GoalType.WEIGHT_LOSS,
-                2000,
-                150,
-                200,
-                70,
-                patientProfile // instancia de PatientProfile usada en el IT
-        );
-        activePlan.completeBasic("Plan Inicial", "Plan de prueba para IT");
-        activePlan.activate(LocalDate.now().minusDays(10));
-
-        nutritionPlanRepository.save(activePlan);
-
-        // When + Then
         mockMvc.perform(
                         delete("/api/daily-records/"
                                 + dailyRecordId
@@ -453,8 +414,6 @@ class DailyRecordControllerIT  extends AbstractIntegrationTest{
                                 + portionId)
                                 .header("Authorization", patientToken)
                 )
-                .andExpect(status().isNoContent()); // 204
+                .andExpect(status().isNoContent());
     }
-
-
 }
