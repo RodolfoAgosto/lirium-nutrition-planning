@@ -125,14 +125,13 @@ class NutritionPlanControllerTest {
     @WithMockUser(roles = "ADMIN")
     void shouldGenerateNutritionPlanFromTemplate() throws Exception {
 
-        NutritionPlanDetailDTO response =
-                mock(NutritionPlanDetailDTO.class);
+        NutritionPlanDetailDTO response = mock(NutritionPlanDetailDTO.class);
 
         when(nutritionPlanGenerator.generateFromTemplate(1L, 2L))
                 .thenReturn(response);
 
         mockMvc.perform(post("/api/nutrition-plans/generate-from-template/1/2"))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated()); // <-- Cambiado de isOk() a isCreated()
 
         verify(nutritionPlanGenerator)
                 .generateFromTemplate(1L, 2L);
