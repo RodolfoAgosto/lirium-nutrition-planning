@@ -136,7 +136,7 @@ public class NutritionPlanTemplateController {
             ),
             @ApiResponse(responseCode = "422", description = "Macro percentages do not sum to 100%", content = @Content)
     })
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST')")
     public NutritionPlanTemplateResponseDTO update(
             @Valid @PathVariable Long id,
