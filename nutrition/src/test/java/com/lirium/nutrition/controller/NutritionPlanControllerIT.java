@@ -438,12 +438,11 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
                                 + emptyPatientId + "/" + templateId)
                                 .header("Authorization", adminToken)
                 )
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated()) // <-- Cambiado de isOk() a isCreated()
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.status").value("DRAFT"))
                 .andExpect(jsonPath("$.targetGoal").exists());
     }
-
 
     @Test
     @DisplayName("Template inexistente devuelve 404")
