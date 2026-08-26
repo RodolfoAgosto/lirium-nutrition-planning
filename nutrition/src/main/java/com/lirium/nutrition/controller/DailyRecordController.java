@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -33,6 +35,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@Validated
 @RequestMapping("/api/daily-records")
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Daily Records", description = "Endpoints for managing and tracking daily nutrition records")
@@ -207,18 +210,43 @@ public class DailyRecordController {
 
     }
 
+    @Operation(
+            summary = "Get patient adherence report",
+            description = "Calculates meal adherence percentage and daily breakdown for a patient within a date range."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Adherence report generated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid date range or missing parameters"),
+            @ApiResponse(responseCode = "403", description = "Forbidden - Not authorized to view this patient's adherence")
+    })
     @GetMapping("/patient/{patientId}/adherence")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#patientId, authentication)")
     public ResponseEntity<AdherenceReportDTO> getAdherence(
-            @PathVariable Long patientId,
-            @RequestParam LocalDate from,
-            @RequestParam LocalDate to) {
+            @Parameter(description = "ID of the patient", example = "1")
+            @NotNull(message = "Patient ID is required")
+            @Positive(message = "Patient ID must be a positive number")
+            @PathVariable("patientId") Long patientId,
+
+            @Parameter(description = "Start date (YYYY-MM-DD)", example = "2026-08-01")
+            @RequestParam
+            @PastOrPresent(message = "Start date cannot be in the future")
+            @NotNull(message = "Start date ('from') is required")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate from,
+
+            @Parameter(description = "End date (YYYY-MM-DD)", example = "2026-08-25")
+            @RequestParam
+            @PastOrPresent(message = "End date cannot be in the future")
+            @NotNull(message = "End date ('to') is required")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+
+        if (from.isAfter(to)) {
+            throw new IllegalArgumentException("The 'from' date cannot be after 'to' date");
+        }
 
         log.info("Generating adherence report for patientId={} from={} to={}", patientId, from, to);
         AdherenceReportDTO response = adherenceReportService.getAdherence(patientId, from, to);
-        log.info("Adherence report generated for patientId={}", patientId);
         return ResponseEntity.ok(response);
-
     }
 
     @GetMapping("/patient/{patientId}/nutrition-comparison")
