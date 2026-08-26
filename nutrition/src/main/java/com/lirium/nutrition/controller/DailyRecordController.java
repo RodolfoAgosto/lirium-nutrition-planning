@@ -10,6 +10,7 @@ import com.lirium.nutrition.service.AdherenceReportService;
 import com.lirium.nutrition.service.DailyRecordService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -24,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -113,6 +115,21 @@ public class DailyRecordController {
         }
     }
 
+    @Operation(
+            summary = "Get daily record by ID",
+            description = "Retrieves full details of a specific daily record. Accessible by ADMIN, NUTRITIONIST, or the owner PATIENT."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Daily record retrieved successfully",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = DailyRecordResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid daily record ID parameter", content = @Content),
+    })
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordSecurity.isDailyRecordOwner(#id, authentication)")
     public ResponseEntity<DailyRecordResponseDTO> getById(
@@ -122,6 +139,20 @@ public class DailyRecordController {
         return ResponseEntity.ok(dailyRecordService.getById(id));
     }
 
+    @Operation(
+            summary = "Get daily records by patient ID",
+            description = "Retrieves all daily records for a specific patient. Accessible by ADMIN, NUTRITIONIST, or the target PATIENT."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Daily records retrieved successfully",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            array = @ArraySchema(schema = @Schema(implementation = DailyRecordResponseDTO.class))
+                    )
+            )
+    })
     @GetMapping("/patient/{patientId}")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#patientId, authentication)")
     public ResponseEntity<List<DailyRecordResponseDTO>> getByPatient(
@@ -131,6 +162,20 @@ public class DailyRecordController {
         return ResponseEntity.ok(dailyRecordService.getByPatient(patientId));
     }
 
+    @Operation(
+            summary = "Update meal record",
+            description = "Updates the state or details of a specific meal record within a daily record."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Meal record updated successfully",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = MealRecordResponseDTO.class)
+                    )
+            )
+    })
     @PatchMapping("/meals/{mealRecordId}")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordSecurity.isMealRecordOwner(#mealRecordId, authentication)")
     public ResponseEntity<MealRecordResponseDTO> updateMeal(
@@ -185,6 +230,9 @@ public class DailyRecordController {
             description = "Removes a specific food portion (FoodPortionRecord) from a meal (MealRecord) " +
                     "within a daily record (DailyRecord). Marks the meal as overridden."
     )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Food portion removed successfully")
+    })
     @DeleteMapping("/{dailyRecordId}/meals/{mealRecordId}/portions/{portionId}")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordSecurity.isMealRecordOwner(#mealRecordId, authentication)")
     public ResponseEntity<Void> removePortion(
@@ -214,10 +262,19 @@ public class DailyRecordController {
             summary = "Get patient adherence report",
             description = "Calculates meal adherence percentage and daily breakdown for a patient within a date range."
     )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Adherence report generated successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid date range or missing parameters"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - Not authorized to view this patient's adherence")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Adherence report generated successfully",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = AdherenceReportDTO.class)
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid date range or missing parameters", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT required", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Forbidden - Not authorized to view this patient's adherence", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Patient not found", content = @Content)
     })
     @GetMapping("/patient/{patientId}/adherence")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#patientId, authentication)")
@@ -255,16 +312,19 @@ public class DailyRecordController {
             summary = "Get nutrition comparison report",
             description = "Compares consumed nutrition against the active plan targets for a patient within a date range."
     )
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
                     description = "Report generated successfully",
-                    content = @Content(schema = @Schema(implementation = NutritionComparisonReportDTO.class))
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = NutritionComparisonReportDTO.class)
+                    )
             ),
-            @ApiResponse(responseCode = "400", description = "Invalid inputs or 'from' date is after 'to' date"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT required"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - Not authorized"),
-            @ApiResponse(responseCode = "404", description = "Patient or active plan not found")
+            @ApiResponse(responseCode = "400", description = "Invalid inputs or 'from' date is after 'to' date", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT required", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Forbidden - Not authorized", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Patient or active plan not found", content = @Content)
     })
     public ResponseEntity<NutritionComparisonReportDTO> getNutritionComparison(
             @PathVariable("patientId")
