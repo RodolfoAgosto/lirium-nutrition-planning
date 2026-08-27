@@ -70,8 +70,7 @@ public class NutritionPlanTemplateController {
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = NutritionPlanTemplateResponseDTO.class)
                     )
-            ),
-            @ApiResponse(responseCode = "400", description = "Invalid template ID", content = @Content),
+            )
     })
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST')")
@@ -88,14 +87,6 @@ public class NutritionPlanTemplateController {
             @ApiResponse(
                     responseCode = "201",
                     description = "Template created successfully"
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Invalid request payload or malformed JSON"
-            ),
-            @ApiResponse(
-                    responseCode = "422",
-                    description = "Macro percentages do not sum to 100%"
             )
     })
     @SecurityRequirement(name = "bearerAuth")
@@ -133,8 +124,7 @@ public class NutritionPlanTemplateController {
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = NutritionPlanTemplateResponseDTO.class)
                     )
-            ),
-            @ApiResponse(responseCode = "422", description = "Macro percentages do not sum to 100%", content = @Content)
+            )
     })
     @PatchMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST')")
