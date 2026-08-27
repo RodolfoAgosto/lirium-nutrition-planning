@@ -19,6 +19,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.method.P;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -156,9 +157,9 @@ public class PlanMealController {
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Food portion removed successfully",
+                    description = "Portion removed successfully and the updated meal is returned",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = PlanMealResponseDTO.class)
                     )
             )
