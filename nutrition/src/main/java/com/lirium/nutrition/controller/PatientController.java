@@ -34,6 +34,7 @@ public class PatientController {
     private final PatientService patientService;
 
     @Operation(
+            operationId = "searchPatients",
             summary = "Search patients by filters",
             description = "Retrieves a list of patients filtered by first name, last name, email, or DNI. Restricted to ADMIN and NUTRITIONIST roles."
     )
@@ -63,6 +64,7 @@ public class PatientController {
     }
 
     @Operation(
+            operationId = "getPatientById",
             summary = "Get patient by ID",
             description = "Retrieves detailed profile of a specific patient. Accessible by ADMIN, NUTRITIONIST, or the owner PATIENT."
     )
@@ -83,6 +85,7 @@ public class PatientController {
     }
 
     @Operation(
+            operationId = "updatePatientProfile",
             summary = "Update patient profile",
             description = "Updates personal details of an existing patient. Accessible by ADMIN, NUTRITIONIST, or the owner PATIENT."
     )

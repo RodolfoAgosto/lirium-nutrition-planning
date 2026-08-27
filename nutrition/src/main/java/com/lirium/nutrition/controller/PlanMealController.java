@@ -40,6 +40,7 @@ public class PlanMealController {
     private final PlanMealService service;
 
     @Operation(
+            operationId = "getPlanMealById",
             summary = "Get plan meal by ID",
             description = "Retrieves full details of a specific plan meal. Accessible by ADMIN, NUTRITIONIST, or the owner PATIENT."
     )
@@ -60,6 +61,7 @@ public class PlanMealController {
     }
 
     @Operation(
+            operationId = "getPlanMealsByPlanDay",
             summary = "Get plan meals by plan day ID",
             description = "Retrieves all planned meals assigned to a specific plan day. Accessible by ADMIN, NUTRITIONIST, or the owner PATIENT."
     )
@@ -80,6 +82,7 @@ public class PlanMealController {
     }
 
     @Operation(
+            operationId = "createPlanMeal",
             summary = "Create a new plan meal",
             description = "Creates a new planned meal within a daily plan."
     )
@@ -105,6 +108,7 @@ public class PlanMealController {
     }
 
     @Operation(
+            operationId = "deletePlanMeal",
             summary = "Delete a plan meal",
             description = "Deletes an existing plan meal by its ID. Restricted to ADMIN and NUTRITIONIST users."
     )
@@ -126,6 +130,7 @@ public class PlanMealController {
     }
 
     @Operation(
+            operationId = "addPlanMealPortion",
             summary = "Add a food portion to a plan meal",
             description = "Adds a new food portion to an existing planned meal."
     )
@@ -151,6 +156,7 @@ public class PlanMealController {
     }
 
     @Operation(
+            operationId = "removePlanMealPortion",
             summary = "Remove a food portion from a plan meal",
             description = "Removes a specific food portion from a planned meal."
     )
@@ -173,6 +179,7 @@ public class PlanMealController {
     }
 
     @Operation(
+            operationId = "updatePlanMealPortionQuantity",
             summary = "Update food portion quantity",
             description = "Updates the quantity of a specific food portion within a plan meal. Restricted to ADMIN and NUTRITIONIST users."
     )

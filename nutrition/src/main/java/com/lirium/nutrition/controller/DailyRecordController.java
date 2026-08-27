@@ -47,6 +47,7 @@ public class DailyRecordController {
     private final AdherenceReportService adherenceReportService;
 
     @Operation(
+            operationId = "ensureDailyRecord",
             summary = "Ensure/Fetch daily record for a patient (Get-or-Create)",
             description = """
             Fetches or creates the daily record (`DailyRecord`) for the specified date.
@@ -116,6 +117,7 @@ public class DailyRecordController {
     }
 
     @Operation(
+            operationId = "getDailyRecordById",
             summary = "Get daily record by ID",
             description = "Retrieves full details of a specific daily record. Accessible by ADMIN, NUTRITIONIST, or the owner PATIENT."
     )
@@ -140,6 +142,7 @@ public class DailyRecordController {
     }
 
     @Operation(
+            operationId = "getDailyRecordsByPatient",
             summary = "Get daily records by patient ID",
             description = "Retrieves all daily records for a specific patient. Accessible by ADMIN, NUTRITIONIST, or the target PATIENT."
     )
@@ -163,6 +166,7 @@ public class DailyRecordController {
     }
 
     @Operation(
+            operationId = "updateMealRecord",
             summary = "Update meal record",
             description = "Updates the state or details of a specific meal record within a daily record."
     )
@@ -196,6 +200,7 @@ public class DailyRecordController {
     @PostMapping("/meals/{mealRecordId}/portions")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordSecurity.isMealRecordOwner(#mealRecordId, authentication)")
     @Operation(
+            operationId = "addMealRecordPortion",
             summary = "Add food portion to meal record",
             description = "Registers actual food intake for a specific meal record. Allowed for ADMIN, NUTRITIONIST or the record owner."
     )
@@ -226,6 +231,7 @@ public class DailyRecordController {
     }
 
     @Operation(
+            operationId = "removeMealRecordPortion",
             summary = "Remove a food portion",
             description = "Removes a specific food portion (FoodPortionRecord) from a meal (MealRecord) " +
                     "within a daily record (DailyRecord). Marks the meal as overridden."
@@ -259,6 +265,7 @@ public class DailyRecordController {
     }
 
     @Operation(
+            operationId = "getPatientAdherence",
             summary = "Get patient adherence report",
             description = "Calculates meal adherence percentage and daily breakdown for a patient within a date range."
     )
@@ -309,6 +316,7 @@ public class DailyRecordController {
     @GetMapping("/patient/{patientId}/nutrition-comparison")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#patientId, authentication)")
     @Operation(
+            operationId = "getNutritionComparison",
             summary = "Get nutrition comparison report",
             description = "Compares consumed nutrition against the active plan targets for a patient within a date range."
     )

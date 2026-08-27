@@ -27,6 +27,7 @@ public class AuthController {
     private final AuthService authService;
 
     @Operation(
+            operationId = "login",
             summary = "Log in user",
             description = "Authenticates a user using their credentials (email and password) and returns a valid JWT token along with basic profile information."
     )
@@ -58,6 +59,7 @@ public class AuthController {
     }
 
     @Operation(
+            operationId = "refreshToken",
             summary = "Refresh JWT authentication token",
             description = "Generates a new JWT access token using a valid, non-expired refresh token."
     )

@@ -42,6 +42,7 @@ public class NutritionPlanController {
     private final NutritionPlanService nutritionPlanService;
 
     @Operation(
+            operationId = "generateNutritionPlan",
             summary = "Generate a nutrition plan for a patient",
             description = "Executes the calculation engine to create a tailored nutrition plan based on the patient's metrics and target goals."
     )
@@ -70,6 +71,7 @@ public class NutritionPlanController {
     }
 
     @Operation(
+            operationId = "completeNutritionPlan",
             summary = "Complete nutrition plan",
             description = "Transitions the nutrition plan status to COMPLETED."
     )
@@ -94,6 +96,7 @@ public class NutritionPlanController {
     }
 
     @Operation(
+            operationId = "activateNutritionPlan",
             summary = "Activate a nutrition plan",
             description = "Activates a draft nutrition plan for the patient and automatically closes any previously active plan."
     )
@@ -115,6 +118,7 @@ public class NutritionPlanController {
     }
 
     @Operation(
+            operationId = "generateNutritionPlanFromTemplate",
             summary = "Generate nutrition plan from a template",
             description = "Creates a new DRAFT nutrition plan for the specified patient by adapting the caloric and macronutrient distribution from a base template."
     )
@@ -140,6 +144,7 @@ public class NutritionPlanController {
     }
 
     @Operation(
+            operationId = "getNutritionPlanById",
             summary = "Get nutrition plan by ID",
             description = "Retrieves details of a specific nutrition plan. Accessible by ADMIN, NUTRITIONIST, or the patient who owns the plan."
     )
@@ -153,6 +158,7 @@ public class NutritionPlanController {
     }
 
     @Operation(
+            operationId = "getNutritionPlansByPatient",
             summary = "Get nutrition plans by patient ID",
             description = "Retrieves all nutrition plans associated with a specific patient. Accessible by ADMIN, NUTRITIONIST, or the target patient."
     )

@@ -38,6 +38,7 @@ public class RestrictionController {
     private final RestrictionService restrictionService;
 
     @Operation(
+            operationId = "getAllRestrictions",
             summary = "Get all dietary restrictions",
             description = "Retrieves a summary list of all dietary restrictions registered in the catalog."
     )
@@ -59,6 +60,7 @@ public class RestrictionController {
     }
 
     @Operation(
+            operationId = "createRestriction",
             summary = "Create a new dietary restriction",
             description = "Creates a new entry in the global dietary restrictions catalog. Restricted to ADMIN users."
     )
@@ -85,6 +87,7 @@ public class RestrictionController {
     }
 
     @Operation(
+            operationId = "getRestrictionById",
             summary = "Get dietary restriction details by ID",
             description = "Retrieves full detailed information of a specific dietary restriction by its ID."
     )
@@ -111,6 +114,7 @@ public class RestrictionController {
     }
 
     @Operation(
+            operationId = "updateRestriction",
             summary = "Update a dietary restriction",
             description = "Updates an existing dietary restriction in the catalog. Restricted to ADMIN users."
     )

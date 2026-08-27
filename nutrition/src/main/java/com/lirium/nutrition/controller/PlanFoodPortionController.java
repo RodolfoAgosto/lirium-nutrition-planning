@@ -35,6 +35,7 @@ public class PlanFoodPortionController {
     private final PlanFoodPortionService service;
 
     @Operation(
+            operationId = "getPlanFoodPortionsByMeal",
             summary = "Get plan food portions by plan meal ID",
             description = "Retrieves all planned food portions assigned to a specific plan meal. Accessible by ADMIN, NUTRITIONIST, or the owner PATIENT."
     )
@@ -55,6 +56,7 @@ public class PlanFoodPortionController {
     }
 
     @Operation(
+            operationId = "getPlanFoodPortionById",
             summary = "Get plan food portion by ID",
             description = "Retrieves details of a specific planned food portion. Accessible by ADMIN, NUTRITIONIST, or the owner PATIENT."
     )

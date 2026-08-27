@@ -39,6 +39,7 @@ public class NutritionPlanTemplateController {
     private final NutritionPlanTemplateService service;
 
     @Operation(
+            operationId = "getAllNutritionPlanTemplates",
             summary = "Get all nutrition plan templates",
             description = "Retrieves a summary list of all available nutrition plan templates."
     )
@@ -59,6 +60,7 @@ public class NutritionPlanTemplateController {
     }
 
     @Operation(
+            operationId = "getNutritionPlanTemplateById",
             summary = "Get nutrition plan template by ID",
             description = "Retrieves full details of a specific nutrition plan template by its ID."
     )
@@ -80,6 +82,7 @@ public class NutritionPlanTemplateController {
 
 
     @Operation(
+            operationId = "createNutritionPlanTemplate",
             summary = "Create basic plan template",
             description = "Creates a new basic plan template. Validates that macronutrient percentages sum up to exactly 100%."
     )
@@ -97,6 +100,7 @@ public class NutritionPlanTemplateController {
     }
 
     @Operation(
+            operationId = "deleteNutritionPlanTemplate",
             summary = "Delete nutrition plan template",
             description = "Deletes an existing nutrition plan template by its ID."
     )
@@ -113,6 +117,7 @@ public class NutritionPlanTemplateController {
     }
 
     @Operation(
+            operationId = "updateNutritionPlanTemplate",
             summary = "Update nutrition plan template",
             description = "Updates an existing nutrition plan template by its ID."
     )

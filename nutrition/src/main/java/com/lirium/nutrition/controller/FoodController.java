@@ -36,6 +36,7 @@ public class FoodController {
     private final FoodService foodService;
 
     @Operation(
+            operationId = "getAllFoods",
             summary = "Get all foods",
             description = "Returns all foods available in the nutrition catalog."
     )
@@ -52,6 +53,7 @@ public class FoodController {
     }
 
     @Operation(
+            operationId = "getFoodById",
             summary = "Get food by ID",
             description = "Returns the complete information of a food from the nutrition catalog."
     )
@@ -75,6 +77,7 @@ public class FoodController {
     }
 
     @Operation(
+            operationId = "createFood",
             summary = "Create a food",
             description = "Creates a new food in the nutrition catalog. Only administrators can perform this operation."
     )
@@ -101,6 +104,7 @@ public class FoodController {
     }
 
     @Operation(
+            operationId = "updateFood",
             summary = "Update a food",
             description = "Updates an existing food in the nutrition catalog. Administrators and nutritionists can perform this operation."
     )
@@ -129,6 +133,7 @@ public class FoodController {
     }
 
     @Operation(
+            operationId = "deleteFood",
             summary = "Delete a food",
             description = "Deletes a food from the nutrition catalog. Administrators and nutritionists can perform this operation."
     )

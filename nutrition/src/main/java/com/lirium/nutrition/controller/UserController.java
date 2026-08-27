@@ -38,6 +38,7 @@ public class UserController {
     }
 
     @Operation(
+            operationId = "registerUser",
             summary = "Register a new user",
             description = "Public endpoint for patient self-registration. Creates a new account in the system."
     )
@@ -82,6 +83,7 @@ public class UserController {
     }
 
     @Operation(
+            operationId = "registerPatient",
             summary = "Register a new patient",
             description = "Creates a new user account with patient profile details. Restricted to ADMIN and NUTRITIONIST roles.",
             security = @SecurityRequirement(name = "bearerAuth")
@@ -126,6 +128,7 @@ public class UserController {
     }
 
     @Operation(
+            operationId = "getUserById",
             summary = "Find user by ID",
             description = "Retrieves user details based on their unique database ID."
     )
@@ -153,6 +156,7 @@ public class UserController {
     }
 
     @Operation(
+            operationId = "getUserByEmail",
             summary = "Find user by email",
             description = "Retrieves user details using their registered email address."
     )
@@ -185,6 +189,7 @@ public class UserController {
     }
 
     @Operation(
+            operationId = "getAllUsers",
             summary = "Retrieve all users",
             description = "Returns a list of all registered users. Restricted to ADMIN and NUTRITIONIST roles.",
             security = @SecurityRequirement(name = "bearerAuth")
@@ -216,6 +221,7 @@ public class UserController {
     }
 
     @Operation(
+            operationId = "updateUserBasicInfo",
             summary = "Update user basic information",
             description = "Updates editable basic profile fields for a specific user."
     )
@@ -256,6 +262,7 @@ public class UserController {
     }
 
     @Operation(
+            operationId = "setUserEnabled",
             summary = "Enable or disable user account",
             description = "Administrative endpoint to change a user's active/enabled status."
     )
@@ -296,6 +303,7 @@ public class UserController {
     }
 
     @Operation(
+            operationId = "validateUserEmail",
             summary = "Validate user email",
             description = "Marks a user's email address as verified."
     )
@@ -342,6 +350,7 @@ public class UserController {
     }
 
     @Operation(
+            operationId = "deleteUser",
             summary = "Disable user by ID",
             description = "Deactivates a user account in the system (Soft delete)."
     )
