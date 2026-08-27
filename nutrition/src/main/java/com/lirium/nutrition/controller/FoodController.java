@@ -48,7 +48,7 @@ public class FoodController {
     })
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST', 'PATIENT')")
-    public Set<FoodSummaryDTO> findAll() {
+    public Set<FoodSummaryDTO> getAllFoods() {
         return foodService.findAll();
     }
 
@@ -65,7 +65,7 @@ public class FoodController {
     })
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST', 'PATIENT')")
-    public FoodResponseDTO findById(
+    public FoodResponseDTO getFoodById(
             @Parameter(
                     description = "Unique identifier of the food",
                     example = "1"
@@ -93,7 +93,7 @@ public class FoodController {
     })
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<FoodSummaryDTO> create(@Valid @RequestBody FoodCreateRequestDTO dto) {
+    public ResponseEntity<FoodSummaryDTO> createFood(@Valid @RequestBody FoodCreateRequestDTO dto) {
 
         log.info("Creating food name={}", dto.name());
         log.debug("Food create payload={}", dto);
@@ -120,7 +120,7 @@ public class FoodController {
     })
     @PatchMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
-    public ResponseEntity<FoodSummaryDTO> update(
+    public ResponseEntity<FoodSummaryDTO> updateFood(
             @PathVariable @Positive(message = "ID must be greater than 0") Long id,
             @Valid @RequestBody FoodUpdateRequestDTO dto) {
 
@@ -149,7 +149,7 @@ public class FoodController {
     })
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('NUTRITIONIST', 'ADMIN')")
-    public ResponseEntity<Void> deleteById(
+    public ResponseEntity<Void> deleteFoodById(
             @PathVariable("id") @NotNull(message = "ID is required") @Positive(message = "ID must be a positive number")
             Long id
     ){
