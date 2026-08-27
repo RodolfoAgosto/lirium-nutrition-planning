@@ -172,7 +172,7 @@ class NutritionPlanTemplateControllerTest {
                 any(NutritionPlanTemplateUpdateRequestDTO.class)))
                 .thenReturn(response);
 
-        mockMvc.perform(put("/api/nutrition-plan-templates/1")
+        mockMvc.perform(patch("/api/nutrition-plan-templates/1") // <-- Cambiado de put() a patch()
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -183,6 +183,5 @@ class NutritionPlanTemplateControllerTest {
                 .update(eq(1L),
                         any(NutritionPlanTemplateUpdateRequestDTO.class));
     }
-
 
 }

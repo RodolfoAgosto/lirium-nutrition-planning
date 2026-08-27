@@ -204,16 +204,16 @@ class FoodControllerIT extends AbstractIntegrationTest{
     void shouldUpdateFood() throws Exception {
 
         String body = """
-    {
-        "name":"Chicken Updated",
-        "caloriesPer100g":200,
-        "proteinPer100g":35,
-        "carbsPer100g":0,
-        "fatPer100g":5
-    }
-    """;
+        {
+          "name":"Chicken Updated",
+          "caloriesPer100g":200,
+          "proteinPer100g":35,
+          "carbsPer100g":0,
+          "fatPer100g":5
+        }
+      """;
 
-        mockMvc.perform(put("/api/foods/{id}", chicken.getId())
+        mockMvc.perform(patch("/api/foods/{id}", chicken.getId()) // <-- Cambiado de put() a patch()
                         .header("Authorization", adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))

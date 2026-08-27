@@ -157,18 +157,18 @@ class NutritionPlanTemplateControllerIT extends AbstractIntegrationTest {
     void shouldUpdateTemplate() throws Exception {
 
         String body = """
-                {
-                   "name":"Updated Template",
-                   "description":"Updated description",
-                   "targetGoal":"MUSCLE_GAIN",
-                   "proteinPercentage":25,
-                   "carbPercentage":50,
-                   "fatPercentage":25,
-                   "excludedTags":[]
-                }
-                """;
+            {
+               "name":"Updated Template",
+               "description":"Updated description",
+               "targetGoal":"MUSCLE_GAIN",
+               "proteinPercentage":25,
+               "carbPercentage":50,
+               "fatPercentage":25,
+               "excludedTags":[]
+            }
+            """;
 
-        mockMvc.perform(put("/api/nutrition-plan-templates/{id}", template.getId())
+        mockMvc.perform(patch("/api/nutrition-plan-templates/{id}", template.getId()) // <-- Cambiado de put() a patch()
                         .header("Authorization", adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
@@ -187,12 +187,12 @@ class NutritionPlanTemplateControllerIT extends AbstractIntegrationTest {
     void shouldReturnNotFoundWhenUpdatingUnknownTemplate() throws Exception {
 
         String body = """
-                {
-                  "name":"Updated Template"
-                }
-                """;
+            {
+              "name":"Updated Template"
+            }
+            """;
 
-        mockMvc.perform(put("/api/nutrition-plan-templates/{id}", 999999L)
+        mockMvc.perform(patch("/api/nutrition-plan-templates/{id}", 999999L) // <-- Cambiado de put() a patch()
                         .header("Authorization", adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))

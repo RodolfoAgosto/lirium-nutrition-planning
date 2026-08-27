@@ -123,7 +123,7 @@ class FoodControllerTest {
         when(foodService.update(eq(1L), any(FoodUpdateRequestDTO.class)))
                 .thenReturn(response);
 
-        mockMvc.perform(put("/api/foods/1")
+        mockMvc.perform(patch("/api/foods/1") // <-- Cambiado de put(...) a patch(...)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk())
