@@ -134,7 +134,7 @@ public class DailyRecordController {
     })
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordSecurity.isDailyRecordOwner(#id, authentication)")
-    public ResponseEntity<DailyRecordResponseDTO> getById(
+    public ResponseEntity<DailyRecordResponseDTO> getDailyRecordById(
             @PathVariable("id")
             @NotNull(message = "Daily record ID is required")
             @Positive(message = "Daily record ID must be positive") Long id) {
@@ -158,7 +158,7 @@ public class DailyRecordController {
     })
     @GetMapping("/patient/{patientId}")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#patientId, authentication)")
-    public ResponseEntity<List<DailyRecordResponseDTO>> getByPatient(
+    public ResponseEntity<List<DailyRecordResponseDTO>> getDailyRecordByPatientId(
             @PathVariable("patientId")
             @NotNull(message = "Patient ID is required")
             @Positive(message = "Patient ID must be positive") Long patientId) {
@@ -182,7 +182,7 @@ public class DailyRecordController {
     })
     @PatchMapping("/meals/{mealRecordId}")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordSecurity.isMealRecordOwner(#mealRecordId, authentication)")
-    public ResponseEntity<MealRecordResponseDTO> updateMeal(
+    public ResponseEntity<MealRecordResponseDTO> updateMealRecord(
     @PathVariable("mealRecordId")
     @NotNull(message = "Meal record ID is required")
     @Positive(message = "Meal record ID must be positive")
@@ -215,7 +215,7 @@ public class DailyRecordController {
             @ApiResponse(responseCode = "403", description = "Forbidden - Not authorized to modify this meal record"),
             @ApiResponse(responseCode = "404", description = "Meal record or Food not found")
     })
-    public ResponseEntity<MealRecordResponseDTO> addPortion(
+    public ResponseEntity<MealRecordResponseDTO> addFoodPortion(
             @PathVariable("mealRecordId")
             @NotNull(message = "Meal record ID is required")
             @Positive(message = "Meal record ID must be positive")
@@ -241,7 +241,7 @@ public class DailyRecordController {
     })
     @DeleteMapping("/{dailyRecordId}/meals/{mealRecordId}/portions/{portionId}")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @dailyRecordSecurity.isMealRecordOwner(#mealRecordId, authentication)")
-    public ResponseEntity<Void> removePortion(
+    public ResponseEntity<Void> removeFoodPortion(
             @PathVariable("dailyRecordId")
             @NotNull(message = "Daily record ID is required")
             @Positive(message = "Daily record ID must be positive")
@@ -285,7 +285,7 @@ public class DailyRecordController {
     })
     @GetMapping("/patient/{patientId}/adherence")
     @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#patientId, authentication)")
-    public ResponseEntity<AdherenceReportDTO> getAdherence(
+    public ResponseEntity<AdherenceReportDTO> getAdherenceReport(
             @Parameter(description = "ID of the patient", example = "1")
             @NotNull(message = "Patient ID is required")
             @Positive(message = "Patient ID must be a positive number")
@@ -334,7 +334,7 @@ public class DailyRecordController {
             @ApiResponse(responseCode = "403", description = "Forbidden - Not authorized", content = @Content),
             @ApiResponse(responseCode = "404", description = "Patient or active plan not found", content = @Content)
     })
-    public ResponseEntity<NutritionComparisonReportDTO> getNutritionComparison(
+    public ResponseEntity<NutritionComparisonReportDTO> getNutritionComparisonReport(
             @PathVariable("patientId")
             @NotNull(message = "Patient ID is required")
             @Positive(message = "Patient ID must be positive") Long patientId,
