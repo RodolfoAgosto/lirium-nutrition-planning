@@ -30,6 +30,8 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final ZoneId ARGENTINA_ZONE = ZoneId.of("America/Argentina/Buenos_Aires");
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(
             MethodArgumentNotValidException ex,
@@ -49,7 +51,7 @@ public class GlobalExceptionHandler {
                 "Validation error",
                 message,
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
         );
 
         return ResponseEntity.badRequest().body(error);
@@ -67,7 +69,7 @@ public class GlobalExceptionHandler {
                 "Invalid Tag",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
@@ -84,7 +86,7 @@ public class GlobalExceptionHandler {
                 "Food In Use",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error); // 409
     }
@@ -101,7 +103,7 @@ public class GlobalExceptionHandler {
                 "Duplicate Food",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
@@ -118,7 +120,7 @@ public class GlobalExceptionHandler {
                 "Duplicate Template",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
@@ -135,7 +137,7 @@ public class GlobalExceptionHandler {
                 "Resource Not Found",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 
         );
 
@@ -154,7 +156,7 @@ public class GlobalExceptionHandler {
                 "Email already exists",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 
         );
 
@@ -173,7 +175,7 @@ public class GlobalExceptionHandler {
                 "DNI already exists",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 
         );
 
@@ -196,7 +198,7 @@ public class GlobalExceptionHandler {
                 "Unauthorized operation",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 
         );
 
@@ -218,7 +220,7 @@ public class GlobalExceptionHandler {
                 "Invalid request",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 
         );
 
@@ -237,7 +239,7 @@ public class GlobalExceptionHandler {
                 "Internal server error",
                 "Unexpected error occurred",
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 
         );
 
@@ -254,7 +256,7 @@ public class GlobalExceptionHandler {
                 "Unauthorized",
                 "Invalid email or password",
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 
         );
 
@@ -274,7 +276,7 @@ public class GlobalExceptionHandler {
                 "Forbidden",
                 "Access denied",
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 
         );
 
@@ -291,7 +293,7 @@ public class GlobalExceptionHandler {
                 "Unauthorized",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 
         );
 
@@ -309,7 +311,7 @@ public class GlobalExceptionHandler {
                    "Bad Request",
                         ex.getMessage(),
                         request.getRequestURI(),
-                        LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                        LocalDateTime.now(ARGENTINA_ZONE)
 
                 );
         return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -333,7 +335,7 @@ public class GlobalExceptionHandler {
                 "Validation Error",
                 message,
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 
         );
 
@@ -352,7 +354,7 @@ public class GlobalExceptionHandler {
                 "Bad Request",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 
         );
 
@@ -376,7 +378,7 @@ public class GlobalExceptionHandler {
                 "Bad Request",
                 message,
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 
         );
 
@@ -395,7 +397,7 @@ public class GlobalExceptionHandler {
                 "Unprocessable Entity",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 
         );
 
@@ -414,7 +416,7 @@ public class GlobalExceptionHandler {
                 "Conflict",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 
         );
 
@@ -455,7 +457,7 @@ public class GlobalExceptionHandler {
                 "Malformed JSON",
                 message,
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 
         );
 
@@ -486,7 +488,7 @@ public class GlobalExceptionHandler {
                 "Invalid Parameter",
                 message,
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
         );
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -504,7 +506,7 @@ public class GlobalExceptionHandler {
                 "Resource Conflict",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 
         );
 
@@ -523,7 +525,7 @@ public class GlobalExceptionHandler {
                 "Resource Not Found",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+                LocalDateTime.now(ARGENTINA_ZONE)
 
         );
 
