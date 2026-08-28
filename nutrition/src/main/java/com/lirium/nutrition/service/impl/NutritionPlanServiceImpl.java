@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +25,7 @@ import java.util.Optional;
 public class NutritionPlanServiceImpl implements NutritionPlanService {
 
     private final NutritionPlanRepository repository;
+    private final Clock clock;
 
     @Transactional
     public NutritionPlanDetailDTO complete(Long id, CompleteNutritionPlanRequestDTO request) {
@@ -65,12 +67,12 @@ public class NutritionPlanServiceImpl implements NutritionPlanService {
         repository
                 .findByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE)
                 .ifPresent(previousPlan -> {
-                    previousPlan.close(LocalDate.now().minusDays(1));
+                    previousPlan.close(LocalDate.now(clock).minusDays(1));
                     repository.save(previousPlan);
                 });
 
         // Activa el nuevo
-        newPlan.activate(LocalDate.now());
+        newPlan.activate(LocalDate.now(clock));
         repository.save(newPlan);
 
         return NutritionPlanMapper.toDetail(newPlan);

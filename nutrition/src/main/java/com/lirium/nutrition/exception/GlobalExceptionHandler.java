@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -27,7 +29,10 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private final Clock clock;
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(
@@ -48,7 +53,8 @@ public class GlobalExceptionHandler {
                 "Validation error",
                 message,
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
+
         );
 
         return ResponseEntity.badRequest().body(error);
@@ -66,7 +72,8 @@ public class GlobalExceptionHandler {
                 "Invalid Tag",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now());
+                LocalDateTime.now(clock)
+);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
@@ -82,7 +89,8 @@ public class GlobalExceptionHandler {
                 "Food In Use",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now());
+                LocalDateTime.now(clock)
+);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error); // 409
     }
 
@@ -98,7 +106,8 @@ public class GlobalExceptionHandler {
                 "Duplicate Food",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now());
+                LocalDateTime.now(clock)
+);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
@@ -114,7 +123,8 @@ public class GlobalExceptionHandler {
                 "Duplicate Template",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now());
+                LocalDateTime.now(clock)
+);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
@@ -130,7 +140,8 @@ public class GlobalExceptionHandler {
                 "Resource Not Found",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
+
         );
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
@@ -148,7 +159,8 @@ public class GlobalExceptionHandler {
                 "Email already exists",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
+
         );
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
@@ -166,7 +178,8 @@ public class GlobalExceptionHandler {
                 "DNI already exists",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
+
         );
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
@@ -188,7 +201,8 @@ public class GlobalExceptionHandler {
                 "Unauthorized operation",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
+
         );
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
@@ -209,7 +223,8 @@ public class GlobalExceptionHandler {
                 "Invalid request",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
+
         );
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -227,7 +242,8 @@ public class GlobalExceptionHandler {
                 "Internal server error",
                 "Unexpected error occurred",
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
+
         );
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
@@ -243,7 +259,8 @@ public class GlobalExceptionHandler {
                 "Unauthorized",
                 "Invalid email or password",
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
+
         );
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
@@ -262,7 +279,8 @@ public class GlobalExceptionHandler {
                 "Forbidden",
                 "Access denied",
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
+
         );
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
@@ -278,7 +296,8 @@ public class GlobalExceptionHandler {
                 "Unauthorized",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
+
         );
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
@@ -295,7 +314,8 @@ public class GlobalExceptionHandler {
                    "Bad Request",
                         ex.getMessage(),
                         request.getRequestURI(),
-                        LocalDateTime.now()
+                        LocalDateTime.now(clock)
+
                 );
         return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
@@ -318,7 +338,8 @@ public class GlobalExceptionHandler {
                 "Validation Error",
                 message,
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
+
         );
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -336,7 +357,8 @@ public class GlobalExceptionHandler {
                 "Bad Request",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
+
         );
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -359,7 +381,8 @@ public class GlobalExceptionHandler {
                 "Bad Request",
                 message,
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
+
         );
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -377,7 +400,8 @@ public class GlobalExceptionHandler {
                 "Unprocessable Entity",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
+
         );
 
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
@@ -395,7 +419,8 @@ public class GlobalExceptionHandler {
                 "Conflict",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
+
         );
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
@@ -435,7 +460,8 @@ public class GlobalExceptionHandler {
                 "Malformed JSON",
                 message,
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
+
         );
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -465,7 +491,7 @@ public class GlobalExceptionHandler {
                 "Invalid Parameter",
                 message,
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
         );
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -483,7 +509,8 @@ public class GlobalExceptionHandler {
                 "Resource Conflict",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
+
         );
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
@@ -501,7 +528,8 @@ public class GlobalExceptionHandler {
                 "Resource Not Found",
                 ex.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
+
         );
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);

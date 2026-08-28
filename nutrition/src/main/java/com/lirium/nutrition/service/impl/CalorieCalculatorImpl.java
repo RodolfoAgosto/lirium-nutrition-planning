@@ -5,21 +5,26 @@ import com.lirium.nutrition.model.enums.PhysiologicalCondition;
 import com.lirium.nutrition.model.enums.Sex;
 import com.lirium.nutrition.model.valueobject.Calories;
 import com.lirium.nutrition.service.CalorieCalculator;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.Period;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class CalorieCalculatorImpl implements CalorieCalculator {
+
+    private final Clock clock;
 
     @Override
     public Calories calculate(PatientProfile patient) {
 
         // Calculate calorie expenditure
-        int age = Period.between(patient.getUser().getBirthDate(), LocalDate.now()).getYears();
+        int age = Period.between(patient.getUser().getBirthDate(), LocalDate.now(clock)).getYears();
         double weightKg = patient.getWeight().grams() / 1000.0;
         double heightCm = patient.getHeight().cm();
 

@@ -2,6 +2,7 @@ package com.lirium.nutrition.model.enums;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.time.ZoneId;
 
 /**
  * Represents age categories for patients.
@@ -29,7 +30,8 @@ public enum AgeCategory {
         if (birthDate == null) {
             throw new IllegalArgumentException("Birth date cannot be null");
         }
-        int age = Period.between(birthDate, LocalDate.now()).getYears();
+        int age = Period.between(birthDate, LocalDate.now(ZoneId.of("America/Argentina/Buenos_Aires"))
+        ).getYears();
         if (age < 12) return CHILD;
         if (age < 18) return ADOLESCENT;
         if (age < 60) return ADULT;

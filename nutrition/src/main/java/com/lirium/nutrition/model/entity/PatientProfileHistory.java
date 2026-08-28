@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -72,7 +73,7 @@ public class PatientProfileHistory {
 
     public PatientProfileHistory(PatientProfile patientProfile) {
         this.patientProfile = Objects.requireNonNull(patientProfile);
-        this.visitDate = LocalDate.now();
+        this.visitDate = LocalDate.now(ZoneId.of("America/Argentina/Buenos_Aires"));
         this.weight = patientProfile.getWeight();
         this.height = patientProfile.getHeight();
         this.medicalNotes = patientProfile.getMedicalNotes();

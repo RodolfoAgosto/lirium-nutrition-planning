@@ -31,6 +31,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -45,6 +46,7 @@ public class DailyRecordController {
 
     private final DailyRecordService dailyRecordService;
     private final AdherenceReportService adherenceReportService;
+    private final Clock clock;
 
     @Operation(
             operationId = "ensureDailyRecord",
@@ -101,7 +103,7 @@ public class DailyRecordController {
             @Parameter(description = "Date for the daily record (ISO Format: YYYY-MM-DD). Defaults to TODAY if omitted.", example = "2026-08-24")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
 
-        LocalDate targetDate = (date != null) ? date : LocalDate.now();
+        LocalDate targetDate = (date != null) ? date : LocalDate.now(clock);
 
         log.info("Ensuring daily record exists for patientId={} date={}", patientId, targetDate);
 

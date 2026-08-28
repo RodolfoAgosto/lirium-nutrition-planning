@@ -10,7 +10,9 @@ import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.DailyRecordMapper;
 import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.model.enums.MealType;
-import com.lirium.nutrition.repository.*;
+import com.lirium.nutrition.repository.DailyRecordRepository;
+import com.lirium.nutrition.repository.MealRecordRepository;
+import com.lirium.nutrition.repository.PatientProfileRepository;
 import com.lirium.nutrition.service.DailyRecordService;
 import com.lirium.nutrition.service.FoodService;
 import com.lirium.nutrition.service.NutritionPlanService;
@@ -20,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -37,13 +40,14 @@ public class DailyRecordServiceImpl implements DailyRecordService {
     private final FoodService foodService;
     private final MealRecordRepository mealRecordRepository;
     private final PatientProfileRepository patientProfileRepository;
+    private final Clock clock;
 
     @Transactional
     public DailyRecordResponseDTO getOrCreateForDate(Long patientId, LocalDate date) {
 
-        LocalDate targetDate = (date != null) ? date : LocalDate.now();
+        LocalDate targetDate = (date != null) ? date : LocalDate.now(clock);
 
-        if (targetDate.isAfter(LocalDate.now())) {
+        if (targetDate.isAfter(LocalDate.now(clock))) {
             throw new IllegalArgumentException("Cannot create daily records for future dates");
         }
 
