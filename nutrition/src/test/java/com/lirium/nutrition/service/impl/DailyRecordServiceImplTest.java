@@ -24,7 +24,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -49,6 +52,8 @@ class DailyRecordServiceImplTest {
     private PatientProfileRepository patientProfileRepository;
     @Mock
     MealRecordRepository mealRecordRepository;
+    @Mock
+    private Clock clock;
 
     @InjectMocks
     DailyRecordServiceImpl service;
@@ -61,7 +66,7 @@ class DailyRecordServiceImplTest {
     void shouldThrowWhenCreatingDailyRecordForFutureDate() {
 
         Long patientId = 1L;
-        LocalDate futureDate = LocalDate.now().plusDays(1);
+        LocalDate futureDate = mockClock().plusDays(1);
 
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class,
@@ -653,7 +658,7 @@ class DailyRecordServiceImplTest {
     void shouldReturnExistingDailyRecord() {
         // Given
         Long patientId = 1L;
-        LocalDate today = LocalDate.now();
+        LocalDate today = mockClock();
 
         PatientProfile patient = patientProfile();
         DailyRecord record = DailyRecord.of(patient, today);
@@ -677,7 +682,7 @@ class DailyRecordServiceImplTest {
     void shouldCreateDailyRecordWhenNotExists() {
         // Given
         Long patientId = 1L;
-        LocalDate today = LocalDate.now();
+        LocalDate today = mockClock();
 
         PatientProfile patient = patientProfile();
 
@@ -720,7 +725,7 @@ class DailyRecordServiceImplTest {
 
         // Given
         Long patientId = 1L;
-        LocalDate today = LocalDate.now();
+        LocalDate today = mockClock();
 
         PatientProfile patient = patientProfile();
 
@@ -753,7 +758,7 @@ class DailyRecordServiceImplTest {
         Long mealId = 1L;
 
         PatientProfile patient = patientProfile();
-        DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now());
+        DailyRecord dailyRecord = DailyRecord.of(patient, mockClock());
 
         MealRecord meal = mock(MealRecord.class);
 
@@ -783,7 +788,7 @@ class DailyRecordServiceImplTest {
         Long foodId = 10L;
 
         PatientProfile patient = patientProfile();
-        DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now());
+        DailyRecord dailyRecord = DailyRecord.of(patient, mockClock());
 
         MealRecord meal = mock(MealRecord.class);
         when(meal.getId()).thenReturn(mealId);
@@ -827,7 +832,7 @@ class DailyRecordServiceImplTest {
         Long mealId = 1L;
 
         PatientProfile patient = patientProfile();
-        DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now());
+        DailyRecord dailyRecord = DailyRecord.of(patient, mockClock());
 
         FoodPortionAddRequestDTO request =
                 new FoodPortionAddRequestDTO(
@@ -857,15 +862,16 @@ class DailyRecordServiceImplTest {
         Long mealId = 10L;
         Long portionId = 100L;
 
-        PatientProfile patient = patientProfile();
-        DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now());
+        LocalDate today = mockClock();
 
-        // 1. Mockear el plan de nutrición activo para el paciente
+        PatientProfile patient = patientProfile();
+        DailyRecord dailyRecord = DailyRecord.of(patient, today);
+
         NutritionPlan activePlan = mock(NutritionPlan.class);
         when(nutritionPlanService.findActivePlan(patient.getId()))
                 .thenReturn(Optional.of(activePlan));
         when(activePlan.getStartDate())
-                .thenReturn(LocalDate.now().minusDays(5));
+                .thenReturn(today.minusDays(5));
 
         MealRecord meal = mock(MealRecord.class);
         FoodPortionRecord portion = mock(FoodPortionRecord.class);
@@ -896,16 +902,21 @@ class DailyRecordServiceImplTest {
         Long mealId = 10L;
         Long portionId = 100L;
 
+        LocalDate today = mockClock();
+
         PatientProfile patient = patientProfile();
         DailyRecord dailyRecord = mock(DailyRecord.class);
         when(dailyRecord.getPatient()).thenReturn(patient);
-        when(dailyRecord.getDate()).thenReturn(LocalDate.now());
+        when(dailyRecord.getDate()).thenReturn(today);
 
         NutritionPlan activePlan = mock(NutritionPlan.class);
-        when(nutritionPlanService.findActivePlan(patient.getId())).thenReturn(Optional.of(activePlan));
-        when(activePlan.getStartDate()).thenReturn(LocalDate.now().minusDays(5));
+        when(nutritionPlanService.findActivePlan(patient.getId()))
+                .thenReturn(Optional.of(activePlan));
+        when(activePlan.getStartDate())
+                .thenReturn(today.minusDays(5));
 
-        when(dailyRecord.getMeals()).thenReturn(Collections.emptyList());
+        when(dailyRecord.getMeals())
+                .thenReturn(Collections.emptyList());
 
         when(dailyRecordRepository.findById(dailyRecordId))
                 .thenReturn(Optional.of(dailyRecord));
@@ -931,13 +942,16 @@ class DailyRecordServiceImplTest {
         Long mealId = 10L;
         Long portionId = 100L;
 
-        PatientProfile patient = patientProfile();
-        DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now());
+        LocalDate today = mockClock();
 
-        // 1. Simular el plan activo para superar la validación del servicio
+        PatientProfile patient = patientProfile();
+        DailyRecord dailyRecord = DailyRecord.of(patient, today);
+
         NutritionPlan activePlan = mock(NutritionPlan.class);
-        when(nutritionPlanService.findActivePlan(patient.getId())).thenReturn(Optional.of(activePlan));
-        when(activePlan.getStartDate()).thenReturn(LocalDate.now().minusDays(5));
+        when(nutritionPlanService.findActivePlan(patient.getId()))
+                .thenReturn(Optional.of(activePlan));
+        when(activePlan.getStartDate())
+                .thenReturn(today.minusDays(5));
 
         MealRecord meal = mock(MealRecord.class);
         when(meal.getId()).thenReturn(mealId);
@@ -1178,7 +1192,7 @@ class DailyRecordServiceImplTest {
         PatientProfile patient = patientProfile();
 
         DailyRecord dailyRecord =
-                DailyRecord.of(patient, LocalDate.now());
+                DailyRecord.of(patient, mockClock());
 
         when(dailyRecordRepository.findByMealRecordId(mealId))
                 .thenReturn(Optional.of(dailyRecord));
@@ -1227,7 +1241,7 @@ class DailyRecordServiceImplTest {
 
         // Given
         Long patientId = 1L;
-        LocalDate today = LocalDate.now();
+        LocalDate today = mockClock();
 
         PatientProfile patient = mock(PatientProfile.class);
         NutritionPlan activePlan = mock(NutritionPlan.class);
@@ -1281,7 +1295,7 @@ class DailyRecordServiceImplTest {
 
         // Given
         Long patientId = 1L;
-        LocalDate today = LocalDate.now();
+        LocalDate today = mockClock();
 
         User user = generateUser();
         PatientProfile patient = user.getPatientProfile();
@@ -1327,7 +1341,7 @@ class DailyRecordServiceImplTest {
 
         // Given
         Long patientId = 1L;
-        LocalDate today = LocalDate.now();
+        LocalDate today = mockClock();
 
         PatientProfile patient = mock(PatientProfile.class);
         NutritionPlan activePlan = mock(NutritionPlan.class);
@@ -1478,17 +1492,20 @@ class DailyRecordServiceImplTest {
         Long mealRecordId = 2L;
         Long portionId = 3L;
 
+        LocalDate today = mockClock();
+
         PatientProfile patient = mock(PatientProfile.class);
         when(patient.getId()).thenReturn(50L);
 
         DailyRecord dailyRecord = mock(DailyRecord.class);
         when(dailyRecord.getPatient()).thenReturn(patient);
-        when(dailyRecord.getDate()).thenReturn(LocalDate.now());
+        when(dailyRecord.getDate()).thenReturn(today);
 
-        // Configuración del plan activo para superar la validación inicial
         NutritionPlan activePlan = mock(NutritionPlan.class);
-        when(nutritionPlanService.findActivePlan(patient.getId())).thenReturn(Optional.of(activePlan));
-        when(activePlan.getStartDate()).thenReturn(LocalDate.now().minusDays(5));
+        when(nutritionPlanService.findActivePlan(patient.getId()))
+                .thenReturn(Optional.of(activePlan));
+        when(activePlan.getStartDate())
+                .thenReturn(today.minusDays(5));
 
         MealRecord anotherMeal = mock(MealRecord.class);
         when(anotherMeal.getId()).thenReturn(999L);
@@ -1526,18 +1543,20 @@ class DailyRecordServiceImplTest {
         Long mealRecordId = 2L;
         Long portionId = 3L;
 
-        // 1. Mockear paciente y fecha para evitar NPEs en la validación inicial
+        LocalDate today = mockClock();
+
         PatientProfile patient = mock(PatientProfile.class);
         when(patient.getId()).thenReturn(50L);
 
         DailyRecord dailyRecord = mock(DailyRecord.class);
         when(dailyRecord.getPatient()).thenReturn(patient);
-        when(dailyRecord.getDate()).thenReturn(LocalDate.now());
+        when(dailyRecord.getDate()).thenReturn(today);
 
-        // 2. Mockear el plan activo
         NutritionPlan activePlan = mock(NutritionPlan.class);
-        when(nutritionPlanService.findActivePlan(patient.getId())).thenReturn(Optional.of(activePlan));
-        when(activePlan.getStartDate()).thenReturn(LocalDate.now().minusDays(5));
+        when(nutritionPlanService.findActivePlan(patient.getId()))
+                .thenReturn(Optional.of(activePlan));
+        when(activePlan.getStartDate())
+                .thenReturn(today.minusDays(5));
 
         MealRecord mealRecord = mock(MealRecord.class);
         FoodPortionRecord anotherPortion = mock(FoodPortionRecord.class);
@@ -1650,7 +1669,7 @@ class DailyRecordServiceImplTest {
                 Role.PATIENT
         );
 
-        user.setBirthDate(LocalDate.now().minusYears(30));
+        user.setBirthDate(mockClock().minusYears(30));
 
         PatientProfile patient = user.getPatientProfile();
 
@@ -1714,6 +1733,16 @@ class DailyRecordServiceImplTest {
         profile.addRestriction(restriction);
 
         return user;
+    }
+
+    private LocalDate mockClock() {
+        when(clock.instant())
+                .thenReturn(Instant.parse("2026-08-28T15:00:00Z"));
+
+        when(clock.getZone())
+                .thenReturn(ZoneId.of("America/Argentina/Buenos_Aires"));
+
+        return LocalDate.now(clock);
     }
 
 

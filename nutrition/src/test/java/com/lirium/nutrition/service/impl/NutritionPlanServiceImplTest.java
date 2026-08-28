@@ -12,13 +12,17 @@ import com.lirium.nutrition.model.enums.*;
 import com.lirium.nutrition.model.valueobject.Height;
 import com.lirium.nutrition.model.valueobject.Weight;
 import com.lirium.nutrition.repository.NutritionPlanRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -34,6 +38,20 @@ class NutritionPlanServiceImplTest {
 
     @InjectMocks
     private NutritionPlanServiceImpl service;
+
+    private final Clock clock = Clock.fixed(
+            Instant.parse("2025-01-15T10:00:00Z"),
+            ZoneOffset.UTC
+    );
+
+    @BeforeEach
+    void setUp() {
+        service = new NutritionPlanServiceImpl(
+                repository,
+                // demás dependencias,
+                clock
+        );
+    }
 
     @Test
     void shouldCompleteNutritionPlan() {

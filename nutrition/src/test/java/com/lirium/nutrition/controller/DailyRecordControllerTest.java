@@ -23,6 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -35,6 +36,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(DailyRecordController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class DailyRecordControllerTest {
+
+    @MockBean
+    private Clock clock;
 
     @MockBean
     private DailyRecordService dailyRecordService;
@@ -56,8 +60,9 @@ class DailyRecordControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void shouldAllowAdminToAccessAnyPatientRecord() throws Exception {
-        // Arrange
+    void shouldCreateDailyRecordWhenItDoesNotExist() throws Exception {
+
+        // Given
         Long patientId = 99L;
         LocalDate targetDate = LocalDate.now();
 
@@ -67,17 +72,25 @@ class DailyRecordControllerTest {
                 Collections.emptyList()
         );
 
-        when(dailyRecordService.getOrCreateForDate(eq(patientId), any(LocalDate.class)))
+        when(dailyRecordService.existsForPatientAndDate(patientId, targetDate))
+                .thenReturn(false);
+
+        when(dailyRecordService.getOrCreateForDate(patientId, targetDate))
                 .thenReturn(mockResponse);
 
-        // Act & Assert
+        // When + Then
         mvc.perform(post("/api/daily-records/patient/{patientId}/ensure", patientId)
                         .param("date", targetDate.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1L));
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.date").value(targetDate.toString()));
 
-        verify(dailyRecordService).getOrCreateForDate(eq(patientId), eq(targetDate));
+        verify(dailyRecordService)
+                .existsForPatientAndDate(patientId, targetDate);
+
+        verify(dailyRecordService)
+                .getOrCreateForDate(patientId, targetDate);
     }
 
     // getById

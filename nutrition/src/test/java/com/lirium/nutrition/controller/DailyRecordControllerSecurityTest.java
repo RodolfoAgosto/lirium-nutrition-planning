@@ -26,6 +26,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Collections;
 
@@ -70,6 +71,8 @@ public class DailyRecordControllerSecurityTest {
     @MockBean
     private PatientProfileRepository patientProfileRepository;
 
+    @MockBean
+    private Clock clock;
 
     @TestConfiguration
     @EnableMethodSecurity // Requerido para procesar las expresiones SpEL de @PreAuthorize
