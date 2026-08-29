@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 /**
@@ -24,6 +25,8 @@ import java.util.*;
 @EqualsAndHashCode(of = "id")
 @Table(name = "meal_records")
 public class MealRecord extends DateAuditable {
+
+    private static final ZoneId ARGENTINA_ZONE = ZoneId.of("America/Argentina/Buenos_Aires");
 
     @Id
     @SequenceGenerator(
@@ -58,7 +61,7 @@ public class MealRecord extends DateAuditable {
         Objects.requireNonNull(dailyRecord, "DailyRecord must be provided");
         Objects.requireNonNull(planMeal.getFoods(), "PlanMeal foods null");
         Objects.requireNonNull(planMeal.getType(), "Meal type null");
-        if (eatenAt.toLocalDate().isAfter(LocalDate.now()))
+        if (eatenAt.toLocalDate().isAfter(LocalDate.now(ARGENTINA_ZONE)))
             throw new IllegalArgumentException("Meal cannot be in the future");
         this.type = planMeal.getType();
         this.eatenAt = eatenAt;
@@ -83,7 +86,7 @@ public class MealRecord extends DateAuditable {
         Objects.requireNonNull(mealType, "Meal type must be provided");
         Objects.requireNonNull(eatenAt, "DateTime must be provided.");
         Objects.requireNonNull(dailyRecord, "DailyRecord must be provided");
-        if (eatenAt.toLocalDate().isAfter(LocalDate.now())) {
+        if (eatenAt.toLocalDate().isAfter(LocalDate.now(ARGENTINA_ZONE))) {
             throw new IllegalArgumentException("Meal cannot be in the future");
         }
         this.type = mealType;
