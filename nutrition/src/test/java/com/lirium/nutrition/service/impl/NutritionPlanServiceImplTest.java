@@ -58,19 +58,24 @@ class NutritionPlanServiceImplTest {
 
         // Given
         Long planId = 1L;
+        LocalDate today = LocalDate.now(clock);
 
-        User patientProfile = new User();
-
-        // Crear la entidad real y llevarla a estado ACTIVE
         NutritionPlan plan = NutritionPlan.generate(
-                GoalType.WEIGHT_LOSS, 2000, 120, 200, 60 , generateUser().getPatientProfile()
+                GoalType.WEIGHT_LOSS,
+                2000,
+                120,
+                200,
+                60,
+                generateUser().getPatientProfile()
         );
-        plan.activate(LocalDate.now().minusDays(1)); // status = ACTIVE
 
-        CompleteNutritionPlanRequestDTO request = new CompleteNutritionPlanRequestDTO(
-                "Volumen",
-                "Plan de aumento muscular"
-        );
+        plan.activate(today.minusDays(1));
+
+        CompleteNutritionPlanRequestDTO request =
+                new CompleteNutritionPlanRequestDTO(
+                        "Volume",
+                        "Muscle-building plan"
+                );
 
         when(repository.findById(planId)).thenReturn(Optional.of(plan));
 
@@ -80,10 +85,9 @@ class NutritionPlanServiceImplTest {
         // Then
         verify(repository).findById(planId);
         assertEquals(PlanStatus.INACTIVE, plan.getStatus());
-        assertEquals("Volumen", plan.getName());
-        assertEquals("Plan de aumento muscular", plan.getDescription());
+        assertEquals("Volume", plan.getName());
+        assertEquals("Muscle-building plan", plan.getDescription());
     }
-
 
     @Test
     void shouldThrowWhenPlanNotFoundInComplete() {
@@ -93,8 +97,8 @@ class NutritionPlanServiceImplTest {
 
         CompleteNutritionPlanRequestDTO request =
                 new CompleteNutritionPlanRequestDTO(
-                        "Volumen",
-                        "Plan de aumento muscular"
+                        "Volume",
+                        "Muscle-building plan"
                 );
 
         when(repository.findById(planId))
