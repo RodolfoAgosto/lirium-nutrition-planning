@@ -42,7 +42,7 @@ public class NutritionPlanServiceImpl implements NutritionPlanService {
                 request.name(),
                 request.description(),
                 plan.getStartDate(),
-                LocalDate.now(),
+                LocalDate.now(clock),
                 plan.getTargetGoal(),
                 plan.getDailyCalories(),
                 plan.getProteinGrams(),
