@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final String BAD_REQUEST = "Bad Request";
     private static final ZoneId ARGENTINA_ZONE = ZoneId.of("America/Argentina/Buenos_Aires");
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -308,7 +309,7 @@ public class GlobalExceptionHandler {
 
         ApiError error = new ApiError(
                         400,
-                   "Bad Request",
+                        BAD_REQUEST,
                         ex.getMessage(),
                         request.getRequestURI(),
                         LocalDateTime.now(ARGENTINA_ZONE)
@@ -351,7 +352,7 @@ public class GlobalExceptionHandler {
 
         ApiError error = new ApiError(
                 HttpStatus.BAD_REQUEST.value(),
-                "Bad Request",
+                BAD_REQUEST,
                 ex.getMessage(),
                 request.getRequestURI(),
                 LocalDateTime.now(ARGENTINA_ZONE)
@@ -375,7 +376,7 @@ public class GlobalExceptionHandler {
 
         ApiError error = new ApiError(
                 HttpStatus.BAD_REQUEST.value(),
-                "Bad Request",
+                BAD_REQUEST,
                 message,
                 request.getRequestURI(),
                 LocalDateTime.now(ARGENTINA_ZONE)
