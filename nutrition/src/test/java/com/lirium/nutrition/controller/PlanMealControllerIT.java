@@ -1,5 +1,10 @@
 package com.lirium.nutrition.controller;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.lirium.nutrition.dto.request.FoodPortionAddRequestDTO;
 import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateQuantityRequestDTO;
 import com.lirium.nutrition.dto.request.PlanMealCreateRequestDTO;
@@ -13,19 +18,13 @@ import com.lirium.nutrition.repository.NutritionPlanRepository;
 import com.lirium.nutrition.repository.PlanFoodPortionRepository;
 import com.lirium.nutrition.repository.PlanMealRepository;
 import com.lirium.nutrition.testdata.NutritionPlanTestDataFactory;
+import java.util.EnumSet;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-
-import java.util.EnumSet;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class PlanMealControllerIT extends AbstractIntegrationTest {
 

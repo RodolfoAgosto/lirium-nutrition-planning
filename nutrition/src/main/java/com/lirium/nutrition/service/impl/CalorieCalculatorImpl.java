@@ -5,12 +5,11 @@ import com.lirium.nutrition.model.enums.PhysiologicalCondition;
 import com.lirium.nutrition.model.enums.Sex;
 import com.lirium.nutrition.model.valueobject.Calories;
 import com.lirium.nutrition.service.CalorieCalculator;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.ZoneId;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service

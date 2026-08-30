@@ -1,5 +1,10 @@
 package com.lirium.nutrition.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.model.enums.FoodCategory;
 import com.lirium.nutrition.model.enums.MealType;
@@ -8,19 +13,13 @@ import com.lirium.nutrition.model.enums.Role;
 import com.lirium.nutrition.repository.FoodRepository;
 import com.lirium.nutrition.repository.NutritionPlanRepository;
 import com.lirium.nutrition.testdata.NutritionPlanTestDataFactory;
+import java.time.DayOfWeek;
+import java.util.EnumSet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-
-import java.time.DayOfWeek;
-import java.util.EnumSet;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class FoodControllerIT extends AbstractIntegrationTest {
 
@@ -133,9 +132,7 @@ class FoodControllerIT extends AbstractIntegrationTest {
 
     // Verificación en BD: El registro sigue existiendo pero inactivo
     Food updatedFood = foodRepository.findById(chicken.getId()).orElseThrow();
-    assertFalse(
-        updatedFood
-            .isActive());
+    assertFalse(updatedFood.isActive());
     // etc.
   }
 
