@@ -29,452 +29,397 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class PlanMealControllerIT extends AbstractIntegrationTest {
 
-    private String adminToken;
-    private String nutritionistToken;
-    private String patientToken;
+  private String adminToken;
+  private String nutritionistToken;
+  private String patientToken;
 
-    private User admin;
-    private User nutritionist;
-    private User patient;
+  private User admin;
+  private User nutritionist;
+  private User patient;
 
-    private NutritionPlan nutritionPlan;
-    private DailyPlan dailyPlan;
-    private PlanMeal meal;
-    private PlanFoodPortion portion;
+  private NutritionPlan nutritionPlan;
+  private DailyPlan dailyPlan;
+  private PlanMeal meal;
+  private PlanFoodPortion portion;
 
-    private Food chicken;
-    private Food rice;
+  private Food chicken;
+  private Food rice;
 
-    private Food food2;
+  private Food food2;
 
-    @Autowired
-    private NutritionPlanRepository nutritionPlanRepository;
+  @Autowired private NutritionPlanRepository nutritionPlanRepository;
 
-    @Autowired
-    private DailyPlanRepository dailyPlanRepository;
+  @Autowired private DailyPlanRepository dailyPlanRepository;
 
-    @Autowired
-    private PlanMealRepository planMealRepository;
+  @Autowired private PlanMealRepository planMealRepository;
 
-    @Autowired
-    private PlanFoodPortionRepository planFoodPortionRepository;
+  @Autowired private PlanFoodPortionRepository planFoodPortionRepository;
 
-    @Autowired
-    private NutritionPlanTestDataFactory nutritionPlanTestDataFactory;
+  @Autowired private NutritionPlanTestDataFactory nutritionPlanTestDataFactory;
 
-    @BeforeEach
-    void setup() {
+  @BeforeEach
+  void setup() {
 
-        planFoodPortionRepository.deleteAll();
-        planMealRepository.deleteAll();
-        dailyPlanRepository.deleteAll();
-        nutritionPlanRepository.deleteAll();
+    planFoodPortionRepository.deleteAll();
+    planMealRepository.deleteAll();
+    dailyPlanRepository.deleteAll();
+    nutritionPlanRepository.deleteAll();
 
-        admin = userRepository.save(new User(
-                "admin@test.com",
-                passwordEncoder.encode("1234"),
-                "Admin",
-                "Test",
-                Role.ADMIN));
+    admin =
+        userRepository.save(
+            new User(
+                "admin@test.com", passwordEncoder.encode("1234"), "Admin", "Test", Role.ADMIN));
 
-        nutritionist = userRepository.save(new User(
+    nutritionist =
+        userRepository.save(
+            new User(
                 "nutritionist@test.com",
                 passwordEncoder.encode("1234"),
                 "Nutritionist",
                 "Test",
                 Role.NUTRITIONIST));
 
-        patient = userRepository.save(new User(
+    patient =
+        userRepository.save(
+            new User(
                 "patient@test.com",
                 passwordEncoder.encode("1234"),
                 "Patient",
                 "Test",
                 Role.PATIENT));
 
-        adminToken = "Bearer " + jwtService.generateToken(admin);
-        nutritionistToken = "Bearer " + jwtService.generateToken(nutritionist);
-        patientToken = "Bearer " + jwtService.generateToken(patient);
+    adminToken = "Bearer " + jwtService.generateToken(admin);
+    nutritionistToken = "Bearer " + jwtService.generateToken(nutritionist);
+    patientToken = "Bearer " + jwtService.generateToken(patient);
 
-        nutritionPlan = nutritionPlanTestDataFactory.createDraftPlan(patient.getPatientProfile());
+    nutritionPlan = nutritionPlanTestDataFactory.createDraftPlan(patient.getPatientProfile());
 
-        dailyPlan = nutritionPlan.getWeek().getFirst();
+    dailyPlan = nutritionPlan.getWeek().getFirst();
 
-        meal = dailyPlan.getMeals().getFirst();
+    meal = dailyPlan.getMeals().getFirst();
 
-        portion = meal.getFoodPortions().getFirst();
+    portion = meal.getFoodPortions().getFirst();
 
-        chicken = portion.getFood();
+    chicken = portion.getFood();
 
-        rice = foodRepository.save(
-                Food.of(
-                        "Rice",
-                        130,
-                        3,
-                        28,
-                        1,
-                        FoodCategory.CARB,
-                        EnumSet.allOf(MealType.class)
-                )
-        );
+    rice =
+        foodRepository.save(
+            Food.of("Rice", 130, 3, 28, 1, FoodCategory.CARB, EnumSet.allOf(MealType.class)));
 
-        food2 = foodRepository.save(
-                Food.of(
-                        "Potato",
-                        130,
-                        3,
-                        28,
-                        1,
-                        FoodCategory.CARB,
-                        EnumSet.allOf(MealType.class)
-                )
-        );
+    food2 =
+        foodRepository.save(
+            Food.of("Potato", 130, 3, 28, 1, FoodCategory.CARB, EnumSet.allOf(MealType.class)));
+  }
 
-    }
+  @Test
+  @DisplayName("ADMIN puede obtener un plan meal por id")
+  void shouldReturnMealByIdWhenAdminRequests() throws Exception {
 
-    @Test
-    @DisplayName("ADMIN puede obtener un plan meal por id")
-    void shouldReturnMealByIdWhenAdminRequests() throws Exception {
+    mockMvc
+        .perform(get("/api/plan-meals/" + meal.getId()).header("Authorization", adminToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(meal.getId()))
+        .andExpect(jsonPath("$.type").value(meal.getType().name()))
+        .andExpect(jsonPath("$.dailyPlanId").value(dailyPlan.getId()));
+  }
 
-        mockMvc.perform(
-                        get("/api/plan-meals/" + meal.getId())
-                                .header("Authorization", adminToken)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(meal.getId()))
-                .andExpect(jsonPath("$.type").value(meal.getType().name()))
-                .andExpect(jsonPath("$.dailyPlanId").value(dailyPlan.getId()));
-    }
+  @Test
+  @DisplayName("Debe retornar 404 cuando el plan meal no existe")
+  void shouldReturnNotFoundWhenMealDoesNotExist() throws Exception {
 
-    @Test
-    @DisplayName("Debe retornar 404 cuando el plan meal no existe")
-    void shouldReturnNotFoundWhenMealDoesNotExist() throws Exception {
+    mockMvc
+        .perform(get("/api/plan-meals/999999").header("Authorization", adminToken))
+        .andExpect(status().isNotFound());
+  }
 
-        mockMvc.perform(
-                        get("/api/plan-meals/999999")
-                                .header("Authorization", adminToken)
-                )
-                .andExpect(status().isNotFound());
-    }
+  @Test
+  @DisplayName("ADMIN puede obtener todas las comidas de un día")
+  void shouldReturnMealsByDailyPlan() throws Exception {
 
-    @Test
-    @DisplayName("ADMIN puede obtener todas las comidas de un día")
-    void shouldReturnMealsByDailyPlan() throws Exception {
+    mockMvc
+        .perform(
+            get("/api/plan-meals/day/" + dailyPlan.getId()).header("Authorization", adminToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").isArray())
+        .andExpect(jsonPath("$.length()").value(5));
+  }
 
-        mockMvc.perform(
-                        get("/api/plan-meals/day/" + dailyPlan.getId())
-                                .header("Authorization", adminToken)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(5));
-    }
+  @Test
+  @DisplayName("Debe retornar 404 Not Found cuando el plan diario no existe")
+  void shouldReturn404WhenDailyPlanDoesNotExist() throws Exception {
 
-    @Test
-    @DisplayName("Debe retornar 404 Not Found cuando el plan diario no existe")
-    void shouldReturn404WhenDailyPlanDoesNotExist() throws Exception {
+    mockMvc
+        .perform(get("/api/plan-meals/day/999999").header("Authorization", adminToken))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.status").value(404))
+        .andExpect(jsonPath("$.message").value("Daily plan  not found with id: 999999"));
+  }
 
-        mockMvc.perform(
-                        get("/api/plan-meals/day/999999")
-                                .header("Authorization", adminToken)
-                )
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.message").value("Daily plan  not found with id: 999999"));
-    }
+  @Test
+  @DisplayName("ADMIN puede crear un plan meal")
+  void shouldCreatePlanMeal() throws Exception {
 
-    @Test
-    @DisplayName("ADMIN puede crear un plan meal")
-    void shouldCreatePlanMeal() throws Exception {
+    PlanMealCreateRequestDTO dto =
+        new PlanMealCreateRequestDTO(MealType.BREAKFAST, dailyPlan.getId(), List.of());
 
-        PlanMealCreateRequestDTO dto = new PlanMealCreateRequestDTO(
-                MealType.BREAKFAST,
-                dailyPlan.getId(),
-                List.of()
-        );
+    mockMvc
+        .perform(
+            post("/api/plan-meals")
+                .header("Authorization", adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isCreated()) // <-- Cambiado de isOk() a isCreated()
+        .andExpect(jsonPath("$.id").exists())
+        .andExpect(jsonPath("$.type").value(MealType.BREAKFAST.name()))
+        .andExpect(jsonPath("$.dailyPlanId").value(dailyPlan.getId()));
+  }
 
-        mockMvc.perform(
-                        post("/api/plan-meals")
-                                .header("Authorization", adminToken)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isCreated()) // <-- Cambiado de isOk() a isCreated()
-                .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.type").value(MealType.BREAKFAST.name()))
-                .andExpect(jsonPath("$.dailyPlanId").value(dailyPlan.getId()));
-    }
+  @Test
+  @DisplayName("Debe retornar 404 cuando el daily plan no existe")
+  void shouldReturnNotFoundWhenCreatingMealForUnknownDailyPlan() throws Exception {
 
-    @Test
-    @DisplayName("Debe retornar 404 cuando el daily plan no existe")
-    void shouldReturnNotFoundWhenCreatingMealForUnknownDailyPlan() throws Exception {
+    PlanMealCreateRequestDTO dto =
+        new PlanMealCreateRequestDTO(MealType.BREAKFAST, 999999L, List.of());
 
-        PlanMealCreateRequestDTO dto = new PlanMealCreateRequestDTO(
-                MealType.BREAKFAST,
-                999999L,
-                List.of()
-        );
+    mockMvc
+        .perform(
+            post("/api/plan-meals")
+                .header("Authorization", adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isNotFound());
+  }
 
-        mockMvc.perform(
-                        post("/api/plan-meals")
-                                .header("Authorization", adminToken)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isNotFound());
-    }
+  @Test
+  @DisplayName("Debe retornar 400 cuando el tipo de comida es inválido")
+  void shouldReturnBadRequestWhenMealTypeIsInvalid() throws Exception {
 
-    @Test
-    @DisplayName("Debe retornar 400 cuando el tipo de comida es inválido")
-    void shouldReturnBadRequestWhenMealTypeIsInvalid() throws Exception {
-
-        String json = """
+    String json =
+        """
         {
             "type":"INVALID",
             "dailyPlanId":%d,
             "foodPortionIds":[]
         }
-        """.formatted(dailyPlan.getId());
+        """
+            .formatted(dailyPlan.getId());
 
-        mockMvc.perform(
-                        post("/api/plan-meals")
-                                .header("Authorization", adminToken)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
-                .andExpect(status().isBadRequest());
-    }
+    mockMvc
+        .perform(
+            post("/api/plan-meals")
+                .header("Authorization", adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+        .andExpect(status().isBadRequest());
+  }
 
-    @Test
-    @DisplayName("ADMIN puede eliminar un plan meal")
-    void shouldDeletePlanMeal() throws Exception {
+  @Test
+  @DisplayName("ADMIN puede eliminar un plan meal")
+  void shouldDeletePlanMeal() throws Exception {
 
-        mockMvc.perform(
-                        delete("/api/plan-meals/" + meal.getId())
-                                .header("Authorization", adminToken)
-                )
-                .andExpect(status().isNoContent());
+    mockMvc
+        .perform(delete("/api/plan-meals/" + meal.getId()).header("Authorization", adminToken))
+        .andExpect(status().isNoContent());
 
-        assertFalse(planMealRepository.findById(meal.getId()).isPresent());
-    }
+    assertFalse(planMealRepository.findById(meal.getId()).isPresent());
+  }
 
-    @Test
-    @DisplayName("Eliminar un plan meal inexistente no produce error")
-    void shouldIgnoreDeletingUnknownMeal() throws Exception {
+  @Test
+  @DisplayName("Eliminar un plan meal inexistente no produce error")
+  void shouldIgnoreDeletingUnknownMeal() throws Exception {
 
-        mockMvc.perform(
-                        delete("/api/plan-meals/999999")
-                                .header("Authorization", adminToken)
-                )
-                .andExpect(status().isNotFound());
-    }
+    mockMvc
+        .perform(delete("/api/plan-meals/999999").header("Authorization", adminToken))
+        .andExpect(status().isNotFound());
+  }
 
-    @Test
-    @DisplayName("ADMIN puede agregar una porción a una comida")
-    void shouldAddFoodPortion() throws Exception {
+  @Test
+  @DisplayName("ADMIN puede agregar una porción a una comida")
+  void shouldAddFoodPortion() throws Exception {
 
-        FoodPortionAddRequestDTO dto = new FoodPortionAddRequestDTO(
-                food2.getId(),
-                150.0,
-                MeasureUnit.GRAM
-        );
+    FoodPortionAddRequestDTO dto =
+        new FoodPortionAddRequestDTO(food2.getId(), 150.0, MeasureUnit.GRAM);
 
-        mockMvc.perform(
-                        post("/api/plan-meals/" + meal.getId() + "/portions")
-                                .header("Authorization", adminToken)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.foods.length()").value(2));
-    }
+    mockMvc
+        .perform(
+            post("/api/plan-meals/" + meal.getId() + "/portions")
+                .header("Authorization", adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.foods.length()").value(2));
+  }
 
-    @Test
-    @DisplayName("Debe retornar 404 cuando la comida no existe")
-    void shouldReturnNotFoundWhenMealDoesNotExistAddingPortion() throws Exception {
+  @Test
+  @DisplayName("Debe retornar 404 cuando la comida no existe")
+  void shouldReturnNotFoundWhenMealDoesNotExistAddingPortion() throws Exception {
 
-        FoodPortionAddRequestDTO dto = new FoodPortionAddRequestDTO(
-                food2.getId(),
-                150.0,
-                MeasureUnit.GRAM
-        );
+    FoodPortionAddRequestDTO dto =
+        new FoodPortionAddRequestDTO(food2.getId(), 150.0, MeasureUnit.GRAM);
 
-        mockMvc.perform(
-                        post("/api/plan-meals/999999/portions")
-                                .header("Authorization", adminToken)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isNotFound());
-    }
+    mockMvc
+        .perform(
+            post("/api/plan-meals/999999/portions")
+                .header("Authorization", adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isNotFound());
+  }
 
-    @Test
-    @DisplayName("Debe retornar 404 cuando el alimento no existe")
-    void shouldReturnNotFoundWhenFoodDoesNotExistAddingPortion() throws Exception {
+  @Test
+  @DisplayName("Debe retornar 404 cuando el alimento no existe")
+  void shouldReturnNotFoundWhenFoodDoesNotExistAddingPortion() throws Exception {
 
-        FoodPortionAddRequestDTO dto = new FoodPortionAddRequestDTO(
-                999999L,
-                150.0,
-                MeasureUnit.GRAM
-        );
+    FoodPortionAddRequestDTO dto = new FoodPortionAddRequestDTO(999999L, 150.0, MeasureUnit.GRAM);
 
-        mockMvc.perform(
-                        post("/api/plan-meals/" + meal.getId() + "/portions")
-                                .header("Authorization", adminToken)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isNotFound());
-    }
+    mockMvc
+        .perform(
+            post("/api/plan-meals/" + meal.getId() + "/portions")
+                .header("Authorization", adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isNotFound());
+  }
 
-    @Test
-    @DisplayName("Debe retornar 409 cuando el alimento ya existe en la comida")
-    void shouldReturnConflictWhenFoodAlreadyExists() throws Exception {
+  @Test
+  @DisplayName("Debe retornar 409 cuando el alimento ya existe en la comida")
+  void shouldReturnConflictWhenFoodAlreadyExists() throws Exception {
 
-        FoodPortionAddRequestDTO dto = new FoodPortionAddRequestDTO(
-                chicken.getId(),
-                100.0,
-                MeasureUnit.GRAM
-        );
+    FoodPortionAddRequestDTO dto =
+        new FoodPortionAddRequestDTO(chicken.getId(), 100.0, MeasureUnit.GRAM);
 
-        mockMvc.perform(
-                        post("/api/plan-meals/" + meal.getId() + "/portions")
-                                .header("Authorization", adminToken)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isConflict());
-    }
+    mockMvc
+        .perform(
+            post("/api/plan-meals/" + meal.getId() + "/portions")
+                .header("Authorization", adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isConflict());
+  }
 
-    @Test
-    @DisplayName("ADMIN puede eliminar una porción de una comida")
-    void shouldRemoveFoodPortion() throws Exception {
+  @Test
+  @DisplayName("ADMIN puede eliminar una porción de una comida")
+  void shouldRemoveFoodPortion() throws Exception {
 
-        mockMvc.perform(
-                        delete("/api/plan-meals/" + meal.getId()
-                                + "/portions/" + portion.getId())
-                                .header("Authorization", adminToken)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.foods.length()").value(0));
-    }
+    mockMvc
+        .perform(
+            delete("/api/plan-meals/" + meal.getId() + "/portions/" + portion.getId())
+                .header("Authorization", adminToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.foods.length()").value(0));
+  }
 
-    @Test
-    @DisplayName("Debe retornar 404 cuando la comida no existe al eliminar una porción")
-    void shouldReturnNotFoundWhenRemovingPortionFromUnknownMeal() throws Exception {
+  @Test
+  @DisplayName("Debe retornar 404 cuando la comida no existe al eliminar una porción")
+  void shouldReturnNotFoundWhenRemovingPortionFromUnknownMeal() throws Exception {
 
-        mockMvc.perform(
-                        delete("/api/plan-meals/999999/portions/" + portion.getId())
-                                .header("Authorization", adminToken)
-                )
-                .andExpect(status().isNotFound());
-    }
+    mockMvc
+        .perform(
+            delete("/api/plan-meals/999999/portions/" + portion.getId())
+                .header("Authorization", adminToken))
+        .andExpect(status().isNotFound());
+  }
 
-    @Test
-    @DisplayName("Debe retornar 404 cuando la porción no existe")
-    void shouldReturnNotFoundWhenPortionDoesNotExist() throws Exception {
+  @Test
+  @DisplayName("Debe retornar 404 cuando la porción no existe")
+  void shouldReturnNotFoundWhenPortionDoesNotExist() throws Exception {
 
-        mockMvc.perform(
-                        delete("/api/plan-meals/" + meal.getId() + "/portions/999999")
-                                .header("Authorization", adminToken)
-                )
-                .andExpect(status().isNotFound());
-    }
+    mockMvc
+        .perform(
+            delete("/api/plan-meals/" + meal.getId() + "/portions/999999")
+                .header("Authorization", adminToken))
+        .andExpect(status().isNotFound());
+  }
 
-    @Test
-    @DisplayName("ADMIN puede actualizar la cantidad de una porción")
-    void shouldUpdateFoodPortionQuantity() throws Exception {
+  @Test
+  @DisplayName("ADMIN puede actualizar la cantidad de una porción")
+  void shouldUpdateFoodPortionQuantity() throws Exception {
 
-        PlanFoodPortionUpdateQuantityRequestDTO dto =
-                new PlanFoodPortionUpdateQuantityRequestDTO(250.0);
+    PlanFoodPortionUpdateQuantityRequestDTO dto =
+        new PlanFoodPortionUpdateQuantityRequestDTO(250.0);
 
-        mockMvc.perform(
-                        patch("/api/plan-meals/" + meal.getId()
-                                + "/portions/" + portion.getId() + "/quantity")
-                                .header("Authorization", adminToken)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.foods[0].id").value(portion.getId()))
-                .andExpect(jsonPath("$.foods[0].quantity").value(250.0));
-    }
+    mockMvc
+        .perform(
+            patch("/api/plan-meals/" + meal.getId() + "/portions/" + portion.getId() + "/quantity")
+                .header("Authorization", adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.foods[0].id").value(portion.getId()))
+        .andExpect(jsonPath("$.foods[0].quantity").value(250.0));
+  }
 
-    @Test
-    @DisplayName("Debe retornar 404 cuando la comida no existe al actualizar la cantidad de una porción")
-    void shouldReturnNotFoundWhenUpdatingUnknownMeal() throws Exception {
+  @Test
+  @DisplayName(
+      "Debe retornar 404 cuando la comida no existe al actualizar la cantidad de una porción")
+  void shouldReturnNotFoundWhenUpdatingUnknownMeal() throws Exception {
 
-        PlanFoodPortionUpdateQuantityRequestDTO dto =
-                new PlanFoodPortionUpdateQuantityRequestDTO(250.0);
+    PlanFoodPortionUpdateQuantityRequestDTO dto =
+        new PlanFoodPortionUpdateQuantityRequestDTO(250.0);
 
-        mockMvc.perform(
-                        patch("/api/plan-meals/999999/portions/" + portion.getId() + "/quantity")
-                                .header("Authorization", adminToken)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isNotFound());
-    }
+    mockMvc
+        .perform(
+            patch("/api/plan-meals/999999/portions/" + portion.getId() + "/quantity")
+                .header("Authorization", adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isNotFound());
+  }
 
+  @Test
+  @DisplayName("Debe retornar 404 cuando la porción no existe al actualizar")
+  void shouldReturnNotFoundWhenUpdatingUnknownPortion() throws Exception {
 
-    @Test
-    @DisplayName("Debe retornar 404 cuando la porción no existe al actualizar")
-    void shouldReturnNotFoundWhenUpdatingUnknownPortion() throws Exception {
+    PlanFoodPortionUpdateQuantityRequestDTO dto =
+        new PlanFoodPortionUpdateQuantityRequestDTO(250.0);
 
-        PlanFoodPortionUpdateQuantityRequestDTO dto =
-                new PlanFoodPortionUpdateQuantityRequestDTO(250.0);
+    mockMvc
+        .perform(
+            patch("/api/plan-meals/" + meal.getId() + "/portions/999999/quantity")
+                .header("Authorization", adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isNotFound());
+  }
 
-        mockMvc.perform(
-                        patch("/api/plan-meals/" + meal.getId()
-                                + "/portions/999999/quantity")
-                                .header("Authorization", adminToken)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isNotFound());
-    }
+  @Test
+  @DisplayName("Debe retornar 400 Bad Request cuando la porción no pertenece a la comida")
+  void shouldReturnBadRequestWhenPortionDoesNotBelongToMeal() throws Exception {
 
+    PlanMeal otherMeal = planMealRepository.save(PlanMeal.of(MealType.LUNCH, meal.getDailyPlan()));
 
-    @Test
-    @DisplayName("Debe retornar 400 Bad Request cuando la porción no pertenece a la comida")
-    void shouldReturnBadRequestWhenPortionDoesNotBelongToMeal() throws Exception {
+    PlanFoodPortionUpdateQuantityRequestDTO dto =
+        new PlanFoodPortionUpdateQuantityRequestDTO(250.0);
 
-        // 1. Crear y guardar una segunda comida válida usando el método estático de fábrica
-        PlanMeal otherMeal = planMealRepository.save(
-                PlanMeal.of(MealType.LUNCH, meal.getDailyPlan())
-        );
+    mockMvc
+        .perform(
+            patch(
+                    "/api/plan-meals/"
+                        + otherMeal.getId()
+                        + "/portions/"
+                        + portion.getId()
+                        + "/quantity")
+                .header("Authorization", adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isBadRequest());
+  }
 
-        PlanFoodPortionUpdateQuantityRequestDTO dto =
-                new PlanFoodPortionUpdateQuantityRequestDTO(250.0);
+  @Test
+  @DisplayName(
+      "Debe retornar 409 Conflict al intentar agregar un alimento que ya existe en la comida")
+  void shouldReturnConflictWhenAddingDuplicateFood() throws Exception {
 
-        // 2. Intentar actualizar 'portion' (perteneciente a 'meal') enviando la URI de 'otherMeal'
-        mockMvc.perform(
-                        patch("/api/plan-meals/" + otherMeal.getId() + "/portions/" + portion.getId() + "/quantity")
-                                .header("Authorization", adminToken)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isBadRequest());
-    }
+    // Intentamos agregar el mismo alimento que ya existe en 'portion'
+    FoodPortionAddRequestDTO dto =
+        new FoodPortionAddRequestDTO(portion.getFood().getId(), 150.0, MeasureUnit.GRAM);
 
-    @Test
-    @DisplayName("Debe retornar 409 Conflict al intentar agregar un alimento que ya existe en la comida")
-    void shouldReturnConflictWhenAddingDuplicateFood() throws Exception {
-
-        // Intentamos agregar el mismo alimento que ya existe en 'portion'
-        FoodPortionAddRequestDTO dto = new FoodPortionAddRequestDTO(
-                portion.getFood().getId(),
-                150.0,
-                MeasureUnit.GRAM
-        );
-
-        mockMvc.perform(
-                        post("/api/plan-meals/" + meal.getId() + "/portions")
-                                .header("Authorization", adminToken)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isConflict());
-    }
-
-
+    mockMvc
+        .perform(
+            post("/api/plan-meals/" + meal.getId() + "/portions")
+                .header("Authorization", adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isConflict());
+  }
 }

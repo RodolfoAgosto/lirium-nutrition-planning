@@ -1,5 +1,11 @@
 package com.lirium.nutrition.service.impl;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
+
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
 import com.lirium.nutrition.exception.PlanConflictException;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
@@ -21,6 +27,8 @@ import com.lirium.nutrition.repository.PatientProfileRepository;
 import com.lirium.nutrition.service.CalorieCalculator;
 import com.lirium.nutrition.service.MacroDistributor;
 import com.lirium.nutrition.service.NutritionPlanAssembler;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
@@ -28,482 +36,364 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class NutritionPlanGeneratorImplTest {
 
-    @Mock
-    private CalorieCalculator calorieCalculator;
+  @Mock private CalorieCalculator calorieCalculator;
 
-    @Mock
-    private MacroDistributor macroDistributor;
+  @Mock private MacroDistributor macroDistributor;
 
-    @Mock
-    private PatientProfileRepository repository;
+  @Mock private PatientProfileRepository repository;
 
-    @Mock
-    private NutritionPlanAssembler nutritionPlanAssembler;
+  @Mock private NutritionPlanAssembler nutritionPlanAssembler;
 
-    @Mock
-    private NutritionPlanRepository nutritionPlanRepository;
+  @Mock private NutritionPlanRepository nutritionPlanRepository;
 
-    @Mock
-    private NutritionPlanTemplateRepository templateRepository;
+  @Mock private NutritionPlanTemplateRepository templateRepository;
 
-    @InjectMocks
-    private NutritionPlanGeneratorImpl nutritionPlanGenerator;
+  @InjectMocks private NutritionPlanGeneratorImpl nutritionPlanGenerator;
 
-    @Test
-    void shouldThrowWhenPatientNotFound() {
+  @Test
+  void shouldThrowWhenPatientNotFound() {
 
-        // Given
-        Long patientId = 1L;
+    // Given
+    Long patientId = 1L;
 
-        when(repository.findById(patientId))
-                .thenReturn(Optional.empty());
+    when(repository.findById(patientId)).thenReturn(Optional.empty());
 
-        // When - Then
-        assertThrows(
-                ResourceNotFoundException.class,
-                () -> nutritionPlanGenerator.generate(patientId)
-        );
+    // When - Then
+    assertThrows(ResourceNotFoundException.class, () -> nutritionPlanGenerator.generate(patientId));
 
-        verify(repository).findById(patientId);
+    verify(repository).findById(patientId);
 
-        verifyNoInteractions(
-                calorieCalculator,
-                macroDistributor,
-                nutritionPlanAssembler,
-                nutritionPlanRepository,
-                templateRepository
-        );
-    }
+    verifyNoInteractions(
+        calorieCalculator,
+        macroDistributor,
+        nutritionPlanAssembler,
+        nutritionPlanRepository,
+        templateRepository);
+  }
 
-    @Test
-    void shouldThrowWhenDraftPlanAlreadyExists() {
+  @Test
+  void shouldThrowWhenDraftPlanAlreadyExists() {
 
-        // Given
-        Long patientId = 1L;
+    // Given
+    Long patientId = 1L;
 
-        PatientProfile patient = mock(PatientProfile.class);
+    PatientProfile patient = mock(PatientProfile.class);
 
-        when(repository.findById(patientId))
-                .thenReturn(Optional.of(patient));
+    when(repository.findById(patientId)).thenReturn(Optional.of(patient));
 
-        when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(
-                patientId,
-                PlanStatus.DRAFT))
-                .thenReturn(true);
+    when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT))
+        .thenReturn(true);
 
-        // When - Then
-        assertThrows(
-                IllegalStateException.class,
-                () -> nutritionPlanGenerator.generate(patientId)
-        );
+    // When - Then
+    assertThrows(IllegalStateException.class, () -> nutritionPlanGenerator.generate(patientId));
 
-        verify(repository).findById(patientId);
+    verify(repository).findById(patientId);
 
-        verify(nutritionPlanRepository)
-                .existsByPatientProfileIdAndStatus(
-                        patientId,
-                        PlanStatus.DRAFT);
+    verify(nutritionPlanRepository).existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT);
 
-        verifyNoInteractions(
-                calorieCalculator,
-                macroDistributor,
-                nutritionPlanAssembler,
-                templateRepository
-        );
+    verifyNoInteractions(
+        calorieCalculator, macroDistributor, nutritionPlanAssembler, templateRepository);
 
-        verify(nutritionPlanRepository, never()).save(any());
-    }
+    verify(nutritionPlanRepository, never()).save(any());
+  }
 
-    @Test
-    void shouldGeneratePlanSuccessfully() {
+  @Test
+  void shouldGeneratePlanSuccessfully() {
 
-        // Given
-        Long patientId = 1L;
+    // Given
+    Long patientId = 1L;
 
-        User user = new User();
-        user.setId(patientId);
+    User user = new User();
+    user.setId(patientId);
 
-        PatientProfile patient = new PatientProfile(user);
-        patient.updateNutritionProfile(
-                Height.of(175),
-                Weight.of(70000),
-                ActivityLevel.MODERATE,
-                GoalType.WEIGHT_MAINTENANCE
-        );
+    PatientProfile patient = new PatientProfile(user);
+    patient.updateNutritionProfile(
+        Height.of(175), Weight.of(70000), ActivityLevel.MODERATE, GoalType.WEIGHT_MAINTENANCE);
 
-        Calories calories = mock(Calories.class);
-        MacroDistribution macros = mock(MacroDistribution.class);
-        NutritionPlan plan = mock(NutritionPlan.class);
+    Calories calories = mock(Calories.class);
+    MacroDistribution macros = mock(MacroDistribution.class);
+    NutritionPlan plan = mock(NutritionPlan.class);
 
-        when(repository.findById(patientId))
-                .thenReturn(Optional.of(patient));
+    when(repository.findById(patientId)).thenReturn(Optional.of(patient));
 
-        when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(
-                patientId,
-                PlanStatus.DRAFT))
-                .thenReturn(false);
+    when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT))
+        .thenReturn(false);
 
-        when(calorieCalculator.calculate(patient))
-                .thenReturn(calories);
-
-        when(macroDistributor.distribute(patient, calories))
-                .thenReturn(macros);
-
-        when(nutritionPlanAssembler.assemble(patient, calories, macros))
-                .thenReturn(plan);
-
-        // When
-        nutritionPlanGenerator.generate(patientId);
-
-        // Then
-        verify(repository).findById(patientId);
-
-        verify(nutritionPlanRepository)
-                .existsByPatientProfileIdAndStatus(
-                        patientId,
-                        PlanStatus.DRAFT);
+    when(calorieCalculator.calculate(patient)).thenReturn(calories);
 
-        verify(calorieCalculator)
-                .calculate(patient);
+    when(macroDistributor.distribute(patient, calories)).thenReturn(macros);
 
-        verify(macroDistributor)
-                .distribute(patient, calories);
+    when(nutritionPlanAssembler.assemble(patient, calories, macros)).thenReturn(plan);
 
-        verify(nutritionPlanAssembler)
-                .assemble(patient, calories, macros);
+    // When
+    nutritionPlanGenerator.generate(patientId);
 
-        verify(nutritionPlanRepository)
-                .save(plan);
-    }
+    // Then
+    verify(repository).findById(patientId);
 
-    @Test
-    void shouldThrowWhenPatientNotFoundForTemplateGeneration() {
-
-        // Given
-        Long patientId = 1L;
-        Long templateId = 10L;
-
-        when(repository.findById(patientId))
-                .thenReturn(Optional.empty());
-
-        // When - Then
-        assertThrows(
-                ResourceNotFoundException.class,
-                () -> nutritionPlanGenerator.generateFromTemplate(
-                        patientId,
-                        templateId)
-        );
-
-        verify(repository).findById(patientId);
-
-        verifyNoInteractions(
-                calorieCalculator,
-                macroDistributor,
-                nutritionPlanAssembler,
-                nutritionPlanRepository,
-                templateRepository
-        );
-    }
-
-    @Test
-    void shouldThrowWhenDraftPlanAlreadyExistsForTemplateGeneration() {
-
-        // Given
-        Long patientId = 1L;
-        Long templateId = 10L;
-
-        PatientProfile patient = mock(PatientProfile.class);
-
-        when(repository.findById(patientId))
-                .thenReturn(Optional.of(patient));
-
-        when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(
-                patientId,
-                PlanStatus.DRAFT))
-                .thenReturn(true);
-
-        // When - Then
-        assertThrows(
-                PlanConflictException.class,
-                () -> nutritionPlanGenerator.generateFromTemplate(
-                        patientId,
-                        templateId)
-        );
-
-        verify(repository).findById(patientId);
-
-        verify(nutritionPlanRepository)
-                .existsByPatientProfileIdAndStatus(
-                        patientId,
-                        PlanStatus.DRAFT);
-
-        verify(nutritionPlanRepository, never())
-                .existsByPatientProfileIdAndStatus(
-                        patientId,
-                        PlanStatus.ACTIVE);
-
-        verifyNoInteractions(
-                templateRepository,
-                calorieCalculator,
-                macroDistributor,
-                nutritionPlanAssembler
-        );
-
-        verify(nutritionPlanRepository, never())
-                .save(any());
-    }
-
-    @Test
-    void shouldThrowWhenActivePlanAlreadyExistsForTemplateGeneration() {
-
-        // Given
-        Long patientId = 1L;
-        Long templateId = 10L;
-
-        PatientProfile patient = mock(PatientProfile.class);
-
-        when(repository.findById(patientId))
-                .thenReturn(Optional.of(patient));
-
-        when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(
-                patientId,
-                PlanStatus.DRAFT))
-                .thenReturn(false);
-
-        when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(
-                patientId,
-                PlanStatus.ACTIVE))
-                .thenReturn(true);
-
-        // When - Then
-        assertThrows(
-                PlanConflictException.class,
-                () -> nutritionPlanGenerator.generateFromTemplate(
-                        patientId,
-                        templateId)
-        );
-
-        verify(repository).findById(patientId);
-
-        verify(nutritionPlanRepository)
-                .existsByPatientProfileIdAndStatus(
-                        patientId,
-                        PlanStatus.DRAFT);
-
-        verify(nutritionPlanRepository)
-                .existsByPatientProfileIdAndStatus(
-                        patientId,
-                        PlanStatus.ACTIVE);
-
-        verifyNoInteractions(
-                templateRepository,
-                calorieCalculator,
-                macroDistributor,
-                nutritionPlanAssembler
-        );
-
-        verify(nutritionPlanRepository, never())
-                .save(any());
-    }
-
-    @Test
-    void shouldThrowWhenTemplateNotFound() {
-        // Given
-        Long patientId = 1L;
-        Long templateId = 10L;
-
-        PatientProfile patient = mock(PatientProfile.class);
-
-        given(repository.findById(patientId))
-                .willReturn(Optional.of(patient));
-
-        given(nutritionPlanRepository.existsByPatientProfileIdAndStatus(
-                patientId,
-                PlanStatus.DRAFT))
-                .willReturn(false);
+    verify(nutritionPlanRepository).existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT);
 
-        given(nutritionPlanRepository.existsByPatientProfileIdAndStatus(
-                patientId,
-                PlanStatus.ACTIVE))
-                .willReturn(false);
+    verify(calorieCalculator).calculate(patient);
 
-        given(templateRepository.findById(templateId))
-                .willReturn(Optional.empty());
+    verify(macroDistributor).distribute(patient, calories);
 
-        // When / Then
-        assertThrows(
-                ResourceNotFoundException.class,
-                () -> nutritionPlanGenerator.generateFromTemplate(patientId, templateId)
-        );
+    verify(nutritionPlanAssembler).assemble(patient, calories, macros);
 
-        verify(templateRepository).findById(templateId);
+    verify(nutritionPlanRepository).save(plan);
+  }
 
-        verify(nutritionPlanRepository, never()).save(any());
+  @Test
+  void shouldThrowWhenPatientNotFoundForTemplateGeneration() {
 
-        verifyNoInteractions(calorieCalculator);
-        verifyNoInteractions(macroDistributor);
-        verifyNoInteractions(nutritionPlanAssembler);
-    }
+    // Given
+    Long patientId = 1L;
+    Long templateId = 10L;
 
-    @Test
-    void shouldGeneratePlanFromTemplateSuccessfully() {
-        // Given
-        Long patientId = 1L;
-        Long templateId = 10L;
+    when(repository.findById(patientId)).thenReturn(Optional.empty());
 
-        User user = new User();
-        user.setId(patientId);
+    // When - Then
+    assertThrows(
+        ResourceNotFoundException.class,
+        () -> nutritionPlanGenerator.generateFromTemplate(patientId, templateId));
 
-        PatientProfile patient = new PatientProfile(user);
-        patient.updateNutritionProfile(
-                Height.of(175),
-                Weight.of(70000),
-                ActivityLevel.MODERATE,
-                GoalType.WEIGHT_MAINTENANCE
-        );
+    verify(repository).findById(patientId);
 
-        NutritionPlanTemplate template = mock(NutritionPlanTemplate.class);
+    verifyNoInteractions(
+        calorieCalculator,
+        macroDistributor,
+        nutritionPlanAssembler,
+        nutritionPlanRepository,
+        templateRepository);
+  }
 
-        Calories calories = new Calories(2000);
+  @Test
+  void shouldThrowWhenDraftPlanAlreadyExistsForTemplateGeneration() {
 
-        MacroDistribution macros = new MacroDistribution(
-                150,
-                250,
-                67
-        );
+    // Given
+    Long patientId = 1L;
+    Long templateId = 10L;
 
-        Set<FoodTag> excludedTags = Set.of(FoodTag.SOY);
+    PatientProfile patient = mock(PatientProfile.class);
 
-        NutritionPlan plan = mock(NutritionPlan.class);
+    when(repository.findById(patientId)).thenReturn(Optional.of(patient));
 
-        given(repository.findById(patientId))
-                .willReturn(Optional.of(patient));
+    when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT))
+        .thenReturn(true);
 
-        given(nutritionPlanRepository.existsByPatientProfileIdAndStatus(
-                patientId,
-                PlanStatus.DRAFT))
-                .willReturn(false);
+    // When - Then
+    assertThrows(
+        PlanConflictException.class,
+        () -> nutritionPlanGenerator.generateFromTemplate(patientId, templateId));
 
-        given(nutritionPlanRepository.existsByPatientProfileIdAndStatus(
-                patientId,
-                PlanStatus.ACTIVE))
-                .willReturn(false);
+    verify(repository).findById(patientId);
 
-        given(templateRepository.findById(templateId))
-                .willReturn(Optional.of(template));
+    verify(nutritionPlanRepository).existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT);
 
-        given(calorieCalculator.calculate(patient))
-                .willReturn(calories);
+    verify(nutritionPlanRepository, never())
+        .existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE);
 
-        given(macroDistributor.distributeFromTemplate(calories, template))
-                .willReturn(macros);
+    verifyNoInteractions(
+        templateRepository, calorieCalculator, macroDistributor, nutritionPlanAssembler);
 
-        given(template.getExcludedTags())
-                .willReturn(excludedTags);
+    verify(nutritionPlanRepository, never()).save(any());
+  }
 
-        given(nutritionPlanAssembler.assemble(
-                patient,
-                calories,
-                macros,
-                excludedTags))
-                .willReturn(plan);
+  @Test
+  void shouldThrowWhenActivePlanAlreadyExistsForTemplateGeneration() {
 
-        // When
-        NutritionPlanDetailDTO result =
-                nutritionPlanGenerator.generateFromTemplate(patientId, templateId);
+    // Given
+    Long patientId = 1L;
+    Long templateId = 10L;
 
-        // Then
-        assertNotNull(result);
+    PatientProfile patient = mock(PatientProfile.class);
 
-        verify(repository).findById(patientId);
+    when(repository.findById(patientId)).thenReturn(Optional.of(patient));
 
-        verify(templateRepository).findById(templateId);
+    when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT))
+        .thenReturn(false);
 
-        verify(calorieCalculator).calculate(patient);
+    when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE))
+        .thenReturn(true);
 
-        verify(macroDistributor)
-                .distributeFromTemplate(calories, template);
+    // When - Then
+    assertThrows(
+        PlanConflictException.class,
+        () -> nutritionPlanGenerator.generateFromTemplate(patientId, templateId));
 
-        verify(nutritionPlanAssembler)
-                .assemble(patient, calories, macros, excludedTags);
+    verify(repository).findById(patientId);
 
-        verify(nutritionPlanRepository).save(plan);
-    }
+    verify(nutritionPlanRepository).existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT);
 
-    @Test
-    void shouldThrowWhenDraftOrActiveExistsInTemplateFlow() {
+    verify(nutritionPlanRepository).existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE);
 
-        Long patientId = 1L;
-        Long templateId = 10L;
+    verifyNoInteractions(
+        templateRepository, calorieCalculator, macroDistributor, nutritionPlanAssembler);
 
-        PatientProfile patient = mock(PatientProfile.class);
+    verify(nutritionPlanRepository, never()).save(any());
+  }
 
-        when(repository.findById(patientId)).thenReturn(Optional.of(patient));
+  @Test
+  void shouldThrowWhenTemplateNotFound() {
+    // Given
+    Long patientId = 1L;
+    Long templateId = 10L;
 
-        when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT))
-                .thenReturn(false);
+    PatientProfile patient = mock(PatientProfile.class);
 
-        when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE))
-                .thenReturn(true);
+    given(repository.findById(patientId)).willReturn(Optional.of(patient));
 
-        assertThrows(PlanConflictException.class,
-                () -> nutritionPlanGenerator.generateFromTemplate(patientId, templateId));
+    given(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT))
+        .willReturn(false);
 
-        verify(nutritionPlanRepository).existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT);
-        verify(nutritionPlanRepository).existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE);
-    }
+    given(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE))
+        .willReturn(false);
 
-    @Test
-    void shouldGeneratePlanAndPersistCorrectly() {
+    given(templateRepository.findById(templateId)).willReturn(Optional.empty());
 
-        Long patientId = 1L;
+    // When / Then
+    assertThrows(
+        ResourceNotFoundException.class,
+        () -> nutritionPlanGenerator.generateFromTemplate(patientId, templateId));
 
-        User user = new User();
-        user.setId(patientId);
+    verify(templateRepository).findById(templateId);
 
-        PatientProfile patient = new PatientProfile(user);
-        patient.updateNutritionProfile(
-                Height.of(175),
-                Weight.of(75000),
-                ActivityLevel.MODERATE,
-                GoalType.WEIGHT_MAINTENANCE
-        );
+    verify(nutritionPlanRepository, never()).save(any());
 
-        Calories calories = new Calories(2000);
-        MacroDistribution macros = new MacroDistribution(150, 250, 67);
-        NutritionPlan plan = mock(NutritionPlan.class);
+    verifyNoInteractions(calorieCalculator);
+    verifyNoInteractions(macroDistributor);
+    verifyNoInteractions(nutritionPlanAssembler);
+  }
 
-        when(repository.findById(patientId)).thenReturn(Optional.of(patient));
-        when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT))
-                .thenReturn(false);
+  @Test
+  void shouldGeneratePlanFromTemplateSuccessfully() {
+    // Given
+    Long patientId = 1L;
+    Long templateId = 10L;
 
-        when(calorieCalculator.calculate(patient)).thenReturn(calories);
-        when(macroDistributor.distribute(patient, calories)).thenReturn(macros);
-        when(nutritionPlanAssembler.assemble(patient, calories, macros)).thenReturn(plan);
+    User user = new User();
+    user.setId(patientId);
 
-        nutritionPlanGenerator.generate(patientId);
+    PatientProfile patient = new PatientProfile(user);
+    patient.updateNutritionProfile(
+        Height.of(175), Weight.of(70000), ActivityLevel.MODERATE, GoalType.WEIGHT_MAINTENANCE);
 
-        InOrder inOrder = inOrder(repository, calorieCalculator, macroDistributor,
-                nutritionPlanAssembler, nutritionPlanRepository);
+    NutritionPlanTemplate template = mock(NutritionPlanTemplate.class);
 
-        inOrder.verify(repository).findById(patientId);
-        inOrder.verify(nutritionPlanRepository).existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT);
-        inOrder.verify(calorieCalculator).calculate(patient);
-        inOrder.verify(macroDistributor).distribute(patient, calories);
-        inOrder.verify(nutritionPlanAssembler).assemble(patient, calories, macros);
-        inOrder.verify(nutritionPlanRepository).save(plan);
-    }
+    Calories calories = new Calories(2000);
 
+    MacroDistribution macros = new MacroDistribution(150, 250, 67);
+
+    Set<FoodTag> excludedTags = Set.of(FoodTag.SOY);
+
+    NutritionPlan plan = mock(NutritionPlan.class);
+
+    given(repository.findById(patientId)).willReturn(Optional.of(patient));
+
+    given(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT))
+        .willReturn(false);
+
+    given(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE))
+        .willReturn(false);
+
+    given(templateRepository.findById(templateId)).willReturn(Optional.of(template));
+
+    given(calorieCalculator.calculate(patient)).willReturn(calories);
+
+    given(macroDistributor.distributeFromTemplate(calories, template)).willReturn(macros);
+
+    given(template.getExcludedTags()).willReturn(excludedTags);
+
+    given(nutritionPlanAssembler.assemble(patient, calories, macros, excludedTags))
+        .willReturn(plan);
+
+    // When
+    NutritionPlanDetailDTO result =
+        nutritionPlanGenerator.generateFromTemplate(patientId, templateId);
+
+    // Then
+    assertNotNull(result);
+
+    verify(repository).findById(patientId);
+
+    verify(templateRepository).findById(templateId);
+
+    verify(calorieCalculator).calculate(patient);
+
+    verify(macroDistributor).distributeFromTemplate(calories, template);
+
+    verify(nutritionPlanAssembler).assemble(patient, calories, macros, excludedTags);
+
+    verify(nutritionPlanRepository).save(plan);
+  }
+
+  @Test
+  void shouldThrowWhenDraftOrActiveExistsInTemplateFlow() {
+
+    Long patientId = 1L;
+    Long templateId = 10L;
+
+    PatientProfile patient = mock(PatientProfile.class);
+
+    when(repository.findById(patientId)).thenReturn(Optional.of(patient));
+
+    when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT))
+        .thenReturn(false);
+
+    when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE))
+        .thenReturn(true);
+
+    assertThrows(
+        PlanConflictException.class,
+        () -> nutritionPlanGenerator.generateFromTemplate(patientId, templateId));
+
+    verify(nutritionPlanRepository).existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT);
+    verify(nutritionPlanRepository).existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE);
+  }
+
+  @Test
+  void shouldGeneratePlanAndPersistCorrectly() {
+
+    Long patientId = 1L;
+
+    User user = new User();
+    user.setId(patientId);
+
+    PatientProfile patient = new PatientProfile(user);
+    patient.updateNutritionProfile(
+        Height.of(175), Weight.of(75000), ActivityLevel.MODERATE, GoalType.WEIGHT_MAINTENANCE);
+
+    Calories calories = new Calories(2000);
+    MacroDistribution macros = new MacroDistribution(150, 250, 67);
+    NutritionPlan plan = mock(NutritionPlan.class);
+
+    when(repository.findById(patientId)).thenReturn(Optional.of(patient));
+    when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT))
+        .thenReturn(false);
+
+    when(calorieCalculator.calculate(patient)).thenReturn(calories);
+    when(macroDistributor.distribute(patient, calories)).thenReturn(macros);
+    when(nutritionPlanAssembler.assemble(patient, calories, macros)).thenReturn(plan);
+
+    nutritionPlanGenerator.generate(patientId);
+
+    InOrder inOrder =
+        inOrder(
+            repository,
+            calorieCalculator,
+            macroDistributor,
+            nutritionPlanAssembler,
+            nutritionPlanRepository);
+
+    inOrder.verify(repository).findById(patientId);
+    inOrder
+        .verify(nutritionPlanRepository)
+        .existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT);
+    inOrder.verify(calorieCalculator).calculate(patient);
+    inOrder.verify(macroDistributor).distribute(patient, calories);
+    inOrder.verify(nutritionPlanAssembler).assemble(patient, calories, macros);
+    inOrder.verify(nutritionPlanRepository).save(plan);
+  }
 }

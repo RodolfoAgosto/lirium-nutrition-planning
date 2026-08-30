@@ -1,117 +1,103 @@
 package com.lirium.nutrition.model.valueobject;
 
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import org.junit.jupiter.api.Test;
+
 class CarbsTest {
 
-    @Test
-    void shouldCreateCarbs() {
+  @Test
+  void shouldCreateCarbs() {
 
-        Carbs carbs = new Carbs(100);
+    Carbs carbs = new Carbs(100);
 
-        assertThat(carbs.amount()).isEqualTo(100);
-    }
+    assertThat(carbs.amount()).isEqualTo(100);
+  }
 
-    @Test
-    void shouldAcceptMinimumCarbs() {
+  @Test
+  void shouldAcceptMinimumCarbs() {
 
-        Carbs carbs = new Carbs(0);
+    Carbs carbs = new Carbs(0);
 
-        assertThat(carbs.amount()).isZero();
-    }
+    assertThat(carbs.amount()).isZero();
+  }
 
-    @Test
-    void shouldAcceptMaximumCarbs() {
+  @Test
+  void shouldAcceptMaximumCarbs() {
 
-        Carbs carbs = new Carbs(1000);
+    Carbs carbs = new Carbs(1000);
 
-        assertThat(carbs.amount()).isEqualTo(1000);
-    }
+    assertThat(carbs.amount()).isEqualTo(1000);
+  }
 
-    @Test
-    void shouldRejectNegativeCarbs() {
+  @Test
+  void shouldRejectNegativeCarbs() {
 
-        assertThatThrownBy(() -> new Carbs(-1))
-                .isInstanceOf(IllegalArgumentException.class);
-    }
+    assertThatThrownBy(() -> new Carbs(-1)).isInstanceOf(IllegalArgumentException.class);
+  }
 
-    @Test
-    void shouldRejectCarbsGreaterThanMaximum() {
+  @Test
+  void shouldRejectCarbsGreaterThanMaximum() {
 
-        assertThatThrownBy(() -> new Carbs(1001))
-                .isInstanceOf(IllegalArgumentException.class);
-    }
+    assertThatThrownBy(() -> new Carbs(1001)).isInstanceOf(IllegalArgumentException.class);
+  }
 
-    @Test
-    void shouldAddCarbs() {
+  @Test
+  void shouldAddCarbs() {
 
-        Carbs result =
-                new Carbs(100)
-                        .add(new Carbs(50));
+    Carbs result = new Carbs(100).add(new Carbs(50));
 
-        assertThat(result.amount()).isEqualTo(150);
-    }
+    assertThat(result.amount()).isEqualTo(150);
+  }
 
-    @Test
-    void shouldAddZeroCarbs() {
+  @Test
+  void shouldAddZeroCarbs() {
 
-        Carbs result =
-                new Carbs(100)
-                        .add(new Carbs(0));
+    Carbs result = new Carbs(100).add(new Carbs(0));
 
-        assertThat(result.amount()).isEqualTo(100);
-    }
+    assertThat(result.amount()).isEqualTo(100);
+  }
 
-    @Test
-    void shouldRejectNullCarbsWhenAdding() {
+  @Test
+  void shouldRejectNullCarbsWhenAdding() {
 
-        Carbs carbs = new Carbs(100);
+    Carbs carbs = new Carbs(100);
 
-        assertThatThrownBy(() -> carbs.add(null))
-                .isInstanceOf(NullPointerException.class);
-    }
+    assertThatThrownBy(() -> carbs.add(null)).isInstanceOf(NullPointerException.class);
+  }
 
-    @Test
-    void shouldRejectAdditionThatExceedsMaximumCarbs() {
+  @Test
+  void shouldRejectAdditionThatExceedsMaximumCarbs() {
 
-        Carbs carbs = new Carbs(1000);
+    Carbs carbs = new Carbs(1000);
 
-        assertThatThrownBy(() ->
-                carbs.add(new Carbs(1))
-        ).isInstanceOf(IllegalArgumentException.class);
-    }
+    assertThatThrownBy(() -> carbs.add(new Carbs(1))).isInstanceOf(IllegalArgumentException.class);
+  }
 
-    @Test
-    void shouldConvertCarbsToCalories() {
+  @Test
+  void shouldConvertCarbsToCalories() {
 
-        Carbs carbs = new Carbs(100);
+    Carbs carbs = new Carbs(100);
 
-        assertThat(carbs.toCalories())
-                .isEqualTo(400);
-    }
+    assertThat(carbs.toCalories()).isEqualTo(400);
+  }
 
-    @Test
-    void shouldReturnTrueWhenCarbsAreZero() {
+  @Test
+  void shouldReturnTrueWhenCarbsAreZero() {
 
-        assertThat(new Carbs(0).isZero())
-                .isTrue();
-    }
+    assertThat(new Carbs(0).isZero()).isTrue();
+  }
 
-    @Test
-    void shouldReturnFalseWhenCarbsAreNotZero() {
+  @Test
+  void shouldReturnFalseWhenCarbsAreNotZero() {
 
-        assertThat(new Carbs(100).isZero())
-                .isFalse();
-    }
+    assertThat(new Carbs(100).isZero()).isFalse();
+  }
 
-    @Test
-    void shouldReturnDisplayString() {
+  @Test
+  void shouldReturnDisplayString() {
 
-        assertThat(new Carbs(150).toDisplayString())
-                .isEqualTo("150 g");
-    }
-
+    assertThat(new Carbs(150).toDisplayString()).isEqualTo("150 g");
+  }
 }

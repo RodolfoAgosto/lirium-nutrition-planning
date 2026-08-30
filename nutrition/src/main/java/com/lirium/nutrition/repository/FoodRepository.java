@@ -3,27 +3,27 @@ package com.lirium.nutrition.repository;
 import com.lirium.nutrition.model.entity.Food;
 import com.lirium.nutrition.model.enums.FoodTag;
 import com.lirium.nutrition.model.enums.MealType;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 @Repository
 public interface FoodRepository extends JpaRepository<Food, Long> {
 
-    List<Food> findAllByOrderByNameAsc();
+  List<Food> findAllByOrderByNameAsc();
 
-    Set<Food> findByFoodTagsIn(Set<FoodTag> tags);
+  Set<Food> findByFoodTagsIn(Set<FoodTag> tags);
 
-    boolean existsByName(String name);
+  boolean existsByName(String name);
 
-    Optional<Food> findByName(String name);
+  Optional<Food> findByName(String name);
 
-    @Query("""
+  @Query(
+      """
     SELECT f FROM Food f
     WHERE :mealType MEMBER OF f.suitableFor
     AND NOT EXISTS (
@@ -31,14 +31,12 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
         WHERE f2 = f AND t IN :excludedTags
     )
     """)
-    List<Food> findSuitableFoods(
-            @Param("mealType") MealType mealType,
-            @Param("excludedTags") Set<FoodTag> excludedTags
-    );
+  List<Food> findSuitableFoods(
+      @Param("mealType") MealType mealType, @Param("excludedTags") Set<FoodTag> excludedTags);
 
-    boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
+  boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
 
-    @Query("SELECT f FROM Food f WHERE LOWER(f.name) LIKE LOWER(CONCAT('%', :term, '%')) AND f.active = true")
-    List<Food> searchActiveFoods(@Param("term") String term);
-
+  @Query(
+      "SELECT f FROM Food f WHERE LOWER(f.name) LIKE LOWER(CONCAT('%', :term, '%')) AND f.active = true")
+  List<Food> searchActiveFoods(@Param("term") String term);
 }

@@ -13,31 +13,27 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
-    private final UserRepository userRepository;
+  private final UserRepository userRepository;
 
-    @Override
-    public OAuth2User loadUser(OAuth2UserRequest request) throws OAuth2AuthenticationException {
-        OAuth2User oAuth2User = super.loadUser(request);
-        validateEmail(oAuth2User);
-        return oAuth2User;
+  @Override
+  public OAuth2User loadUser(OAuth2UserRequest request) throws OAuth2AuthenticationException {
+    OAuth2User oAuth2User = super.loadUser(request);
+    validateEmail(oAuth2User);
+    return oAuth2User;
+  }
+
+  void validateEmail(OAuth2User oAuth2User) {
+    String email = oAuth2User.getAttribute("email");
+    Boolean emailVerified = oAuth2User.getAttribute("email_verified");
+
+    if (email == null || email.isEmpty()) {
+      throw new OAuth2AuthenticationException(
+          new OAuth2Error("email_missing"), "Email address not provided");
     }
 
-    void validateEmail(OAuth2User oAuth2User) {
-        String email = oAuth2User.getAttribute("email");
-        Boolean emailVerified = oAuth2User.getAttribute("email_verified");
-
-        if (email == null || email.isEmpty()) {
-            throw new OAuth2AuthenticationException(
-                    new OAuth2Error("email_missing"),
-                    "Email address not provided"
-            );
-        }
-
-        if (emailVerified == null || !emailVerified) {
-            throw new OAuth2AuthenticationException(
-                    new OAuth2Error("email_not_verified"),
-                    "Email address not provided"
-            );
-        }
+    if (emailVerified == null || !emailVerified) {
+      throw new OAuth2AuthenticationException(
+          new OAuth2Error("email_not_verified"), "Email address not provided");
     }
+  }
 }

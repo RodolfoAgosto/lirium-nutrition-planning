@@ -5,30 +5,28 @@ import com.lirium.nutrition.dto.request.MealRecordUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.DailyRecordResponseDTO;
 import com.lirium.nutrition.dto.response.MealRecordResponseDTO;
 import com.lirium.nutrition.dto.response.NutritionComparisonReportDTO;
-
 import java.time.LocalDate;
 import java.util.List;
 
 public interface DailyRecordService {
 
-    DailyRecordResponseDTO getOrCreateForDate(Long patientId, LocalDate date);
+  DailyRecordResponseDTO getOrCreateForDate(Long patientId, LocalDate date);
 
-    DailyRecordResponseDTO getById(Long id);
+  DailyRecordResponseDTO getById(Long id);
 
-    List<DailyRecordResponseDTO> getByPatient(Long patientId);
+  List<DailyRecordResponseDTO> getByPatient(Long patientId);
 
-    MealRecordResponseDTO updateMeal(Long mealRecordId, MealRecordUpdateRequestDTO request);
+  MealRecordResponseDTO updateMeal(Long mealRecordId, MealRecordUpdateRequestDTO request);
 
-    MealRecordResponseDTO addPortion(Long mealRecordId, FoodPortionAddRequestDTO request);
+  MealRecordResponseDTO addPortion(Long mealRecordId, FoodPortionAddRequestDTO request);
 
-    void removePortion(Long dailyRecordId, Long mealRecordId, Long portionId);
+  void removePortion(Long dailyRecordId, Long mealRecordId, Long portionId);
 
-    NutritionComparisonReportDTO getNutritionComparison(Long patientId, LocalDate from, LocalDate to);
+  NutritionComparisonReportDTO getNutritionComparison(Long patientId, LocalDate from, LocalDate to);
 
-    boolean isDailyRecordOwnedByUser(Long dailyRecordId, Long userId);
+  boolean isDailyRecordOwnedByUser(Long dailyRecordId, Long userId);
 
-    boolean isMealRecordOwnedByUser(Long mealRecordId, Long userId);
+  boolean isMealRecordOwnedByUser(Long mealRecordId, Long userId);
 
-    boolean existsForPatientAndDate(Long patientId, LocalDate date);
-
+  boolean existsForPatientAndDate(Long patientId, LocalDate date);
 }

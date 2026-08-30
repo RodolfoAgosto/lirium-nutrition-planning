@@ -1,24 +1,24 @@
 package com.lirium.nutrition.repository;
 
 import com.lirium.nutrition.model.entity.NutritionPlanTemplate;
-import com.lirium.nutrition.model.enums.GoalType;
 import com.lirium.nutrition.model.enums.FoodTag;
+import com.lirium.nutrition.model.enums.GoalType;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
-
 @Repository
-public interface NutritionPlanTemplateRepository extends JpaRepository<NutritionPlanTemplate, Long> {
+public interface NutritionPlanTemplateRepository
+    extends JpaRepository<NutritionPlanTemplate, Long> {
 
-    Optional<NutritionPlanTemplate> findByName(String name);
+  Optional<NutritionPlanTemplate> findByName(String name);
 
-    boolean existsByName(String name);
+  boolean existsByName(String name);
 
-    List<NutritionPlanTemplate> findByTargetGoal(GoalType targetGoal);
+  List<NutritionPlanTemplate> findByTargetGoal(GoalType targetGoal);
 
-    List<NutritionPlanTemplate> findByExcludedTagsContains(FoodTag tag);
+  List<NutritionPlanTemplate> findByExcludedTagsContains(FoodTag tag);
 
-    long deleteByName(String name);
+  long deleteByName(String name);
 }

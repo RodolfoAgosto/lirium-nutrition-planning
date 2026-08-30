@@ -2,39 +2,32 @@ package com.lirium.nutrition.model.valueobject;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-
 import java.util.Objects;
 
 @Embeddable
-public record Calories(
-        @Column(name = "calories")
-        int amount
-) {
+public record Calories(@Column(name = "calories") int amount) {
 
-    private static final int MIN_CALORIES = 0;
-    private static final int MAX_CALORIES = 200000;
+  private static final int MIN_CALORIES = 0;
+  private static final int MAX_CALORIES = 200000;
 
-    public Calories {
-        if (amount < MIN_CALORIES || amount > MAX_CALORIES) {
-            throw new IllegalArgumentException(
-                    String.format("Calories must be between %d and %d",
-                            MIN_CALORIES, MAX_CALORIES)
-            );
-        }
+  public Calories {
+    if (amount < MIN_CALORIES || amount > MAX_CALORIES) {
+      throw new IllegalArgumentException(
+          String.format("Calories must be between %d and %d", MIN_CALORIES, MAX_CALORIES));
     }
+  }
 
-    public Calories add(Calories other) {
-        Objects.requireNonNull(other, "Calories to add cannot be null");
-        int result = Math.addExact(this.amount, other.amount);
-        return new Calories(result);
-    }
+  public Calories add(Calories other) {
+    Objects.requireNonNull(other, "Calories to add cannot be null");
+    int result = Math.addExact(this.amount, other.amount);
+    return new Calories(result);
+  }
 
-    public boolean isZero() {
-        return amount == 0;
-    }
+  public boolean isZero() {
+    return amount == 0;
+  }
 
-    public String toDisplayString() {
-        return amount + " kcal";
-    }
-
+  public String toDisplayString() {
+    return amount + " kcal";
+  }
 }

@@ -1,148 +1,101 @@
 package com.lirium.nutrition.model.entity;
 
-import com.lirium.nutrition.model.enums.*;
-import com.lirium.nutrition.model.valueobject.Height;
-import com.lirium.nutrition.model.valueobject.Weight;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.lirium.nutrition.model.enums.*;
+import com.lirium.nutrition.model.valueobject.Height;
+import com.lirium.nutrition.model.valueobject.Weight;
+import java.util.HashSet;
+import org.junit.jupiter.api.Test;
+
 class PatientProfileHistoryTest {
 
+  private PatientProfile createProfile() {
 
-    private PatientProfile createProfile() {
+    User user = new User("patient@test.com", "password", "Juan", "Perez", Role.PATIENT);
 
-        User user = new User(
-                "patient@test.com",
-                "password",
-                "Juan",
-                "Perez",
-                Role.PATIENT
-        );
+    PatientProfile profile = new PatientProfile(user);
 
-        PatientProfile profile =
-                new PatientProfile(user);
+    profile.update(
+        Sex.MALE,
+        ActivityLevel.VERY_ACTIVE,
+        Weight.of(80000),
+        Height.of(180),
+        "No issues",
+        null,
+        null,
+        GoalType.WEIGHT_LOSS);
 
-        profile.update(
-                Sex.MALE,
-                ActivityLevel.VERY_ACTIVE,
-                Weight.of(80000),
-                Height.of(180),
-                "No issues",
-                null,
-                null,
-                GoalType.WEIGHT_LOSS
-        );
+    return profile;
+  }
 
-        return profile;
-    }
+  private Restriction createRestriction() {
 
+    return Restriction.builder()
+        .code("GLUTEN")
+        .name("Gluten")
+        .category(RestrictionCategory.INTOLERANCES)
+        .description("Avoid gluten")
+        .build();
+  }
 
-    private Restriction createRestriction() {
+  @Test
+  void shouldCreateHistoryFromPatientProfile() {
 
-        return Restriction.builder()
-                .code("GLUTEN")
-                .name("Gluten")
-                .category(RestrictionCategory.INTOLERANCES)
-                .description("Avoid gluten")
-                .build();
-    }
+    PatientProfile profile = createProfile();
 
+    PatientProfileHistory history = new PatientProfileHistory(profile);
 
-    @Test
-    void shouldCreateHistoryFromPatientProfile() {
+    assertThat(history.getPatientProfile()).isEqualTo(profile);
 
-        PatientProfile profile =
-                createProfile();
+    assertThat(history.getWeight()).isEqualTo(Weight.of(80000));
 
+    assertThat(history.getHeight()).isEqualTo(Height.of(180));
 
-        PatientProfileHistory history =
-                new PatientProfileHistory(profile);
+    assertThat(history.getMedicalNotes()).isEqualTo("No issues");
 
+    assertThat(history.getPrimaryGoal()).isEqualTo(GoalType.WEIGHT_LOSS);
 
-        assertThat(history.getPatientProfile())
-                .isEqualTo(profile);
+    assertThat(history.getVisitDate()).isEqualTo(java.time.LocalDate.now());
+  }
 
-        assertThat(history.getWeight())
-                .isEqualTo(Weight.of(80000));
+  @Test
+  void shouldCopyRestrictionsFromProfile() {
 
-        assertThat(history.getHeight())
-                .isEqualTo(Height.of(180));
+    PatientProfile profile = createProfile();
 
-        assertThat(history.getMedicalNotes())
-                .isEqualTo("No issues");
+    Restriction restriction = createRestriction();
 
-        assertThat(history.getPrimaryGoal())
-                .isEqualTo(GoalType.WEIGHT_LOSS);
+    profile.addRestriction(restriction);
 
-        assertThat(history.getVisitDate())
-                .isEqualTo(java.time.LocalDate.now());
-    }
+    PatientProfileHistory history = new PatientProfileHistory(profile);
 
+    assertThat(history.getRestrictions()).containsExactly(restriction);
+  }
 
-    @Test
-    void shouldCopyRestrictionsFromProfile() {
+  @Test
+  void shouldNotShareRestrictionCollection() {
 
-        PatientProfile profile =
-                createProfile();
+    PatientProfile profile = createProfile();
 
-        Restriction restriction =
-                createRestriction();
+    Restriction restriction = createRestriction();
 
-        profile.addRestriction(restriction);
+    profile.addRestriction(restriction);
 
+    PatientProfileHistory history = new PatientProfileHistory(profile);
 
-        PatientProfileHistory history =
-                new PatientProfileHistory(profile);
+    profile.update(null, null, null, null, null, new HashSet<>(), null, null);
 
+    assertThat(profile.getRestrictions()).doesNotContain(restriction);
 
-        assertThat(history.getRestrictions())
-                .containsExactly(restriction);
-    }
+    assertThat(history.getRestrictions()).contains(restriction);
+  }
 
-    @Test
-    void shouldNotShareRestrictionCollection() {
+  @Test
+  void shouldRejectNullProfile() {
 
-        PatientProfile profile = createProfile();
-
-        Restriction restriction = createRestriction();
-
-        profile.addRestriction(restriction);
-
-        PatientProfileHistory history =
-                new PatientProfileHistory(profile);
-
-
-        profile.update(
-                null,
-                null,
-                null,
-                null,
-                null,
-                new HashSet<>(),
-                null,
-                null
-        );
-
-
-        assertThat(profile.getRestrictions())
-                .doesNotContain(restriction);
-
-        assertThat(history.getRestrictions())
-                .contains(restriction);
-    }
-
-
-    @Test
-    void shouldRejectNullProfile() {
-
-        assertThatThrownBy(() ->
-                new PatientProfileHistory(null)
-        )
-                .isInstanceOf(NullPointerException.class);
-    }
-
+    assertThatThrownBy(() -> new PatientProfileHistory(null))
+        .isInstanceOf(NullPointerException.class);
+  }
 }

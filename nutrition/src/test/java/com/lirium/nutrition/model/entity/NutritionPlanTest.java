@@ -1,488 +1,308 @@
 package com.lirium.nutrition.model.entity;
 
-import com.lirium.nutrition.exception.UnprocessableEntityException;
-import com.lirium.nutrition.model.enums.GoalType;
-import org.junit.jupiter.api.Test;
-
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.lirium.nutrition.exception.UnprocessableEntityException;
+import com.lirium.nutrition.model.enums.GoalType;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import org.junit.jupiter.api.Test;
+
 class NutritionPlanTest {
 
+  private PatientProfile patient() {
+    User user = new User("test@test.com", "password", "Juan", "Perez", null);
 
-    private PatientProfile patient() {
-        User user = new User(
-                "test@test.com",
-                "password",
-                "Juan",
-                "Perez",
-                null
-        );
+    return new PatientProfile(user);
+  }
 
-        return new PatientProfile(user);
-    }
+  @Test
+  void shouldGenerateNutritionPlanAsDraft() {
 
+    NutritionPlan plan =
+        NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 120, 200, 60, patient());
 
-    @Test
-    void shouldGenerateNutritionPlanAsDraft() {
+    assertThat(plan.isDraft()).isTrue();
+    assertThat(plan.isActive()).isFalse();
+  }
 
-        NutritionPlan plan = NutritionPlan.generate(
-                GoalType.WEIGHT_LOSS,
-                2000,
-                120,
-                200,
-                60,
-                patient()
-        );
+  @Test
+  void shouldCompleteBasicInformation() {
 
+    NutritionPlan plan =
+        NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 120, 200, 60, patient());
 
-        assertThat(plan.isDraft()).isTrue();
-        assertThat(plan.isActive()).isFalse();
-    }
+    plan.completeBasic("Plan definición", "Plan para bajar grasa");
 
+    assertThat(plan.getName()).isEqualTo("Plan definición");
 
-    @Test
-    void shouldCompleteBasicInformation() {
+    assertThat(plan.getDescription()).isEqualTo("Plan para bajar grasa");
+  }
 
-        NutritionPlan plan = NutritionPlan.generate(
-                GoalType.WEIGHT_LOSS,
-                2000,
-                120,
-                200,
-                60,
-                patient()
-        );
+  @Test
+  void shouldNotCompleteWithBlankName() {
 
+    NutritionPlan plan =
+        NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 120, 200, 60, patient());
 
-        plan.completeBasic(
-                "Plan definición",
-                "Plan para bajar grasa"
-        );
+    assertThatThrownBy(() -> plan.completeBasic("", "description"))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
 
+  @Test
+  void shouldActivateDraftPlan() {
 
-        assertThat(plan.getName())
-                .isEqualTo("Plan definición");
+    NutritionPlan plan =
+        NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 120, 200, 60, patient());
 
-        assertThat(plan.getDescription())
-                .isEqualTo("Plan para bajar grasa");
-    }
+    LocalDate date = LocalDate.of(2026, 1, 1);
 
-    @Test
-    void shouldNotCompleteWithBlankName() {
+    plan.activate(date);
 
-        NutritionPlan plan = NutritionPlan.generate(
-                GoalType.WEIGHT_LOSS,
-                2000,
-                120,
-                200,
-                60,
-                patient()
-        );
+    assertThat(plan.isActive()).isTrue();
+    assertThat(plan.getStartDate()).isEqualTo(date);
+  }
 
+  @Test
+  void shouldNotActivateNonDraftPlan() {
 
-        assertThatThrownBy(() ->
-                plan.completeBasic(
-                        "",
-                        "description"
-                )
-        )
-                .isInstanceOf(IllegalArgumentException.class);
-    }
+    NutritionPlan plan =
+        NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 120, 200, 60, patient());
 
+    plan.activate(LocalDate.now());
 
-    @Test
-    void shouldActivateDraftPlan() {
+    assertThatThrownBy(() -> plan.activate(LocalDate.now()))
+        .isInstanceOf(UnprocessableEntityException.class)
+        .hasMessageContaining("Only DRAFT or INACTIVE plans can be activated");
+  }
 
-        NutritionPlan plan = NutritionPlan.generate(
-                GoalType.WEIGHT_LOSS,
-                2000,
-                120,
-                200,
-                60,
-                patient()
-        );
+  @Test
+  void shouldDeactivateActivePlan() {
 
+    NutritionPlan plan =
+        NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 120, 200, 60, patient());
 
-        LocalDate date = LocalDate.of(2026,1,1);
+    plan.activate(LocalDate.now());
 
-        plan.activate(date);
+    plan.deactivate();
 
+    assertThat(plan.isActive()).isFalse();
+  }
 
-        assertThat(plan.isActive()).isTrue();
-        assertThat(plan.getStartDate()).isEqualTo(date);
-    }
+  @Test
+  void shouldRejectInvalidUpdateDates() {
 
+    NutritionPlan plan =
+        NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 120, 200, 60, patient());
 
-    @Test
-    void shouldNotActivateNonDraftPlan() {
-
-        NutritionPlan plan = NutritionPlan.generate(
-                GoalType.WEIGHT_LOSS,
-                2000,
-                120,
-                200,
-                60,
-                patient()
-        );
-
-
-        plan.activate(LocalDate.now());
-
-
-        assertThatThrownBy(() ->
-                plan.activate(LocalDate.now())
-        )
-                .isInstanceOf(UnprocessableEntityException.class)
-                .hasMessageContaining("Only DRAFT or INACTIVE plans can be activated");
-    }
-
-
-    @Test
-    void shouldDeactivateActivePlan() {
-
-        NutritionPlan plan = NutritionPlan.generate(
-                GoalType.WEIGHT_LOSS,
-                2000,
-                120,
-                200,
-                60,
-                patient()
-        );
-
-
-        plan.activate(LocalDate.now());
-
-        plan.deactivate();
-
-
-        assertThat(plan.isActive()).isFalse();
-    }
-
-
-    @Test
-    void shouldRejectInvalidUpdateDates() {
-
-        NutritionPlan plan = NutritionPlan.generate(
-                GoalType.WEIGHT_LOSS,
-                2000,
-                120,
-                200,
-                60,
-                patient()
-        );
-
-
-        assertThatThrownBy(() ->
+    assertThatThrownBy(
+            () ->
                 plan.update(
-                        null,
-                        null,
-                        LocalDate.of(2026,2,1),
-                        LocalDate.of(2026,1,1),
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                )
-        )
-                .isInstanceOf(IllegalArgumentException.class);
-    }
+                    null,
+                    null,
+                    LocalDate.of(2026, 2, 1),
+                    LocalDate.of(2026, 1, 1),
+                    null,
+                    null,
+                    null,
+                    null,
+                    null))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
 
+  @Test
+  void shouldRejectNegativeMacros() {
 
-    @Test
-    void shouldRejectNegativeMacros() {
+    NutritionPlan plan =
+        NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 120, 200, 60, patient());
 
-        NutritionPlan plan = NutritionPlan.generate(
-                GoalType.WEIGHT_LOSS,
-                2000,
-                120,
-                200,
-                60,
-                patient()
-        );
+    assertThatThrownBy(() -> plan.update(null, null, null, null, null, null, -1, null, null))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
 
+  @Test
+  void shouldNotCompleteActivePlan() {
 
-        assertThatThrownBy(() ->
+    NutritionPlan plan = createActivePlan();
+
+    assertThatThrownBy(() -> plan.completeBasic("name", "description"))
+        .isInstanceOf(IllegalStateException.class);
+  }
+
+  @Test
+  void shouldRejectEndDateBeforeStartDate() {
+
+    NutritionPlan plan = createPlan();
+
+    assertThatThrownBy(
+            () ->
                 plan.update(
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        -1,
-                        null,
-                        null
-                )
-        )
-                .isInstanceOf(IllegalArgumentException.class);
-    }
+                    null,
+                    null,
+                    LocalDate.of(2026, 1, 10),
+                    LocalDate.of(2026, 1, 1),
+                    null,
+                    null,
+                    null,
+                    null,
+                    null))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
 
-    @Test
-    void shouldNotCompleteActivePlan() {
+  @Test
+  void shouldRejectNullStartDateWhenActivating() {
 
-        NutritionPlan plan = createActivePlan();
+    NutritionPlan plan = createPlan();
 
-        assertThatThrownBy(() ->
-                plan.completeBasic(
-                        "name",
-                        "description"
-                )
-        )
-                .isInstanceOf(IllegalStateException.class);
-    }
+    assertThatThrownBy(() -> plan.activate(null)).isInstanceOf(NullPointerException.class);
+  }
 
-    @Test
-    void shouldRejectEndDateBeforeStartDate() {
+  @Test
+  void shouldNotDeactivateDraftPlan() {
 
-        NutritionPlan plan = createPlan();
+    NutritionPlan plan = createPlan();
 
-        assertThatThrownBy(() ->
-                plan.update(
-                        null,
-                        null,
-                        LocalDate.of(2026,1,10),
-                        LocalDate.of(2026,1,1),
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                )
-        )
-                .isInstanceOf(IllegalArgumentException.class);
-    }
+    assertThatThrownBy(plan::deactivate).isInstanceOf(IllegalStateException.class);
+  }
 
-    @Test
-    void shouldRejectNullStartDateWhenActivating() {
+  @Test
+  void shouldCloseActivePlan() {
 
-        NutritionPlan plan = createPlan();
+    NutritionPlan plan = createActivePlan();
 
-        assertThatThrownBy(() -> plan.activate(null))
-                .isInstanceOf(NullPointerException.class);
-    }
+    LocalDate end = LocalDate.now();
 
-    @Test
-    void shouldNotDeactivateDraftPlan() {
+    plan.close(end);
 
-        NutritionPlan plan = createPlan();
+    assertThat(plan.getEndDate()).isEqualTo(end);
+    assertThat(plan.isActive()).isFalse();
+  }
 
-        assertThatThrownBy(plan::deactivate)
-                .isInstanceOf(IllegalStateException.class);
-    }
+  @Test
+  void shouldNotCloseDraftPlan() {
 
-    @Test
-    void shouldCloseActivePlan() {
+    NutritionPlan plan = createPlan();
 
-        NutritionPlan plan = createActivePlan();
+    assertThatThrownBy(() -> plan.close(LocalDate.now())).isInstanceOf(IllegalStateException.class);
+  }
 
-        LocalDate end = LocalDate.now();
+  @Test
+  void shouldRejectZeroCalories() {
 
-        plan.close(end);
+    NutritionPlan plan = createPlan();
 
-        assertThat(plan.getEndDate()).isEqualTo(end);
-        assertThat(plan.isActive()).isFalse();
-    }
+    assertThatThrownBy(() -> plan.update(null, null, null, null, null, 0, null, null, null))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
 
-    @Test
-    void shouldNotCloseDraftPlan() {
+  @Test
+  void shouldRejectNegativeCarbs() {
 
-        NutritionPlan plan = createPlan();
+    NutritionPlan plan = createPlan();
 
-        assertThatThrownBy(() -> plan.close(LocalDate.now()))
-                .isInstanceOf(IllegalStateException.class);
-    }
+    assertThatThrownBy(() -> plan.update(null, null, null, null, null, null, null, -1, null))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
 
-    @Test
-    void shouldRejectZeroCalories() {
+  @Test
+  void shouldUpdateAllFields() {
 
-        NutritionPlan plan = createPlan();
+    NutritionPlan plan = createPlan();
 
-        assertThatThrownBy(() ->
-                plan.update(
-                        null, null, null, null,
-                        null,
-                        0,
-                        null,
-                        null,
-                        null
-                )
-        ).isInstanceOf(IllegalArgumentException.class);
-    }
+    LocalDate start = LocalDate.of(2026, 1, 1);
+    LocalDate end = LocalDate.of(2026, 2, 1);
 
-    @Test
-    void shouldRejectNegativeCarbs() {
+    plan.update(
+        "Nuevo nombre", "Nueva descripción", start, end, GoalType.MUSCLE_GAIN, 2500, 180, 250, 80);
 
-        NutritionPlan plan = createPlan();
+    assertThat(plan.getName()).isEqualTo("Nuevo nombre");
+    assertThat(plan.getDescription()).isEqualTo("Nueva descripción");
+    assertThat(plan.getStartDate()).isEqualTo(start);
+    assertThat(plan.getEndDate()).isEqualTo(end);
+    assertThat(plan.getTargetGoal()).isEqualTo(GoalType.MUSCLE_GAIN);
+    assertThat(plan.getDailyCalories()).isEqualTo(2500);
+    assertThat(plan.getProteinGrams()).isEqualTo(180);
+    assertThat(plan.getCarbGrams()).isEqualTo(250);
+    assertThat(plan.getFatGrams()).isEqualTo(80);
+  }
 
-        assertThatThrownBy(() ->
-                plan.update(
-                        null, null, null, null,
-                        null,
-                        null,
-                        null,
-                        -1,
-                        null
-                )
-        ).isInstanceOf(IllegalArgumentException.class);
-    }
+  @Test
+  void shouldRejectBlankDescription() {
 
-    @Test
-    void shouldUpdateAllFields() {
+    NutritionPlan plan = createPlan();
 
-        NutritionPlan plan = createPlan();
+    assertThatThrownBy(() -> plan.completeBasic("Nombre", ""))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
 
-        LocalDate start = LocalDate.of(2026, 1, 1);
-        LocalDate end = LocalDate.of(2026, 2, 1);
+  @Test
+  void shouldRejectNullName() {
 
-        plan.update(
-                "Nuevo nombre",
-                "Nueva descripción",
-                start,
-                end,
-                GoalType.MUSCLE_GAIN,
-                2500,
-                180,
-                250,
-                80
-        );
+    NutritionPlan plan = createPlan();
 
-        assertThat(plan.getName()).isEqualTo("Nuevo nombre");
-        assertThat(plan.getDescription()).isEqualTo("Nueva descripción");
-        assertThat(plan.getStartDate()).isEqualTo(start);
-        assertThat(plan.getEndDate()).isEqualTo(end);
-        assertThat(plan.getTargetGoal()).isEqualTo(GoalType.MUSCLE_GAIN);
-        assertThat(plan.getDailyCalories()).isEqualTo(2500);
-        assertThat(plan.getProteinGrams()).isEqualTo(180);
-        assertThat(plan.getCarbGrams()).isEqualTo(250);
-        assertThat(plan.getFatGrams()).isEqualTo(80);
-    }
+    assertThatThrownBy(() -> plan.completeBasic(null, "Descripción"))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
 
-    @Test
-    void shouldRejectBlankDescription() {
+  @Test
+  void shouldRejectNullDescription() {
 
-        NutritionPlan plan = createPlan();
+    NutritionPlan plan = createPlan();
 
-        assertThatThrownBy(() ->
-                plan.completeBasic(
-                        "Nombre",
-                        ""
-                )
-        ).isInstanceOf(IllegalArgumentException.class);
-    }
+    assertThatThrownBy(() -> plan.completeBasic("Nombre", null))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
 
-    @Test
-    void shouldRejectNullName() {
+  @Test
+  void shouldRejectNegativeFatGrams() {
 
-        NutritionPlan plan = createPlan();
+    NutritionPlan plan = createPlan();
 
-        assertThatThrownBy(() ->
-                plan.completeBasic(
-                        null,
-                        "Descripción"
-                )
-        ).isInstanceOf(IllegalArgumentException.class);
-    }
+    assertThatThrownBy(() -> plan.update(null, null, null, null, null, null, null, null, -1))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
 
-    @Test
-    void shouldRejectNullDescription() {
+  @Test
+  void shouldRejectNullEndDateWhenClosing() {
 
-        NutritionPlan plan = createPlan();
+    NutritionPlan plan = createActivePlan();
 
-        assertThatThrownBy(() ->
-                plan.completeBasic(
-                        "Nombre",
-                        null
-                )
-        ).isInstanceOf(IllegalArgumentException.class);
-    }
+    assertThatThrownBy(() -> plan.close(null)).isInstanceOf(NullPointerException.class);
+  }
 
-    @Test
-    void shouldRejectNegativeFatGrams() {
+  @Test
+  void shouldAddDailyPlan() {
 
-        NutritionPlan plan = createPlan();
+    NutritionPlan plan = createPlan();
 
-        assertThatThrownBy(() ->
-                plan.update(
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        -1
-                )
-        ).isInstanceOf(IllegalArgumentException.class);
-    }
+    DailyPlan dailyPlan = DailyPlan.of(DayOfWeek.MONDAY, plan);
 
-    @Test
-    void shouldRejectNullEndDateWhenClosing() {
+    plan.addDailyPlan(dailyPlan);
 
-        NutritionPlan plan = createActivePlan();
+    assertThat(plan.getWeek()).containsExactly(dailyPlan);
+  }
 
-        assertThatThrownBy(() -> plan.close(null))
-                .isInstanceOf(NullPointerException.class);
-    }
+  @Test
+  void shouldRejectNullDailyPlan() {
 
-    @Test
-    void shouldAddDailyPlan() {
+    NutritionPlan plan = createPlan();
 
-        NutritionPlan plan = createPlan();
+    assertThatThrownBy(() -> plan.addDailyPlan(null)).isInstanceOf(NullPointerException.class);
+  }
 
-        DailyPlan dailyPlan =
-                DailyPlan.of(
-                        DayOfWeek.MONDAY,
-                        plan
-                );
+  private NutritionPlan createActivePlan() {
 
-        plan.addDailyPlan(dailyPlan);
+    NutritionPlan plan =
+        NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 120, 200, 60, patient());
 
-        assertThat(plan.getWeek())
-                .containsExactly(dailyPlan);
-    }
+    plan.activate(LocalDate.now());
 
-    @Test
-    void shouldRejectNullDailyPlan() {
+    return plan;
+  }
 
-        NutritionPlan plan = createPlan();
+  private NutritionPlan createPlan() {
 
-        assertThatThrownBy(() ->
-                plan.addDailyPlan(null)
-        ).isInstanceOf(NullPointerException.class);
-    }
-
-
-
-    private NutritionPlan createActivePlan() {
-
-        NutritionPlan plan = NutritionPlan.generate(
-                GoalType.WEIGHT_LOSS,
-                2000,
-                120,
-                200,
-                60,
-                patient()
-        );
-
-        plan.activate(LocalDate.now());
-
-        return plan;
-    }
-
-    private NutritionPlan createPlan() {
-
-        return NutritionPlan.generate(
-                GoalType.WEIGHT_LOSS,
-                2000,
-                120,
-                200,
-                60,
-                patient()
-        );
-    }
+    return NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 120, 200, 60, patient());
+  }
 }

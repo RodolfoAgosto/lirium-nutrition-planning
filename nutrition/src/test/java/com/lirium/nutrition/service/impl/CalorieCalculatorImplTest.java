@@ -1,203 +1,156 @@
 package com.lirium.nutrition.service.impl;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.lirium.nutrition.model.entity.PatientProfile;
 import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.model.enums.*;
 import com.lirium.nutrition.model.valueobject.Calories;
 import com.lirium.nutrition.model.valueobject.Height;
 import com.lirium.nutrition.model.valueobject.Weight;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class CalorieCalculatorImplTest {
 
-    private final CalorieCalculatorImpl calculator = new CalorieCalculatorImpl();
+  private final CalorieCalculatorImpl calculator = new CalorieCalculatorImpl();
 
-    @Test
-    void shouldCalculateCaloriesForMalePatient() {
+  @Test
+  void shouldCalculateCaloriesForMalePatient() {
 
-        User user = new User(
-                "john@test.com",
-                "hash",
-                "John",
-                "Doe",
-                Role.PATIENT
-        );
+    User user = new User("john@test.com", "hash", "John", "Doe", Role.PATIENT);
 
-        user.setBirthDate(LocalDate.now().minusYears(30));
+    user.setBirthDate(LocalDate.now().minusYears(30));
 
-        PatientProfile patient = user.getPatientProfile();
+    PatientProfile patient = user.getPatientProfile();
 
-        patient.update(
-                Sex.MALE,
-                ActivityLevel.SEDENTARY,
-                Weight.of(80_000),
-                Height.of(180),
-                null,
-                Set.of(),
-                List.of(),
-                GoalType.WEIGHT_MAINTENANCE
-        );
+    patient.update(
+        Sex.MALE,
+        ActivityLevel.SEDENTARY,
+        Weight.of(80_000),
+        Height.of(180),
+        null,
+        Set.of(),
+        List.of(),
+        GoalType.WEIGHT_MAINTENANCE);
 
-        CalorieCalculatorImpl calculator = new CalorieCalculatorImpl();
+    CalorieCalculatorImpl calculator = new CalorieCalculatorImpl();
 
-        Calories result = calculator.calculate(patient);
+    Calories result = calculator.calculate(patient);
 
-        assertEquals(2136, result.amount());
+    assertEquals(2136, result.amount());
+  }
 
-    }
+  @Test
+  void shouldCalculateCaloriesForFemalePatient() {
 
-    @Test
-    void shouldCalculateCaloriesForFemalePatient() {
+    User user = new User("jane@test.com", "hash", "Jane", "Doe", Role.PATIENT);
 
-        User user = new User(
-                "jane@test.com",
-                "hash",
-                "Jane",
-                "Doe",
-                Role.PATIENT
-        );
+    user.setBirthDate(LocalDate.now().minusYears(30));
 
-        user.setBirthDate(LocalDate.now().minusYears(30));
+    PatientProfile patient = user.getPatientProfile();
 
-        PatientProfile patient = user.getPatientProfile();
+    patient.update(
+        Sex.FEMALE,
+        ActivityLevel.SEDENTARY,
+        Weight.of(80_000),
+        Height.of(180),
+        null,
+        Set.of(),
+        List.of(),
+        GoalType.WEIGHT_MAINTENANCE);
 
-        patient.update(
-                Sex.FEMALE,
-                ActivityLevel.SEDENTARY,
-                Weight.of(80_000),
-                Height.of(180),
-                null,
-                Set.of(),
-                List.of(),
-                GoalType.WEIGHT_MAINTENANCE
-        );
+    CalorieCalculatorImpl calculator = new CalorieCalculatorImpl();
 
-        CalorieCalculatorImpl calculator = new CalorieCalculatorImpl();
+    Calories result = calculator.calculate(patient);
 
-        Calories result = calculator.calculate(patient);
+    assertEquals(1936, result.amount());
+  }
 
-        assertEquals(1936, result.amount());
+  @Test
+  void shouldApplyWeightLossGoal() {
 
-    }
+    PatientProfile patient =
+        createPatient(Sex.MALE, ActivityLevel.SEDENTARY, GoalType.WEIGHT_LOSS, List.of());
 
-    @Test
-    void shouldApplyWeightLossGoal() {
+    Calories result = calculator.calculate(patient);
 
-        PatientProfile patient = createPatient(
-                Sex.MALE,
-                ActivityLevel.SEDENTARY,
-                GoalType.WEIGHT_LOSS,
-                List.of()
-        );
+    assertEquals(1708, result.amount());
+  }
 
-        Calories result = calculator.calculate(patient);
+  @Test
+  void shouldApplyMuscleGainGoal() {
 
-        assertEquals(1708, result.amount());
-    }
+    PatientProfile patient =
+        createPatient(Sex.MALE, ActivityLevel.SEDENTARY, GoalType.MUSCLE_GAIN, List.of());
 
-    @Test
-    void shouldApplyMuscleGainGoal() {
+    Calories result = calculator.calculate(patient);
 
-        PatientProfile patient = createPatient(
-                Sex.MALE,
-                ActivityLevel.SEDENTARY,
-                GoalType.MUSCLE_GAIN,
-                List.of()
-        );
+    assertEquals(2456, result.amount());
+  }
 
-        Calories result = calculator.calculate(patient);
+  @Test
+  void shouldApplyPregnancyCondition() {
 
-        assertEquals(2456, result.amount());
-    }
+    PatientProfile patient =
+        createPatient(
+            Sex.FEMALE,
+            ActivityLevel.SEDENTARY,
+            GoalType.WEIGHT_MAINTENANCE,
+            List.of(PhysiologicalCondition.PREGNANCY));
 
-    @Test
-    void shouldApplyPregnancyCondition() {
+    Calories result = calculator.calculate(patient);
 
-        PatientProfile patient = createPatient(
-                Sex.FEMALE,
-                ActivityLevel.SEDENTARY,
-                GoalType.WEIGHT_MAINTENANCE,
-                List.of(PhysiologicalCondition.PREGNANCY)
-        );
+    assertEquals(2236, result.amount());
+  }
 
-        Calories result = calculator.calculate(patient);
+  @Test
+  void shouldApplyLactationCondition() {
 
-        assertEquals(2236, result.amount());
-    }
+    PatientProfile patient =
+        createPatient(
+            Sex.FEMALE,
+            ActivityLevel.SEDENTARY,
+            GoalType.WEIGHT_MAINTENANCE,
+            List.of(PhysiologicalCondition.LACTATION));
 
-    @Test
-    void shouldApplyLactationCondition() {
+    Calories result = calculator.calculate(patient);
 
-        PatientProfile patient = createPatient(
-                Sex.FEMALE,
-                ActivityLevel.SEDENTARY,
-                GoalType.WEIGHT_MAINTENANCE,
-                List.of(PhysiologicalCondition.LACTATION)
-        );
+    assertEquals(2436, result.amount());
+  }
 
-        Calories result = calculator.calculate(patient);
+  @Test
+  void shouldApplyMultiplePhysiologicalConditions() {
 
-        assertEquals(2436, result.amount());
-    }
+    PatientProfile patient =
+        createPatient(
+            Sex.FEMALE,
+            ActivityLevel.SEDENTARY,
+            GoalType.WEIGHT_MAINTENANCE,
+            List.of(PhysiologicalCondition.PREGNANCY, PhysiologicalCondition.LACTATION));
 
-    @Test
-    void shouldApplyMultiplePhysiologicalConditions() {
+    Calories result = calculator.calculate(patient);
 
-        PatientProfile patient = createPatient(
-                Sex.FEMALE,
-                ActivityLevel.SEDENTARY,
-                GoalType.WEIGHT_MAINTENANCE,
-                List.of(
-                        PhysiologicalCondition.PREGNANCY,
-                        PhysiologicalCondition.LACTATION
-                )
-        );
+    assertEquals(2736, result.amount());
+  }
 
-        Calories result = calculator.calculate(patient);
+  private PatientProfile createPatient(
+      Sex sex,
+      ActivityLevel activityLevel,
+      GoalType goal,
+      List<PhysiologicalCondition> conditions) {
 
-        assertEquals(2736, result.amount());
-    }
+    User user = new User("test@test.com", "hash", "John", "Doe", Role.PATIENT);
 
-    private PatientProfile createPatient(
-            Sex sex,
-            ActivityLevel activityLevel,
-            GoalType goal,
-            List<PhysiologicalCondition> conditions) {
+    user.setBirthDate(LocalDate.now().minusYears(30));
 
-        User user = new User(
-                "test@test.com",
-                "hash",
-                "John",
-                "Doe",
-                Role.PATIENT
-        );
+    PatientProfile patient = user.getPatientProfile();
 
-        user.setBirthDate(LocalDate.now().minusYears(30));
+    patient.update(
+        sex, activityLevel, Weight.of(80_000), Height.of(180), null, Set.of(), conditions, goal);
 
-        PatientProfile patient = user.getPatientProfile();
-
-        patient.update(
-                sex,
-                activityLevel,
-                Weight.of(80_000),
-                Height.of(180),
-                null,
-                Set.of(),
-                conditions,
-                goal
-        );
-
-        return patient;
-    }
-
-
+    return patient;
+  }
 }
-

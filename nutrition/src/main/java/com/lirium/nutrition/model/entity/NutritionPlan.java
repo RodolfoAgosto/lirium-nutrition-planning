@@ -4,227 +4,216 @@ import com.lirium.nutrition.exception.UnprocessableEntityException;
 import com.lirium.nutrition.model.enums.GoalType;
 import com.lirium.nutrition.model.enums.PlanStatus;
 import jakarta.persistence.*;
-import lombok.*;
 import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import lombok.*;
 
 /**
- * Entity representing a nutrition plan with macro targets and weekly meal structure.
- * Defines dietary goals for a given period.
+ * Entity representing a nutrition plan with macro targets and weekly meal structure. Defines
+ * dietary goals for a given period.
  */
-
 @Entity
 @Table(name = "nutrition_plans")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")
-public class NutritionPlan extends Auditable{
+public class NutritionPlan extends Auditable {
 
-    @Id
-    @SequenceGenerator(
-            name = "nutrition_plan_seq",
-            sequenceName = "nutrition_plan_seq",
-            allocationSize = 1
-    )
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "nutrition_plan_seq")
-    private Long id;
+  @Id
+  @SequenceGenerator(
+      name = "nutrition_plan_seq",
+      sequenceName = "nutrition_plan_seq",
+      allocationSize = 1)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "nutrition_plan_seq")
+  private Long id;
 
-    @Column(name = "name")
-    private String name;
+  @Column(name = "name")
+  private String name;
 
-    @Column(name = "description")
-    private String description;
+  @Column(name = "description")
+  private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private PlanStatus status;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status", nullable = false)
+  private PlanStatus status;
 
-    @Column(name = "start_date")
-    private LocalDate startDate;
+  @Column(name = "start_date")
+  private LocalDate startDate;
 
-    @Column(name = "end_date")
-    private LocalDate endDate;
+  @Column(name = "end_date")
+  private LocalDate endDate;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "target_goal")
-    private GoalType targetGoal;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "target_goal")
+  private GoalType targetGoal;
 
-    @Column(name = "daily_calories", nullable = false)
-    private int dailyCalories;
+  @Column(name = "daily_calories", nullable = false)
+  private int dailyCalories;
 
-    @Column(name = "protein_grams", nullable = false)
-    private int proteinGrams;
+  @Column(name = "protein_grams", nullable = false)
+  private int proteinGrams;
 
-    @Column(name = "carb_grams", nullable = false)
-    private int carbGrams;
+  @Column(name = "carb_grams", nullable = false)
+  private int carbGrams;
 
-    @Column(name = "fat_grams", nullable = false)
-    private int fatGrams;
+  @Column(name = "fat_grams", nullable = false)
+  private int fatGrams;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "patient_profile_id")
-    private PatientProfile patientProfile;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "patient_profile_id")
+  private PatientProfile patientProfile;
 
-    @OneToMany(mappedBy = "nutritionPlan", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DailyPlan> week = new ArrayList<>();
+  @OneToMany(mappedBy = "nutritionPlan", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<DailyPlan> week = new ArrayList<>();
 
-    // The system generates the minimum required fields
-    public static NutritionPlan generate(
-            GoalType targetGoal,
-            int dailyCalories,
-            int proteinGrams,
-            int carbGrams,
-            int fatGrams,
-            PatientProfile patient) {
+  // The system generates the minimum required fields
+  public static NutritionPlan generate(
+      GoalType targetGoal,
+      int dailyCalories,
+      int proteinGrams,
+      int carbGrams,
+      int fatGrams,
+      PatientProfile patient) {
 
-        NutritionPlan plan = new NutritionPlan();
-        plan.targetGoal = targetGoal;
-        plan.dailyCalories = dailyCalories;
-        plan.proteinGrams = proteinGrams;
-        plan.carbGrams = carbGrams;
-        plan.fatGrams = fatGrams;
-        plan.patientProfile = patient;
-        plan.status = PlanStatus.DRAFT;  // Always starts as a draft
-        return plan;
+    NutritionPlan plan = new NutritionPlan();
+    plan.targetGoal = targetGoal;
+    plan.dailyCalories = dailyCalories;
+    plan.proteinGrams = proteinGrams;
+    plan.carbGrams = carbGrams;
+    plan.fatGrams = fatGrams;
+    plan.patientProfile = patient;
+    plan.status = PlanStatus.DRAFT; // Always starts as a draft
+    return plan;
+  }
+
+  public void completeBasic(String name, String description) {
+    if (this.status != PlanStatus.DRAFT) {
+      throw new IllegalStateException("Only DRAFT plans can be completed");
+    }
+    if (name == null || name.isBlank()) {
+      throw new IllegalArgumentException("Name cannot be null or blank");
+    }
+    if (description == null || description.isBlank()) {
+      throw new IllegalArgumentException("Description cannot be null or blank");
     }
 
-    public void completeBasic(String name, String description) {
-        if (this.status != PlanStatus.DRAFT) {
-            throw new IllegalStateException("Only DRAFT plans can be completed");
-        }
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Name cannot be null or blank");
-        }
-        if (description == null || description.isBlank()) {
-            throw new IllegalArgumentException("Description cannot be null or blank");
-        }
+    this.name = name;
+    this.description = description;
+  }
 
-        this.name = name;
-        this.description = description;
+  public void addDailyPlan(DailyPlan dailyPlan) {
+    Objects.requireNonNull(dailyPlan);
+    this.week.add(dailyPlan);
+  }
+
+  public void update(
+      String name,
+      String description,
+      LocalDate startDate,
+      LocalDate endDate,
+      GoalType targetGoal,
+      Integer dailyCalories,
+      Integer proteinGrams,
+      Integer carbGrams,
+      Integer fatGrams) {
+
+    validateTextFields(name, description);
+    validateDates(startDate, endDate);
+    validateNutritionValues(dailyCalories, proteinGrams, carbGrams, fatGrams);
+
+    if (name != null) this.name = name;
+    if (description != null) this.description = description;
+    if (startDate != null) this.startDate = startDate;
+    if (endDate != null) this.endDate = endDate;
+    if (targetGoal != null) this.targetGoal = targetGoal;
+    if (dailyCalories != null) this.dailyCalories = dailyCalories;
+    if (proteinGrams != null) this.proteinGrams = proteinGrams;
+    if (carbGrams != null) this.carbGrams = carbGrams;
+    if (fatGrams != null) this.fatGrams = fatGrams;
+  }
+
+  public boolean isDraft() {
+    return status == PlanStatus.DRAFT;
+  }
+
+  public boolean isActive() {
+    return status == PlanStatus.ACTIVE;
+  }
+
+  public void activate(LocalDate startDate) {
+
+    Objects.requireNonNull(startDate, "Start date is required");
+
+    if (this.status != PlanStatus.DRAFT && this.status != PlanStatus.INACTIVE) {
+      throw new UnprocessableEntityException(
+          "Only DRAFT or INACTIVE plans can be activated. Current status: " + this.status);
     }
 
-    public void addDailyPlan(DailyPlan dailyPlan) {
-        Objects.requireNonNull(dailyPlan);
-        this.week.add(dailyPlan);
+    this.status = PlanStatus.ACTIVE;
+    this.startDate = startDate;
+  }
+
+  public void deactivate() {
+    if (status != PlanStatus.ACTIVE)
+      throw new IllegalStateException(
+          "Only ACTIVE plans can be deactivated. Current status: " + status);
+    this.status = PlanStatus.INACTIVE;
+  }
+
+  public void close(LocalDate endDate) {
+    Objects.requireNonNull(endDate, "End date required");
+    if (status != PlanStatus.ACTIVE)
+      throw new IllegalStateException("Only ACTIVE plans can be closed");
+    this.endDate = endDate;
+    this.status = PlanStatus.INACTIVE;
+  }
+
+  public void ensureEditable() {
+    if (status != PlanStatus.DRAFT) {
+      throw new UnprocessableEntityException(
+          "Nutrition plan is not editable in its current status");
     }
+  }
 
-    public void update(
-            String name,
-            String description,
-            LocalDate startDate,
-            LocalDate endDate,
-            GoalType targetGoal,
-            Integer dailyCalories,
-            Integer proteinGrams,
-            Integer carbGrams,
-            Integer fatGrams
-    ) {
+  private static void validateTextFields(String name, String description) {
+    validateNotBlankIfPresent(name, "Name cannot be blank");
+    validateNotBlankIfPresent(description, "Description cannot be blank");
+  }
 
-        validateTextFields(name, description);
-        validateDates(startDate, endDate);
-        validateNutritionValues(dailyCalories, proteinGrams, carbGrams, fatGrams);
+  private static void validateNutritionValues(
+      Integer dailyCalories, Integer proteinGrams, Integer carbGrams, Integer fatGrams) {
+    validatePositive(dailyCalories, "Daily calories must be greater than zero");
+    validateNonNegative(proteinGrams, "Protein grams cannot be negative");
+    validateNonNegative(carbGrams, "Carb grams cannot be negative");
+    validateNonNegative(fatGrams, "Fat grams cannot be negative");
+  }
 
-        if (name != null) this.name = name;
-        if (description != null) this.description = description;
-        if (startDate != null) this.startDate = startDate;
-        if (endDate != null) this.endDate = endDate;
-        if (targetGoal != null) this.targetGoal = targetGoal;
-        if (dailyCalories != null) this.dailyCalories = dailyCalories;
-        if (proteinGrams != null) this.proteinGrams = proteinGrams;
-        if (carbGrams != null) this.carbGrams = carbGrams;
-        if (fatGrams != null) this.fatGrams = fatGrams;
-
+  private static void validateNotBlankIfPresent(String value, String message) {
+    if (value != null && value.isBlank()) {
+      throw new IllegalArgumentException(message);
     }
+  }
 
-    public boolean isDraft() {
-        return status == PlanStatus.DRAFT;
+  private void validateDates(LocalDate startDate, LocalDate endDate) {
+    LocalDate newStart = startDate != null ? startDate : this.startDate;
+    LocalDate newEnd = endDate != null ? endDate : this.endDate;
+
+    if (newStart != null && newEnd != null && newEnd.isBefore(newStart)) {
+      throw new IllegalArgumentException("End date before start date");
     }
+  }
 
-    public boolean isActive() {
-        return status == PlanStatus.ACTIVE;
+  private static void validatePositive(Integer value, String message) {
+    if (value != null && value <= 0) {
+      throw new IllegalArgumentException(message);
     }
+  }
 
-    public void activate(LocalDate startDate) {
-
-        Objects.requireNonNull(startDate, "Start date is required");
-
-        if (this.status != PlanStatus.DRAFT && this.status != PlanStatus.INACTIVE) {
-            throw new UnprocessableEntityException(
-                    "Only DRAFT or INACTIVE plans can be activated. Current status: " + this.status
-            );
-        }
-
-        this.status = PlanStatus.ACTIVE;
-        this.startDate = startDate;
+  private static void validateNonNegative(Integer value, String message) {
+    if (value != null && value < 0) {
+      throw new IllegalArgumentException(message);
     }
-
-    public void deactivate() {
-        if (status != PlanStatus.ACTIVE)
-            throw new IllegalStateException(
-                    "Only ACTIVE plans can be deactivated. Current status: " + status);
-        this.status = PlanStatus.INACTIVE;
-    }
-
-    public void close(LocalDate endDate) {
-        Objects.requireNonNull(endDate, "End date required");
-        if (status != PlanStatus.ACTIVE)
-            throw new IllegalStateException("Only ACTIVE plans can be closed");
-        this.endDate = endDate;
-        this.status = PlanStatus.INACTIVE;
-    }
-
-    public void ensureEditable() {
-        if (status != PlanStatus.DRAFT) {
-            throw new UnprocessableEntityException(
-                    "Nutrition plan is not editable in its current status"
-            );
-        }
-    }
-
-    private static void validateTextFields(String name, String description) {
-        validateNotBlankIfPresent(name, "Name cannot be blank");
-        validateNotBlankIfPresent(description, "Description cannot be blank");
-    }
-
-    private static void validateNutritionValues(
-            Integer dailyCalories,
-            Integer proteinGrams,
-            Integer carbGrams,
-            Integer fatGrams
-    ) {
-        validatePositive(dailyCalories, "Daily calories must be greater than zero");
-        validateNonNegative(proteinGrams, "Protein grams cannot be negative");
-        validateNonNegative(carbGrams, "Carb grams cannot be negative");
-        validateNonNegative(fatGrams, "Fat grams cannot be negative");
-    }
-
-    private static void validateNotBlankIfPresent(String value, String message) {
-        if (value != null && value.isBlank()) {
-            throw new IllegalArgumentException(message);
-        }
-    }
-
-    private void validateDates(LocalDate startDate, LocalDate endDate) {
-        LocalDate newStart = startDate != null ? startDate : this.startDate;
-        LocalDate newEnd = endDate != null ? endDate : this.endDate;
-
-        if (newStart != null && newEnd != null && newEnd.isBefore(newStart)) {
-            throw new IllegalArgumentException("End date before start date");
-        }
-    }
-
-    private static void validatePositive(Integer value, String message) {
-        if (value != null && value <= 0) {
-            throw new IllegalArgumentException(message);
-        }
-    }
-
-    private static void validateNonNegative(Integer value, String message) {
-        if (value != null && value < 0) {
-            throw new IllegalArgumentException(message);
-        }
-    }
-
+  }
 }

@@ -4,20 +4,14 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 @Embeddable
-public record Grams(
-        @Column(name = "grams")
-        int amount) {
+public record Grams(@Column(name = "grams") int amount) {
 
-    private static final int MIN_GRAMS = 0;
+  private static final int MIN_GRAMS = 0;
 
-    public Grams {
-        if (amount < MIN_GRAMS) {
-            throw new IllegalArgumentException(
-                    String.format(
-                            "Grams must be greater than or equal to %d", MIN_GRAMS
-                    )
-            );
-        }
+  public Grams {
+    if (amount < MIN_GRAMS) {
+      throw new IllegalArgumentException(
+          String.format("Grams must be greater than or equal to %d", MIN_GRAMS));
     }
-
+  }
 }

@@ -7,8 +7,7 @@ import com.lirium.nutrition.model.valueobject.MacroDistribution;
 
 public interface MacroDistributor {
 
-    MacroDistribution distribute(PatientProfile patient, Calories calories);
+  MacroDistribution distribute(PatientProfile patient, Calories calories);
 
-    MacroDistribution distributeFromTemplate(Calories calories, NutritionPlanTemplate template);
-
+  MacroDistribution distributeFromTemplate(Calories calories, NutritionPlanTemplate template);
 }

@@ -9,46 +9,39 @@ import com.lirium.nutrition.model.entity.MealRecord;
 
 public class DailyRecordMapper {
 
-    private DailyRecordMapper() {}
+  private DailyRecordMapper() {}
 
-    public static DailyRecordResponseDTO toResponse(DailyRecord record) {
-        if (record == null) {
-            return null;
-        }
-
-        return new DailyRecordResponseDTO(
-                record.getId(),
-                record.getDate(),
-                record.getMeals().stream()
-                        .map(MealRecordMapper::toResponse)
-                        .toList()
-        );
+  public static DailyRecordResponseDTO toResponse(DailyRecord record) {
+    if (record == null) {
+      return null;
     }
 
-    public static MealRecordResponseDTO toMealResponse(MealRecord meal) {
-        return new MealRecordResponseDTO(
-                meal.getId(),
-                meal.getType(),
-                meal.isOverridden(),
-                meal.getNotes(),
-                meal.getEatenAt(),
-                meal.getFoodPortions().stream()
-                        .map(DailyRecordMapper::toPortionResponse)
-                        .toList()
-        );
-    }
+    return new DailyRecordResponseDTO(
+        record.getId(),
+        record.getDate(),
+        record.getMeals().stream().map(MealRecordMapper::toResponse).toList());
+  }
 
-    private static FoodPortionRecordResponseDTO toPortionResponse(FoodPortionRecord portion) {
-        double grams = portion.grams();
-        return new FoodPortionRecordResponseDTO(
-                portion.getId(),
-                portion.getFood().getName(),
-                portion.getQuantity(),
-                portion.getMeasureUnit(),
-                (int)(portion.getFood().getCaloriesPer100g() * grams / 100),
-                (int)(portion.getFood().getProteinPer100g()  * grams / 100),
-                (int)(portion.getFood().getCarbsPer100g()    * grams / 100),
-                (int)(portion.getFood().getFatPer100g()      * grams / 100)
-        );
-    }
+  public static MealRecordResponseDTO toMealResponse(MealRecord meal) {
+    return new MealRecordResponseDTO(
+        meal.getId(),
+        meal.getType(),
+        meal.isOverridden(),
+        meal.getNotes(),
+        meal.getEatenAt(),
+        meal.getFoodPortions().stream().map(DailyRecordMapper::toPortionResponse).toList());
+  }
+
+  private static FoodPortionRecordResponseDTO toPortionResponse(FoodPortionRecord portion) {
+    double grams = portion.grams();
+    return new FoodPortionRecordResponseDTO(
+        portion.getId(),
+        portion.getFood().getName(),
+        portion.getQuantity(),
+        portion.getMeasureUnit(),
+        (int) (portion.getFood().getCaloriesPer100g() * grams / 100),
+        (int) (portion.getFood().getProteinPer100g() * grams / 100),
+        (int) (portion.getFood().getCarbsPer100g() * grams / 100),
+        (int) (portion.getFood().getFatPer100g() * grams / 100));
+  }
 }

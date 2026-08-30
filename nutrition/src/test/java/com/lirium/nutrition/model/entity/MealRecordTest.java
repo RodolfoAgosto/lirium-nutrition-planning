@@ -1,321 +1,161 @@
 package com.lirium.nutrition.model.entity;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.lirium.nutrition.model.enums.FoodCategory;
 import com.lirium.nutrition.model.enums.MealType;
 import com.lirium.nutrition.model.enums.MeasureUnit;
 import com.lirium.nutrition.model.enums.Role;
-import org.junit.jupiter.api.Test;
-
 import java.time.LocalDateTime;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class MealRecordTest {
 
-    @Test
-    void shouldCreateManualMealRecord() {
+  @Test
+  void shouldCreateManualMealRecord() {
 
-        MealRecord meal =
-                MealRecord.of(
-                        MealType.LUNCH,
-                        LocalDateTime.now(),
-                        createDailyRecord()
-                );
+    MealRecord meal = MealRecord.of(MealType.LUNCH, LocalDateTime.now(), createDailyRecord());
 
+    assertEquals(MealType.LUNCH, meal.getType());
+    assertFalse(meal.isOverridden());
+    assertTrue(meal.getFoodPortions().isEmpty());
+  }
 
-        assertEquals(MealType.LUNCH, meal.getType());
-        assertFalse(meal.isOverridden());
-        assertTrue(meal.getFoodPortions().isEmpty());
-    }
+  @Test
+  void shouldRejectNullMealType() {
 
+    assertThrows(
+        NullPointerException.class,
+        () -> MealRecord.of(null, LocalDateTime.now(), createDailyRecord()));
+  }
 
-    @Test
-    void shouldRejectNullMealType() {
+  @Test
+  void shouldRejectFutureDate() {
 
-        assertThrows(
-                NullPointerException.class,
-                () -> MealRecord.of(
-                        null,
-                        LocalDateTime.now(),
-                        createDailyRecord()
-                )
-        );
-    }
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> MealRecord.of(MealType.DINNER, LocalDateTime.now().plusDays(1), createDailyRecord()));
+  }
 
+  @Test
+  void shouldAddFoodPortion() {
 
-    @Test
-    void shouldRejectFutureDate() {
+    MealRecord meal = MealRecord.of(MealType.LUNCH, LocalDateTime.now(), createDailyRecord());
 
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> MealRecord.of(
-                        MealType.DINNER,
-                        LocalDateTime.now().plusDays(1),
-                        createDailyRecord()
-                )
-        );
-    }
+    Food food = createFood();
 
+    meal.addFoodPortion(food, 100D, MeasureUnit.GRAM);
 
-    @Test
-    void shouldAddFoodPortion() {
+    assertEquals(1, meal.getFoodPortions().size());
 
-        MealRecord meal =
-                MealRecord.of(
-                        MealType.LUNCH,
-                        LocalDateTime.now(),
-                        createDailyRecord()
-                );
+    assertEquals(food, meal.getFoodPortions().get(0).getFood());
+  }
 
+  @Test
+  void shouldNotAddDuplicateFoodPortion() {
 
-        Food food = createFood();
+    MealRecord meal = MealRecord.of(MealType.LUNCH, LocalDateTime.now(), createDailyRecord());
 
+    Food food = createFood();
 
-        meal.addFoodPortion(
-                food,
-                100D,
-                MeasureUnit.GRAM
-        );
+    meal.addFoodPortion(food, 100D, MeasureUnit.GRAM);
 
+    meal.addFoodPortion(food, 100D, MeasureUnit.GRAM);
 
-        assertEquals(
-                1,
-                meal.getFoodPortions().size()
-        );
+    assertEquals(1, meal.getFoodPortions().size());
+  }
 
-        assertEquals(
-                food,
-                meal.getFoodPortions()
-                        .get(0)
-                        .getFood()
-        );
-    }
+  @Test
+  void shouldRemoveFoodPortion() {
 
+    MealRecord meal = MealRecord.of(MealType.LUNCH, LocalDateTime.now(), createDailyRecord());
 
-    @Test
-    void shouldNotAddDuplicateFoodPortion() {
+    Food food = createFood();
 
-        MealRecord meal =
-                MealRecord.of(
-                        MealType.LUNCH,
-                        LocalDateTime.now(),
-                        createDailyRecord()
-                );
+    meal.addFoodPortion(food, 100D, MeasureUnit.GRAM);
 
+    FoodPortionRecord portion = meal.getFoodPortions().get(0);
 
-        Food food = createFood();
+    meal.removeFoodPortion(portion);
 
+    assertTrue(meal.getFoodPortions().isEmpty());
+  }
 
-        meal.addFoodPortion(
-                food,
-                100D,
-                MeasureUnit.GRAM
-        );
+  @Test
+  void shouldClearFoods() {
 
-        meal.addFoodPortion(
-                food,
-                100D,
-                MeasureUnit.GRAM
-        );
+    MealRecord meal = MealRecord.of(MealType.LUNCH, LocalDateTime.now(), createDailyRecord());
 
+    meal.addFoodPortion(createFood(), 100D, MeasureUnit.GRAM);
 
-        assertEquals(
-                1,
-                meal.getFoodPortions().size()
-        );
-    }
+    meal.clearFoods();
 
+    assertTrue(meal.getFoodPortions().isEmpty());
+  }
 
-    @Test
-    void shouldRemoveFoodPortion() {
+  @Test
+  void shouldMarkAsOverridden() {
 
-        MealRecord meal =
-                MealRecord.of(
-                        MealType.LUNCH,
-                        LocalDateTime.now(),
-                        createDailyRecord()
-                );
+    MealRecord meal = MealRecord.of(MealType.LUNCH, LocalDateTime.now(), createDailyRecord());
 
+    meal.markAsOverridden();
 
-        Food food = createFood();
+    assertTrue(meal.isOverridden());
+  }
 
-        meal.addFoodPortion(
-                food,
-                100D,
-                MeasureUnit.GRAM
-        );
+  @Test
+  void shouldMarkAsOverriddenWithReason() {
 
+    MealRecord meal = MealRecord.of(MealType.LUNCH, LocalDateTime.now(), createDailyRecord());
 
-        FoodPortionRecord portion =
-                meal.getFoodPortions().get(0);
+    meal.markAsOverridden("Changed because patient was sick");
 
+    assertTrue(meal.isOverridden());
+    assertEquals("Changed because patient was sick", meal.getNotes());
+  }
 
-        meal.removeFoodPortion(portion);
+  @Test
+  void shouldRejectBlankOverrideReason() {
 
+    MealRecord meal = MealRecord.of(MealType.LUNCH, LocalDateTime.now(), createDailyRecord());
 
-        assertTrue(
-                meal.getFoodPortions().isEmpty()
-        );
-    }
+    assertThrows(IllegalArgumentException.class, () -> meal.markAsOverridden(" "));
+  }
 
+  @Test
+  void shouldUpdateNotes() {
 
-    @Test
-    void shouldClearFoods() {
+    MealRecord meal = MealRecord.of(MealType.LUNCH, LocalDateTime.now(), createDailyRecord());
 
-        MealRecord meal =
-                MealRecord.of(
-                        MealType.LUNCH,
-                        LocalDateTime.now(),
-                        createDailyRecord()
-                );
+    meal.updateNotes("Ate outside plan");
 
+    assertEquals("Ate outside plan", meal.getNotes());
+  }
 
-        meal.addFoodPortion(
-                createFood(),
-                100D,
-                MeasureUnit.GRAM
-        );
+  @Test
+  void shouldClearOverride() {
 
+    MealRecord meal = MealRecord.of(MealType.LUNCH, LocalDateTime.now(), createDailyRecord());
 
-        meal.clearFoods();
+    meal.markAsOverridden("Reason");
 
+    meal.clearOverride();
 
-        assertTrue(
-                meal.getFoodPortions().isEmpty()
-        );
-    }
+    assertFalse(meal.isOverridden());
+    assertNull(meal.getNotes());
+  }
 
+  private DailyRecord createDailyRecord() {
 
-    @Test
-    void shouldMarkAsOverridden() {
+    User user = new User("test@test.com", "password", "Test", "User", Role.PATIENT);
 
-        MealRecord meal =
-                MealRecord.of(
-                        MealType.LUNCH,
-                        LocalDateTime.now(),
-                        createDailyRecord()
-                );
+    PatientProfile patient = user.getPatientProfile();
 
+    return DailyRecord.of(patient, java.time.LocalDate.now());
+  }
 
-        meal.markAsOverridden();
+  private Food createFood() {
 
-
-        assertTrue(
-                meal.isOverridden()
-        );
-    }
-
-
-    @Test
-    void shouldMarkAsOverriddenWithReason() {
-
-        MealRecord meal =
-                MealRecord.of(
-                        MealType.LUNCH,
-                        LocalDateTime.now(),
-                        createDailyRecord()
-                );
-
-
-        meal.markAsOverridden("Changed because patient was sick");
-
-
-        assertTrue(meal.isOverridden());
-        assertEquals(
-                "Changed because patient was sick",
-                meal.getNotes()
-        );
-    }
-
-
-    @Test
-    void shouldRejectBlankOverrideReason() {
-
-        MealRecord meal =
-                MealRecord.of(
-                        MealType.LUNCH,
-                        LocalDateTime.now(),
-                        createDailyRecord()
-                );
-
-
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> meal.markAsOverridden(" ")
-        );
-    }
-
-
-    @Test
-    void shouldUpdateNotes() {
-
-        MealRecord meal =
-                MealRecord.of(
-                        MealType.LUNCH,
-                        LocalDateTime.now(),
-                        createDailyRecord()
-                );
-
-
-        meal.updateNotes("Ate outside plan");
-
-
-        assertEquals(
-                "Ate outside plan",
-                meal.getNotes()
-        );
-    }
-
-
-    @Test
-    void shouldClearOverride() {
-
-        MealRecord meal =
-                MealRecord.of(
-                        MealType.LUNCH,
-                        LocalDateTime.now(),
-                        createDailyRecord()
-                );
-
-
-        meal.markAsOverridden("Reason");
-
-        meal.clearOverride();
-
-
-        assertFalse(meal.isOverridden());
-        assertNull(meal.getNotes());
-    }
-
-    private DailyRecord createDailyRecord() {
-
-        User user = new User(
-                "test@test.com",
-                "password",
-                "Test",
-                "User",
-                Role.PATIENT
-        );
-
-        PatientProfile patient = user.getPatientProfile();
-
-        return DailyRecord.of(
-                patient,
-                java.time.LocalDate.now()
-        );
-    }
-
-    private Food createFood() {
-
-        return Food.of(
-                "Rice",
-                130,
-                3,
-                28,
-                1,
-                FoodCategory.CARB,
-                null
-        );
-    }
-
+    return Food.of("Rice", 130, 3, 28, 1, FoodCategory.CARB, null);
+  }
 }

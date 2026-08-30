@@ -1,5 +1,7 @@
 package com.lirium.nutrition.model.enums;
 
-public enum RestrictionCategory{
-        PATHOLOGICAL, INTOLERANCES, DIETARY;
+public enum RestrictionCategory {
+  PATHOLOGICAL,
+  INTOLERANCES,
+  DIETARY;
 }

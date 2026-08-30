@@ -10,51 +10,38 @@ import com.lirium.nutrition.model.entity.PlanMeal;
 
 public class PlanFoodPortionMapper {
 
-    private PlanFoodPortionMapper() {}
+  private PlanFoodPortionMapper() {}
 
-    /* === ENTITY -> RESPONSE === */
+  /* === ENTITY -> RESPONSE === */
 
-    public static PlanFoodPortionResponseDTO toResponse(PlanFoodPortion entity) {
+  public static PlanFoodPortionResponseDTO toResponse(PlanFoodPortion entity) {
 
-        return new PlanFoodPortionResponseDTO(
-                entity.getId(),
-                entity.getMeal().getId(),
-                entity.getFood().getId(),
-                entity.getFood().getName(),
-                entity.getQuantity(),
-                entity.getMeasureUnit()
-        );
-    }
+    return new PlanFoodPortionResponseDTO(
+        entity.getId(),
+        entity.getMeal().getId(),
+        entity.getFood().getId(),
+        entity.getFood().getName(),
+        entity.getQuantity(),
+        entity.getMeasureUnit());
+  }
 
-    public static PlanFoodPortionSummaryDTO toSummary(PlanFoodPortion entity) {
+  public static PlanFoodPortionSummaryDTO toSummary(PlanFoodPortion entity) {
 
-        return new PlanFoodPortionSummaryDTO(
-                entity.getId(),
-                entity.getFood().getId(),
-                entity.getQuantity(),
-                entity.getMeasureUnit()
-                );
-    }
+    return new PlanFoodPortionSummaryDTO(
+        entity.getId(), entity.getFood().getId(), entity.getQuantity(), entity.getMeasureUnit());
+  }
 
-    /* === CREATE DTO -> ENTITY === */
+  /* === CREATE DTO -> ENTITY === */
 
-    public static PlanFoodPortion toEntity(
-            PlanFoodPortionCreateRequestDTO dto,
-            PlanMeal meal,
-            Food food
-    ) {
-        return PlanFoodPortion.of(meal,food, dto.quantity(), dto.unit());
-    }
+  public static PlanFoodPortion toEntity(
+      PlanFoodPortionCreateRequestDTO dto, PlanMeal meal, Food food) {
+    return PlanFoodPortion.of(meal, food, dto.quantity(), dto.unit());
+  }
 
-    /* === UPDATE DTO -> ENTITY ==== */
+  /* === UPDATE DTO -> ENTITY ==== */
 
-    public static PlanFoodPortion toEntity(
-            FoodPortionAddRequestDTO dto,
-            PlanMeal meal,
-            Food food
-    ) {
+  public static PlanFoodPortion toEntity(FoodPortionAddRequestDTO dto, PlanMeal meal, Food food) {
 
-        return PlanFoodPortion.of(meal,food, dto.quantity(), dto.unit());
-
-    }
+    return PlanFoodPortion.of(meal, food, dto.quantity(), dto.unit());
+  }
 }

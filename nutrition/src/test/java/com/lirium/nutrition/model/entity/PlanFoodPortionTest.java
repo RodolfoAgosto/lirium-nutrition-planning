@@ -1,201 +1,106 @@
 package com.lirium.nutrition.model.entity;
 
-import com.lirium.nutrition.model.enums.FoodCategory;
-import com.lirium.nutrition.model.enums.MealType;
-import com.lirium.nutrition.model.enums.MeasureUnit;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.util.Set;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
+import com.lirium.nutrition.model.enums.FoodCategory;
+import com.lirium.nutrition.model.enums.MealType;
+import com.lirium.nutrition.model.enums.MeasureUnit;
+import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 class PlanFoodPortionTest {
 
-    private Food food;
-    private Food anotherFood;
-    private PlanMeal meal;
+  private Food food;
+  private Food anotherFood;
+  private PlanMeal meal;
 
-    @BeforeEach
-    void setUp() {
+  @BeforeEach
+  void setUp() {
 
-        food = Food.of(
-                "Rice",
-                130,
-                3,
-                28,
-                1,
-                FoodCategory.CARB,
-                Set.of(MealType.LUNCH)
-        );
+    food = Food.of("Rice", 130, 3, 28, 1, FoodCategory.CARB, Set.of(MealType.LUNCH));
 
-        anotherFood = Food.of(
-                "Apple",
-                52,
-                0,
-                14,
-                0,
-                FoodCategory.FRUIT,
-                Set.of(MealType.SNACK)
-        );
+    anotherFood = Food.of("Apple", 52, 0, 14, 0, FoodCategory.FRUIT, Set.of(MealType.SNACK));
 
-        meal = mock(PlanMeal.class);
-    }
+    meal = mock(PlanMeal.class);
+  }
 
+  @Test
+  void shouldCreatePlanFoodPortion() {
 
-    @Test
-    void shouldCreatePlanFoodPortion() {
+    PlanFoodPortion portion = PlanFoodPortion.of(meal, food, 100.0, MeasureUnit.GRAM);
 
-        PlanFoodPortion portion =
-                PlanFoodPortion.of(
-                        meal,
-                        food,
-                        100.0,
-                        MeasureUnit.GRAM
-                );
+    assertThat(portion.getFood()).isEqualTo(food);
 
+    assertThat(portion.getQuantity()).isEqualTo(100.0);
 
-        assertThat(portion.getFood())
-                .isEqualTo(food);
+    assertThat(portion.getUnit()).isEqualTo(MeasureUnit.GRAM);
 
-        assertThat(portion.getQuantity())
-                .isEqualTo(100.0);
+    assertThat(portion.getMeal()).isEqualTo(meal);
+  }
 
-        assertThat(portion.getUnit())
-                .isEqualTo(MeasureUnit.GRAM);
+  @Test
+  void shouldNotCreateWithoutFood() {
 
-        assertThat(portion.getMeal())
-                .isEqualTo(meal);
-    }
+    assertThatThrownBy(() -> PlanFoodPortion.of(meal, null, 100.0, MeasureUnit.GRAM))
+        .isInstanceOf(NullPointerException.class);
+  }
 
+  @Test
+  void shouldNotCreateWithoutQuantity() {
 
-    @Test
-    void shouldNotCreateWithoutFood() {
+    assertThatThrownBy(() -> PlanFoodPortion.of(meal, food, null, MeasureUnit.GRAM))
+        .isInstanceOf(NullPointerException.class);
+  }
 
-        assertThatThrownBy(() ->
-                PlanFoodPortion.of(
-                        meal,
-                        null,
-                        100.0,
-                        MeasureUnit.GRAM
-                )
-        )
-                .isInstanceOf(NullPointerException.class);
-    }
+  @Test
+  void shouldChangeQuantity() {
 
+    PlanFoodPortion portion = PlanFoodPortion.of(meal, food, 100.0, MeasureUnit.GRAM);
 
-    @Test
-    void shouldNotCreateWithoutQuantity() {
+    portion.changeQuantity(250.0);
 
-        assertThatThrownBy(() ->
-                PlanFoodPortion.of(
-                        meal,
-                        food,
-                        null,
-                        MeasureUnit.GRAM
-                )
-        )
-                .isInstanceOf(NullPointerException.class);
-    }
+    assertThat(portion.getQuantity()).isEqualTo(250.0);
+  }
 
+  @Test
+  void shouldChangeFood() {
 
-    @Test
-    void shouldChangeQuantity() {
+    PlanFoodPortion portion = PlanFoodPortion.of(meal, food, 100.0, MeasureUnit.GRAM);
 
-        PlanFoodPortion portion =
-                PlanFoodPortion.of(
-                        meal,
-                        food,
-                        100.0,
-                        MeasureUnit.GRAM
-                );
+    portion.changeFood(anotherFood);
 
+    assertThat(portion.getFood()).isEqualTo(anotherFood);
+  }
 
-        portion.changeQuantity(250.0);
+  @Test
+  void shouldAssignToAnotherMeal() {
 
+    PlanFoodPortion portion = PlanFoodPortion.of(meal, food, 100.0, MeasureUnit.GRAM);
 
-        assertThat(portion.getQuantity())
-                .isEqualTo(250.0);
-    }
+    PlanMeal anotherMeal = mock(PlanMeal.class);
 
+    portion.assignToMeal(anotherMeal);
 
-    @Test
-    void shouldChangeFood() {
+    assertThat(portion.getMeal()).isEqualTo(anotherMeal);
+  }
 
-        PlanFoodPortion portion =
-                PlanFoodPortion.of(
-                        meal,
-                        food,
-                        100.0,
-                        MeasureUnit.GRAM
-                );
+  @Test
+  void shouldNotChangeFoodToNull() {
 
+    PlanFoodPortion portion = PlanFoodPortion.of(meal, food, 100.0, MeasureUnit.GRAM);
 
-        portion.changeFood(anotherFood);
+    assertThatThrownBy(() -> portion.changeFood(null)).isInstanceOf(NullPointerException.class);
+  }
 
+  @Test
+  void shouldNotAllowNegativeQuantity() {
 
-        assertThat(portion.getFood())
-                .isEqualTo(anotherFood);
-    }
+    PlanFoodPortion portion = PlanFoodPortion.of(meal, food, 100.0, MeasureUnit.GRAM);
 
-
-    @Test
-    void shouldAssignToAnotherMeal() {
-
-        PlanFoodPortion portion =
-                PlanFoodPortion.of(
-                        meal,
-                        food,
-                        100.0,
-                        MeasureUnit.GRAM
-                );
-
-        PlanMeal anotherMeal = mock(PlanMeal.class);
-
-
-        portion.assignToMeal(anotherMeal);
-
-
-        assertThat(portion.getMeal())
-                .isEqualTo(anotherMeal);
-    }
-
-
-    @Test
-    void shouldNotChangeFoodToNull() {
-
-        PlanFoodPortion portion =
-                PlanFoodPortion.of(
-                        meal,
-                        food,
-                        100.0,
-                        MeasureUnit.GRAM
-                );
-
-
-        assertThatThrownBy(() ->
-                portion.changeFood(null)
-        )
-                .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
-    void shouldNotAllowNegativeQuantity() {
-
-        PlanFoodPortion portion =
-                PlanFoodPortion.of(
-                        meal,
-                        food,
-                        100.0,
-                        MeasureUnit.GRAM
-                );
-
-        assertThatThrownBy(() ->
-                portion.changeQuantity(-10.0)
-        )
-                .isInstanceOf(IllegalArgumentException.class);
-    }
-
+    assertThatThrownBy(() -> portion.changeQuantity(-10.0))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
 }

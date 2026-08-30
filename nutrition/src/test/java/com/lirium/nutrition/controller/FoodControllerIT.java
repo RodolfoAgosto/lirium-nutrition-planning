@@ -22,146 +22,129 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class FoodControllerIT extends AbstractIntegrationTest{
+class FoodControllerIT extends AbstractIntegrationTest {
 
-    @Autowired
-    private FoodRepository foodRepository;
+  @Autowired private FoodRepository foodRepository;
 
-    @Autowired
-    private NutritionPlanRepository nutritionPlanRepository;
+  @Autowired private NutritionPlanRepository nutritionPlanRepository;
 
-    @Autowired
-    private NutritionPlanTestDataFactory nutritionPlanTestDataFactory;
+  @Autowired private NutritionPlanTestDataFactory nutritionPlanTestDataFactory;
 
-    private String adminToken;
-    private String nutritionistToken;
-    private String patientToken;
+  private String adminToken;
+  private String nutritionistToken;
+  private String patientToken;
 
-    private User admin;
-    private User nutritionist;
-    private User patient;
+  private User admin;
+  private User nutritionist;
+  private User patient;
 
-    private Food chicken;
-    private Food rice;
-    private Food apple;
+  private Food chicken;
+  private Food rice;
+  private Food apple;
 
+  @BeforeEach
+  void setup() {
 
-    @BeforeEach
-    void setup() {
+    nutritionPlanRepository.deleteAll();
+    foodRepository.deleteAll();
 
-        nutritionPlanRepository.deleteAll();
-        foodRepository.deleteAll();
+    admin =
+        userRepository.save(
+            new User(
+                "admin@test.com", passwordEncoder.encode("1234"), "Admin", "Test", Role.ADMIN));
 
-        admin = userRepository.save(new User(
-                "admin@test.com",
-                passwordEncoder.encode("1234"),
-                "Admin",
-                "Test",
-                Role.ADMIN));
-
-        nutritionist = userRepository.save(new User(
+    nutritionist =
+        userRepository.save(
+            new User(
                 "nutritionist@test.com",
                 passwordEncoder.encode("1234"),
                 "Nutritionist",
                 "Test",
                 Role.NUTRITIONIST));
 
-        patient = userRepository.save(new User(
+    patient =
+        userRepository.save(
+            new User(
                 "patient@test.com",
                 passwordEncoder.encode("1234"),
                 "Patient",
                 "Test",
                 Role.PATIENT));
 
-        adminToken = "Bearer " + jwtService.generateToken(admin);
-        nutritionistToken = "Bearer " + jwtService.generateToken(nutritionist);
-        patientToken = "Bearer " + jwtService.generateToken(patient);
+    adminToken = "Bearer " + jwtService.generateToken(admin);
+    nutritionistToken = "Bearer " + jwtService.generateToken(nutritionist);
+    patientToken = "Bearer " + jwtService.generateToken(patient);
 
-        chicken = foodRepository.save(
-                Food.of(
-                        "Chicken Breast",
-                        165,
-                        31,
-                        0,
-                        4,
-                        FoodCategory.PROTEIN,
-                        EnumSet.allOf(MealType.class)
-                )
-        );
+    chicken =
+        foodRepository.save(
+            Food.of(
+                "Chicken Breast",
+                165,
+                31,
+                0,
+                4,
+                FoodCategory.PROTEIN,
+                EnumSet.allOf(MealType.class)));
 
-        rice = foodRepository.save(
-                Food.of(
-                        "Rice",
-                        130,
-                        3,
-                        28,
-                        1,
-                        FoodCategory.CARB,
-                        EnumSet.allOf(MealType.class)
-                )
-        );
+    rice =
+        foodRepository.save(
+            Food.of("Rice", 130, 3, 28, 1, FoodCategory.CARB, EnumSet.allOf(MealType.class)));
 
-        apple = foodRepository.save(
-                Food.of(
-                        "Apple",
-                        52,
-                        0,
-                        14,
-                        0,
-                        FoodCategory.FRUIT,
-                        EnumSet.allOf(MealType.class)
-                )
-        );
-    }
+    apple =
+        foodRepository.save(
+            Food.of("Apple", 52, 0, 14, 0, FoodCategory.FRUIT, EnumSet.allOf(MealType.class)));
+  }
 
-    @Test
-    @DisplayName("ADMIN puede eliminar un alimento")
-    void shouldDeleteFood() throws Exception {
+  @Test
+  @DisplayName("ADMIN puede eliminar un alimento")
+  void shouldDeleteFood() throws Exception {
 
-        mockMvc.perform(delete("/api/foods/{id}", apple.getId())
-                        .header("Authorization", adminToken))
-                .andExpect(status().isNoContent());
+    mockMvc
+        .perform(delete("/api/foods/{id}", apple.getId()).header("Authorization", adminToken))
+        .andExpect(status().isNoContent());
 
-        assertFalse(foodRepository.findById(apple.getId()).isPresent());
-    }
+    assertFalse(foodRepository.findById(apple.getId()).isPresent());
+  }
 
-    @Test
-    @DisplayName("Debe retornar 404 cuando el alimento no existe")
-    void shouldReturnNotFoundWhenDeletingUnknownFood() throws Exception {
+  @Test
+  @DisplayName("Debe retornar 404 cuando el alimento no existe")
+  void shouldReturnNotFoundWhenDeletingUnknownFood() throws Exception {
 
-        mockMvc.perform(delete("/api/foods/{id}", 999999L)
-                        .header("Authorization", adminToken))
-                .andExpect(status().isNotFound());
-    }
+    mockMvc
+        .perform(delete("/api/foods/{id}", 999999L).header("Authorization", adminToken))
+        .andExpect(status().isNotFound());
+  }
 
-    @Test
-    @DisplayName("Debe inactivar el alimento (soft delete) cuando está siendo utilizado")
-    void shouldSoftDeleteFoodWhenInUse() throws Exception {
-        // Given
-        NutritionPlan plan = nutritionPlanTestDataFactory.createDraftPlan(
-                patient.getPatientProfile()
-        );
-        DailyPlan dailyPlan = DailyPlan.of(DayOfWeek.MONDAY, plan);
-        PlanMeal meal = PlanMeal.of(MealType.LUNCH, dailyPlan);
-        PlanFoodPortion portion = PlanFoodPortion.of(meal, chicken, 200.0, MeasureUnit.GRAM);
+  @Test
+  @DisplayName("Debe inactivar el alimento (soft delete) cuando está siendo utilizado")
+  void shouldSoftDeleteFoodWhenInUse() throws Exception {
+    // Given
+    NutritionPlan plan = nutritionPlanTestDataFactory.createDraftPlan(patient.getPatientProfile());
+    DailyPlan dailyPlan = DailyPlan.of(DayOfWeek.MONDAY, plan);
+    PlanMeal meal = PlanMeal.of(MealType.LUNCH, dailyPlan);
+    PlanFoodPortion portion = PlanFoodPortion.of(meal, chicken, 200.0, MeasureUnit.GRAM);
 
-        // Guardar dependencias en BD si el factory/entidad no lo persiste automáticamente
+    // Guardar dependencias en BD si el factory/entidad no lo persiste automáticamente
 
-        // When & Then
-        mockMvc.perform(delete("/api/foods/{id}", chicken.getId())
-                        .header("Authorization", adminToken))
-                .andExpect(status().isNoContent()); // Expone 204 exitoso
+    // When & Then
+    mockMvc
+        .perform(delete("/api/foods/{id}", chicken.getId()).header("Authorization", adminToken))
+        .andExpect(status().isNoContent()); // Expone 204 exitoso
 
-        // Verificación en BD: El registro sigue existiendo pero inactivo
-        Food updatedFood = foodRepository.findById(chicken.getId()).orElseThrow();
-        assertFalse(updatedFood.isActive()); // O el método/flag que uses: updatedFood.getIsActive(), food.isDeleted(), etc.
-    }
+    // Verificación en BD: El registro sigue existiendo pero inactivo
+    Food updatedFood = foodRepository.findById(chicken.getId()).orElseThrow();
+    assertFalse(
+        updatedFood
+            .isActive());
+    // etc.
+  }
 
-    @Test
-    @DisplayName("ADMIN puede crear un alimento")
-    void shouldCreateFood() throws Exception {
+  @Test
+  @DisplayName("ADMIN puede crear un alimento")
+  void shouldCreateFood() throws Exception {
 
-        String body = """
+    String body =
+        """
     {
         "name": "Banana",
         "caloriesPer100g": 89,
@@ -173,37 +156,39 @@ class FoodControllerIT extends AbstractIntegrationTest{
     }
     """;
 
-        mockMvc.perform(post("/api/foods")
-                        .header("Authorization", adminToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isCreated());
-    }
+    mockMvc
+        .perform(
+            post("/api/foods")
+                .header("Authorization", adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isCreated());
+  }
 
+  @Test
+  @DisplayName("Debe obtener un alimento por id")
+  void shouldFindFoodById() throws Exception {
 
-    @Test
-    @DisplayName("Debe obtener un alimento por id")
-    void shouldFindFoodById() throws Exception {
+    mockMvc
+        .perform(get("/api/foods/{id}", chicken.getId()).header("Authorization", adminToken))
+        .andExpect(status().isOk());
+  }
 
-        mockMvc.perform(get("/api/foods/{id}", chicken.getId())
-                        .header("Authorization", adminToken))
-                .andExpect(status().isOk());
-    }
+  @Test
+  @DisplayName("Debe listar alimentos")
+  void shouldFindAllFoods() throws Exception {
 
-    @Test
-    @DisplayName("Debe listar alimentos")
-    void shouldFindAllFoods() throws Exception {
+    mockMvc
+        .perform(get("/api/foods").header("Authorization", adminToken))
+        .andExpect(status().isOk());
+  }
 
-        mockMvc.perform(get("/api/foods")
-                        .header("Authorization", adminToken))
-                .andExpect(status().isOk());
-    }
+  @Test
+  @DisplayName("ADMIN puede actualizar alimento")
+  void shouldUpdateFood() throws Exception {
 
-    @Test
-    @DisplayName("ADMIN puede actualizar alimento")
-    void shouldUpdateFood() throws Exception {
-
-        String body = """
+    String body =
+        """
         {
           "name":"Chicken Updated",
           "caloriesPer100g":200,
@@ -213,17 +198,17 @@ class FoodControllerIT extends AbstractIntegrationTest{
         }
       """;
 
-        mockMvc.perform(patch("/api/foods/{id}", chicken.getId()) // <-- Cambiado de put() a patch()
-                        .header("Authorization", adminToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isOk());
+    mockMvc
+        .perform(
+            patch("/api/foods/{id}", chicken.getId()) // <-- Cambiado de put() a patch()
+                .header("Authorization", adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isOk());
 
-        Food updated = foodRepository.findById(chicken.getId()).orElseThrow();
+    Food updated = foodRepository.findById(chicken.getId()).orElseThrow();
 
-        assertEquals("Chicken Updated", updated.getName());
-        assertEquals(200, updated.getCaloriesPer100g());
-    }
-
-
+    assertEquals("Chicken Updated", updated.getName());
+    assertEquals(200, updated.getCaloriesPer100g());
+  }
 }

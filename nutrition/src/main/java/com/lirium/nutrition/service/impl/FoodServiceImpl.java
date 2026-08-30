@@ -14,13 +14,12 @@ import com.lirium.nutrition.repository.FoodPortionRecordRepository;
 import com.lirium.nutrition.repository.FoodRepository;
 import com.lirium.nutrition.repository.PlanFoodPortionRepository;
 import com.lirium.nutrition.service.FoodService;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -28,147 +27,147 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class FoodServiceImpl implements FoodService {
 
-    private final FoodRepository foodRepository;
-    private final PlanFoodPortionRepository planFoodPortionRepository;
-    private final FoodPortionRecordRepository foodPortionRecordRepository;
+  private final FoodRepository foodRepository;
+  private final PlanFoodPortionRepository planFoodPortionRepository;
+  private final FoodPortionRecordRepository foodPortionRecordRepository;
 
-    @Override
-    public Set<FoodSummaryDTO> findAll() {
+  @Override
+  public Set<FoodSummaryDTO> findAll() {
 
-        return foodRepository.findAll()
-                .stream()
-                .map(FoodMapper::toSummary)
-                .collect(Collectors.toSet());
+    return foodRepository.findAll().stream().map(FoodMapper::toSummary).collect(Collectors.toSet());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public FoodResponseDTO findById(Long id) {
+
+    Food food = getFoodOrThrow(id);
+
+    return FoodMapper.toResponse(food);
+  }
+
+  @Override
+  @Transactional
+  public FoodSummaryDTO create(FoodCreateRequestDTO dto) {
+
+    log.info("Creating food name={}", dto.name());
+
+    if (foodRepository.existsByName(dto.name())) {
+      log.warn("Food creation failed - duplicate name={}", dto.name());
+      throw new DuplicateFoodException("Food already exists: " + dto.name());
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public FoodResponseDTO findById(Long id) {
+    log.debug("Food create payload={}", dto);
 
-        Food food = getFoodOrThrow(id);
+    Food food = FoodMapper.toEntity(dto);
+    foodRepository.save(food);
 
-        return FoodMapper.toResponse(food);
+    log.info("Food created successfully name={}", dto.name());
+
+    return FoodMapper.toSummary(food);
+  }
+
+  @Override
+  @Transactional(readOnly = false)
+  public FoodSummaryDTO update(Long id, FoodUpdateRequestDTO dto) {
+
+    log.info("Updating food id={}", id);
+
+    Food food = getFoodOrThrow(id);
+
+    if (dto.name() != null && !dto.name().isBlank()) {
+      if (foodRepository.existsByNameIgnoreCaseAndIdNot(dto.name().trim(), id)) {
+        log.warn("Food update failed - duplicate name={} for other food id={}", dto.name(), id);
+        throw new DuplicateFoodException("Food already exists: " + dto.name());
+      }
+      food.changeName(dto.name().trim());
     }
 
-    @Override
-    @Transactional
-    public FoodSummaryDTO create(FoodCreateRequestDTO dto ) {
-
-        log.info("Creating food name={}", dto.name());
-
-        if (foodRepository.existsByName(dto.name())) {
-            log.warn("Food creation failed - duplicate name={}", dto.name());
-            throw new DuplicateFoodException("Food already exists: " + dto.name());
-        }
-
-        log.debug("Food create payload={}", dto);
-
-        Food food = FoodMapper.toEntity(dto);
-        foodRepository.save(food);
-
-        log.info("Food created successfully name={}", dto.name());
-
-        return FoodMapper.toSummary(food);
-
+    if (dto.caloriesPer100g() != null) {
+      food.changeCalories(dto.caloriesPer100g());
+    }
+    if (dto.proteinPer100g() != null) {
+      food.changeProtein(dto.proteinPer100g());
+    }
+    if (dto.carbsPer100g() != null) {
+      food.changeCarbs(dto.carbsPer100g());
+    }
+    if (dto.fatPer100g() != null) {
+      food.changeFat(dto.fatPer100g());
+    }
+    if (dto.tags() != null) {
+      food.replaceTags(dto.tags());
     }
 
-    @Override
-    @Transactional(readOnly = false)
-    public FoodSummaryDTO update(Long id, FoodUpdateRequestDTO dto ) {
+    log.info("Food updated successfully id={}", id);
 
-        log.info("Updating food id={}", id);
+    return FoodMapper.toSummary(food);
+  }
 
-        Food food = getFoodOrThrow(id);
+  @Override
+  @Transactional(readOnly = false)
+  public void deleteById(Long id) {
+    log.info("Requesting deletion for food id={}", id);
 
-        if (dto.name() != null && !dto.name().isBlank()) {
-            if (foodRepository.existsByNameIgnoreCaseAndIdNot(dto.name().trim(), id)) {
-                log.warn("Food update failed - duplicate name={} for other food id={}", dto.name(), id);
-                throw new DuplicateFoodException("Food already exists: " + dto.name());
-            }
-            food.changeName(dto.name().trim());
-        }
+    Food food = getFoodOrThrow(id);
 
-        if (dto.caloriesPer100g() != null) {
-            food.changeCalories(dto.caloriesPer100g());
-        }
-        if (dto.proteinPer100g() != null) {
-            food.changeProtein(dto.proteinPer100g());
-        }
-        if (dto.carbsPer100g() != null) {
-            food.changeCarbs(dto.carbsPer100g());
-        }
-        if (dto.fatPer100g() != null) {
-            food.changeFat(dto.fatPer100g());
-        }
-        if (dto.tags() != null) {
-            food.replaceTags(dto.tags());
-        }
+    // We verify in the two tables that inherit from AbstractFoodPortion
+    boolean isUsedInPlans = planFoodPortionRepository.existsByFoodId(id);
+    boolean isUsedInRecords = foodPortionRecordRepository.existsByFoodId(id);
 
-        log.info("Food updated successfully id={}", id);
+    boolean isFoodInUse = isUsedInPlans || isUsedInRecords;
 
-        return FoodMapper.toSummary(food);
-
+    if (isFoodInUse) {
+      // If already used in diets or the patient's diary: Logical Deletion (Inactivation)
+      food.deactivate();
+      log.info(
+          "Food in use (plans={} or records={}) - soft deleted (deactivated) id={}",
+          isUsedInPlans,
+          isUsedInRecords,
+          id);
+    } else {
+      // If never used: Actual physical deletion
+      foodRepository.delete(food);
+      foodRepository.flush();
+      log.info("Food has no references - physically deleted successfully id={}", id);
     }
+  }
 
-    @Override
-    @Transactional(readOnly = false)
-    public void deleteById(Long id )  {
-        log.info("Requesting deletion for food id={}", id);
+  private Food getFoodOrThrow(Long id) {
 
-        Food food = getFoodOrThrow(id);
+    return foodRepository
+        .findById(id)
+        .orElseThrow(
+            () -> {
+              log.warn("Food not found id={}", id);
+              return new ResourceNotFoundException("Food", id);
+            });
+  }
 
-        // We verify in the two tables that inherit from AbstractFoodPortion
-        boolean isUsedInPlans = planFoodPortionRepository.existsByFoodId(id);
-        boolean isUsedInRecords = foodPortionRecordRepository.existsByFoodId(id);
+  private Set<FoodTag> toFoodTags(Set<String> tags) {
+    if (tags == null || tags.isEmpty()) return Set.of();
+    return tags.stream()
+        .map(
+            tag -> {
+              try {
+                return FoodTag.valueOf(tag.toUpperCase());
+              } catch (IllegalArgumentException e) {
+                log.warn("Invalid food tag received tag={}", tag);
+                throw new InvalidTagException("Invalid tag: " + tag);
+              }
+            })
+        .collect(Collectors.toSet());
+  }
 
-        boolean isFoodInUse = isUsedInPlans || isUsedInRecords;
+  @Override
+  public Food findEntityById(Long id) {
 
-        if (isFoodInUse) {
-            // If already used in diets or the patient's diary: Logical Deletion (Inactivation)
-            food.deactivate();
-            log.info("Food in use (plans={} or records={}) - soft deleted (deactivated) id={}",
-                    isUsedInPlans, isUsedInRecords, id);
-        } else {
-            // If never used: Actual physical deletion
-            foodRepository.delete(food);
-            foodRepository.flush();
-            log.info("Food has no references - physically deleted successfully id={}", id);
-        }
-    }
-
-    private Food getFoodOrThrow(Long id) {
-
-        return foodRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Food not found id={}", id);
-                    return new ResourceNotFoundException("Food", id);
-                });
-
-    }
-
-    private Set<FoodTag> toFoodTags(Set<String> tags) {
-        if (tags == null || tags.isEmpty()) return Set.of();
-        return tags.stream()
-                .map(tag -> {
-                    try {
-                        return FoodTag.valueOf(tag.toUpperCase());
-                    } catch (IllegalArgumentException e) {
-                        log.warn("Invalid food tag received tag={}", tag);
-                        throw new InvalidTagException("Invalid tag: " + tag);
-                    }
-                })
-                .collect(Collectors.toSet());
-    }
-
-    @Override
-    public Food findEntityById(Long id) {
-
-        return foodRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Food entity not found id={}", id);
-                    return new ResourceNotFoundException("Food", id);
-                });
-
-    }
-
+    return foodRepository
+        .findById(id)
+        .orElseThrow(
+            () -> {
+              log.warn("Food entity not found id={}", id);
+              return new ResourceNotFoundException("Food", id);
+            });
+  }
 }

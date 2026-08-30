@@ -2,145 +2,158 @@ package com.lirium.nutrition.service.impl;
 
 import com.lirium.nutrition.dto.request.PlanFoodPortionCreateRequestDTO;
 import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateFoodRequestDTO;
+import com.lirium.nutrition.dto.response.*;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.PlanFoodPortionMapper;
-import com.lirium.nutrition.dto.response.*;
 import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.model.enums.PlanStatus;
 import com.lirium.nutrition.repository.*;
 import com.lirium.nutrition.service.PlanFoodPortionService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PlanFoodPortionServiceImpl implements PlanFoodPortionService {
 
-    private final PlanFoodPortionRepository repository;
-    private final PlanMealRepository planMealRepository;
-    private final FoodRepository foodRepository;
+  private final PlanFoodPortionRepository repository;
+  private final PlanMealRepository planMealRepository;
+  private final FoodRepository foodRepository;
 
+  @Override
+  public List<PlanFoodPortionResponseDTO> getByPlanMeal(Long planMealId) {
 
-    @Override
-    public List<PlanFoodPortionResponseDTO> getByPlanMeal(Long planMealId) {
+    return repository.findByMealId(planMealId).stream()
+        .map(PlanFoodPortionMapper::toResponse)
+        .toList();
+  }
 
-        return repository.findByMealId(planMealId)
-                .stream()
-                .map(PlanFoodPortionMapper::toResponse)
-                .toList();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public PlanFoodPortionResponseDTO getById(Long id) {
 
-    @Override
-    @Transactional(readOnly = true)
-    public PlanFoodPortionResponseDTO getById(Long id) {
+    PlanFoodPortion portion =
+        repository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("PlanFoodPortion", id));
 
-        PlanFoodPortion portion = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("PlanFoodPortion", id));
+    return PlanFoodPortionMapper.toResponse(portion);
+  }
 
-        return PlanFoodPortionMapper.toResponse(portion);
-    }
+  @Override
+  public PlanFoodPortion findEntityById(Long id) {
 
-    @Override
-    public PlanFoodPortion findEntityById(Long id) {
+    return repository
+        .findById(id)
+        .orElseThrow(
+            () -> {
+              log.warn("PlanFoodPortion entity not found id={}", id);
+              return new ResourceNotFoundException("Food", id);
+            });
+  }
 
-        return repository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("PlanFoodPortion entity not found id={}", id);
-                    return new ResourceNotFoundException("Food", id);
-                });
-    }
+  @Override
+  public PlanFoodPortionResponseDTO create(PlanFoodPortionCreateRequestDTO dto) {
 
+    log.info("Creating portion mealId={} foodId={}", dto.mealId(), dto.foodId());
 
-
-    @Override
-    public PlanFoodPortionResponseDTO create(PlanFoodPortionCreateRequestDTO dto) {
-
-        log.info("Creating portion mealId={} foodId={}", dto.mealId(), dto.foodId());
-
-        PlanMeal meal = planMealRepository.findById(dto.mealId())
-                .orElseThrow(() -> {
-                    log.warn("PlanMeal not found id={}", dto.mealId());
-                    return new ResourceNotFoundException("PlanMeal", dto.mealId());
-                });
-
-        Food food = foodRepository.findById(dto.foodId())
-                .orElseThrow(() -> {
-                    log.warn("Food not found id={}", dto.foodId());
-                    return new ResourceNotFoundException("Food", dto.foodId());
+    PlanMeal meal =
+        planMealRepository
+            .findById(dto.mealId())
+            .orElseThrow(
+                () -> {
+                  log.warn("PlanMeal not found id={}", dto.mealId());
+                  return new ResourceNotFoundException("PlanMeal", dto.mealId());
                 });
 
-        PlanFoodPortion portion = PlanFoodPortionMapper.toEntity(dto, meal, food);
-
-        PlanFoodPortion saved = repository.save(portion);
-
-        log.info("Portion created successfully id={} mealId={} foodId={}", saved.getId(), meal.getId(), food.getId());
-
-        return PlanFoodPortionMapper.toResponse(saved);
-
-    }
-
-    @Override
-    public void delete(Long id) {
-        repository.deleteById(id);
-    }
-
-    @Override
-    @Transactional
-    public PlanFoodPortionResponseDTO update(Long id, PlanFoodPortionUpdateFoodRequestDTO request) {
-
-        log.info("Updating portion id={}", id);
-
-        PlanFoodPortion portion = repository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Portion not found id={}", id);
-                    return new ResourceNotFoundException("PlanFoodPortion", id);
+    Food food =
+        foodRepository
+            .findById(dto.foodId())
+            .orElseThrow(
+                () -> {
+                  log.warn("Food not found id={}", dto.foodId());
+                  return new ResourceNotFoundException("Food", dto.foodId());
                 });
 
-        if (portion.getMeal().getDailyPlan().getNutritionPlan().getStatus() != PlanStatus.DRAFT) {
-            log.warn("Attempt to modify portion id={} on non-DRAFT plan", id);
-            throw new IllegalStateException("Only DRAFT plans can be modified");
-        }
+    PlanFoodPortion portion = PlanFoodPortionMapper.toEntity(dto, meal, food);
 
-        log.debug("Update payload id={} foodId={} quantity={}",
-                    id, portion.getFood().getId(), request.quantity());
+    PlanFoodPortion saved = repository.save(portion);
 
-        if (portion.getId() != null) {
-            Food newFood = foodRepository.findById(portion.getFood().getId())
-                    .orElseThrow(() -> {
-                        log.warn("Food not found id={}", (portion.getFood().getId()));
-                        return new ResourceNotFoundException("Food", (portion.getFood().getId()));
-                    });
+    log.info(
+        "Portion created successfully id={} mealId={} foodId={}",
+        saved.getId(),
+        meal.getId(),
+        food.getId());
 
-            if (newFood.getCategory() != portion.getFood().getCategory()) {
-                log.warn("Invalid food category change portionId={} from={} to={}",
-                        id,
-                        portion.getFood().getCategory(),
-                        newFood.getCategory());
-                throw new IllegalArgumentException(
-                        "Food must be of the same category: " + portion.getFood().getCategory()
-                );
-            }
+    return PlanFoodPortionMapper.toResponse(saved);
+  }
 
-            portion.changeFood(newFood);
+  @Override
+  public void delete(Long id) {
+    repository.deleteById(id);
+  }
 
-        }
+  @Override
+  @Transactional
+  public PlanFoodPortionResponseDTO update(Long id, PlanFoodPortionUpdateFoodRequestDTO request) {
 
-        if (request.quantity() != null) {
-            portion.changeQuantity(request.quantity());
-        }
+    log.info("Updating portion id={}", id);
 
-        PlanFoodPortion saved = repository.save(portion);
+    PlanFoodPortion portion =
+        repository
+            .findById(id)
+            .orElseThrow(
+                () -> {
+                  log.warn("Portion not found id={}", id);
+                  return new ResourceNotFoundException("PlanFoodPortion", id);
+                });
 
-        log.info("Portion updated successfully id={}", id);
-
-
-        return PlanFoodPortionMapper.toResponse(saved);
-
+    if (portion.getMeal().getDailyPlan().getNutritionPlan().getStatus() != PlanStatus.DRAFT) {
+      log.warn("Attempt to modify portion id={} on non-DRAFT plan", id);
+      throw new IllegalStateException("Only DRAFT plans can be modified");
     }
 
+    log.debug(
+        "Update payload id={} foodId={} quantity={}",
+        id,
+        portion.getFood().getId(),
+        request.quantity());
+
+    if (portion.getId() != null) {
+      Food newFood =
+          foodRepository
+              .findById(portion.getFood().getId())
+              .orElseThrow(
+                  () -> {
+                    log.warn("Food not found id={}", (portion.getFood().getId()));
+                    return new ResourceNotFoundException("Food", (portion.getFood().getId()));
+                  });
+
+      if (newFood.getCategory() != portion.getFood().getCategory()) {
+        log.warn(
+            "Invalid food category change portionId={} from={} to={}",
+            id,
+            portion.getFood().getCategory(),
+            newFood.getCategory());
+        throw new IllegalArgumentException(
+            "Food must be of the same category: " + portion.getFood().getCategory());
+      }
+
+      portion.changeFood(newFood);
+    }
+
+    if (request.quantity() != null) {
+      portion.changeQuantity(request.quantity());
+    }
+
+    PlanFoodPortion saved = repository.save(portion);
+
+    log.info("Portion updated successfully id={}", id);
+
+    return PlanFoodPortionMapper.toResponse(saved);
+  }
 }

@@ -13,13 +13,12 @@ import com.lirium.nutrition.model.entity.Restriction;
 import com.lirium.nutrition.model.enums.RestrictionCategory;
 import com.lirium.nutrition.repository.RestrictionRepository;
 import com.lirium.nutrition.service.RestrictionService;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,104 +26,100 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class RestrictionServiceImpl implements RestrictionService {
 
-    private final RestrictionRepository restrictionRepository;
-    private final RestrictionMapper restrictionMapper;
+  private final RestrictionRepository restrictionRepository;
+  private final RestrictionMapper restrictionMapper;
 
-    @Override
-    public Set<RestrictionSummaryDTO> findAll() {
+  @Override
+  public Set<RestrictionSummaryDTO> findAll() {
 
-        return restrictionRepository.findAll()
-                .stream()
-                .map(restrictionMapper::toSummaryDTO)
-                .collect(Collectors.toSet());
+    return restrictionRepository.findAll().stream()
+        .map(restrictionMapper::toSummaryDTO)
+        .collect(Collectors.toSet());
+  }
+
+  @Override
+  public RestrictionResponseDTO findById(Long id) {
+
+    Restriction restriction = getRestrictionOrThrow(id);
+    return restrictionMapper.toResponseDTO(restriction);
+  }
+
+  @Override
+  @Transactional
+  public RestrictionSummaryDTO create(RestrictionCreateRequestDTO dto) {
+
+    log.info("Creating restriction code={} name={}", dto.code(), dto.name());
+
+    if (restrictionRepository.existsByCode(dto.code())) {
+      throw new RestrictionAlreadyExistsException("Restriction code already exists: " + dto.code());
     }
 
-    @Override
-    public RestrictionResponseDTO findById(Long id) {
+    Restriction restriction = new Restriction();
 
-        Restriction restriction = getRestrictionOrThrow(id);
-        return restrictionMapper.toResponseDTO(restriction);
+    restriction.setCode(dto.code());
+    restriction.setName(dto.name());
+    restriction.setDescription(dto.description());
+    restriction.setCategory(dto.category());
 
+    Restriction saved = restrictionRepository.save(restriction);
+
+    log.info("Restriction created successfully id={} code={}", saved.getId(), saved.getCode());
+
+    return restrictionMapper.toSummaryDTO(saved);
+  }
+
+  @Override
+  @Transactional
+  public RestrictionSummaryDTO update(Long id, RestrictionCatalogUpdateDTO dto) {
+
+    log.info("Updating restriction id={}", id);
+
+    Restriction restriction =
+        restrictionRepository.findById(id).orElseThrow(() -> new RestrictionNotFoundException(id));
+
+    if (!restriction.getCode().equals(dto.code())
+        && restrictionRepository.existsByCode(dto.code())) {
+      throw new RestrictionAlreadyExistsException("Restriction code already exists: " + dto.code());
     }
 
-    @Override
-    @Transactional
-    public RestrictionSummaryDTO create(RestrictionCreateRequestDTO dto) {
+    log.debug("Update payload id={} code={} category={}", id, dto.code(), dto.category());
 
-        log.info("Creating restriction code={} name={}", dto.code(), dto.name());
+    restriction.setCode(dto.code());
+    restriction.setName(dto.name());
+    restriction.setDescription(dto.description());
+    restriction.setCategory(dto.category());
 
-        if (restrictionRepository.existsByCode(dto.code())) {
-            throw new RestrictionAlreadyExistsException("Restriction code already exists: " + dto.code());
-        }
+    restrictionRepository.save(restriction);
 
-        Restriction restriction = new Restriction();
+    log.info("Restriction updated successfully id={}", id);
 
-        restriction.setCode(dto.code());
-        restriction.setName(dto.name());
-        restriction.setDescription(dto.description());
-        restriction.setCategory(dto.category());
+    return restrictionMapper.toSummaryDTO(restriction);
+  }
 
-        Restriction saved = restrictionRepository.save(restriction);
+  @Override
+  @Transactional
+  public void deleteById(Long id) {
 
-        log.info("Restriction created successfully id={} code={}",
-                saved.getId(), saved.getCode());
+    Restriction restriction =
+        restrictionRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Restriction", id));
 
-        return restrictionMapper.toSummaryDTO(saved);
+    restrictionRepository.delete(restriction);
+  }
 
+  private Restriction getRestrictionOrThrow(Long id) {
+    return restrictionRepository
+        .findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Restriction", id));
+  }
+
+  private RestrictionCategory parseCategory(String category) {
+
+    try {
+      return RestrictionCategory.valueOf(category);
+    } catch (IllegalArgumentException | NullPointerException e) {
+      throw new InvalidEnumValueException("Invalid restriction category: " + category);
     }
-
-    @Override
-    @Transactional
-    public RestrictionSummaryDTO update(Long id, RestrictionCatalogUpdateDTO dto) {
-
-        log.info("Updating restriction id={}", id);
-
-        Restriction restriction = restrictionRepository.findById(id)
-                .orElseThrow(() -> new RestrictionNotFoundException(id));
-
-        if (!restriction.getCode().equals(dto.code()) && restrictionRepository.existsByCode(dto.code())) {
-            throw new RestrictionAlreadyExistsException("Restriction code already exists: " + dto.code());
-        }
-
-        log.debug("Update payload id={} code={} category={}", id, dto.code(), dto.category());
-
-        restriction.setCode(dto.code());
-        restriction.setName(dto.name());
-        restriction.setDescription(dto.description());
-        restriction.setCategory(dto.category());
-
-        restrictionRepository.save(restriction);
-
-        log.info("Restriction updated successfully id={}", id);
-
-        return restrictionMapper.toSummaryDTO(restriction);
-
-    }
-
-    @Override
-    @Transactional
-    public void deleteById(Long id) {
-
-        Restriction restriction = restrictionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Restriction", id));
-
-        restrictionRepository.delete(restriction);
-    }
-
-    private Restriction getRestrictionOrThrow(Long id) {
-        return restrictionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Restriction", id));
-    }
-
-    private RestrictionCategory parseCategory(String category) {
-
-        try {
-            return RestrictionCategory.valueOf(category);
-        } catch (IllegalArgumentException | NullPointerException e) {
-            throw new InvalidEnumValueException(
-                    "Invalid restriction category: " + category
-            );
-        }
-    }
-
+  }
 }

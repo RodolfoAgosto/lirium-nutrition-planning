@@ -11,28 +11,28 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DailyRecordSecurity {
 
-    private final DailyRecordRepository dailyRecordRepository;
+  private final DailyRecordRepository dailyRecordRepository;
 
-    @Transactional(readOnly = true)
-    public boolean isMealRecordOwner(Long mealRecordId, Authentication authentication) {
-        if (mealRecordId == null || authentication == null || !authentication.isAuthenticated()) {
-            return false;
-        }
-
-        User principal = (User) authentication.getPrincipal();
-
-        return dailyRecordRepository.existsByMeals_IdAndPatient_User_Id(mealRecordId, principal.getId());
+  @Transactional(readOnly = true)
+  public boolean isMealRecordOwner(Long mealRecordId, Authentication authentication) {
+    if (mealRecordId == null || authentication == null || !authentication.isAuthenticated()) {
+      return false;
     }
 
-    @Transactional(readOnly = true)
-    public boolean isDailyRecordOwner(Long dailyRecordId, Authentication authentication) {
-        if (dailyRecordId == null || authentication == null || !authentication.isAuthenticated()) {
-            return false;
-        }
+    User principal = (User) authentication.getPrincipal();
 
-        User principal = (User) authentication.getPrincipal();
+    return dailyRecordRepository.existsByMeals_IdAndPatient_User_Id(
+        mealRecordId, principal.getId());
+  }
 
-        return dailyRecordRepository.existsByIdAndPatient_User_Id(dailyRecordId, principal.getId());
+  @Transactional(readOnly = true)
+  public boolean isDailyRecordOwner(Long dailyRecordId, Authentication authentication) {
+    if (dailyRecordId == null || authentication == null || !authentication.isAuthenticated()) {
+      return false;
     }
 
+    User principal = (User) authentication.getPrincipal();
+
+    return dailyRecordRepository.existsByIdAndPatient_User_Id(dailyRecordId, principal.getId());
+  }
 }

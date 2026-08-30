@@ -1,5 +1,9 @@
 package com.lirium.nutrition.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.lirium.nutrition.dto.request.FoodPortionAddRequestDTO;
 import com.lirium.nutrition.dto.request.MealRecordUpdateRequestDTO;
 import com.lirium.nutrition.model.entity.*;
@@ -9,6 +13,7 @@ import com.lirium.nutrition.model.enums.Role;
 import com.lirium.nutrition.repository.NutritionPlanRepository;
 import com.lirium.nutrition.repository.PatientProfileRepository;
 import com.lirium.nutrition.testdata.DailyRecordTestDataFactory;
+import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,404 +21,367 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDate;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 class DailyRecordControllerIT extends AbstractIntegrationTest {
 
-    private String adminToken;
-    private String nutritionistToken;
-    private String patientToken;
-    private Long patientId;
-    private Long otherPatientId;
-    private PatientProfile patientProfile;
-    private PatientProfile otherPatientProfile;
-    private UserDetails admin;
-    private Long dailyRecordId;
-    private Long mealRecordId;
-    private Long portionId;
-    private Long foodId;
+  private String adminToken;
+  private String nutritionistToken;
+  private String patientToken;
+  private Long patientId;
+  private Long otherPatientId;
+  private PatientProfile patientProfile;
+  private PatientProfile otherPatientProfile;
+  private UserDetails admin;
+  private Long dailyRecordId;
+  private Long mealRecordId;
+  private Long portionId;
+  private Long foodId;
 
-    @Autowired
-    private NutritionPlanRepository nutritionPlanRepository;
+  @Autowired private NutritionPlanRepository nutritionPlanRepository;
 
-    @Autowired
-    private PatientProfileRepository patientProfileRepository;
+  @Autowired private PatientProfileRepository patientProfileRepository;
 
-    @Autowired
-    private DailyRecordTestDataFactory dailyRecordTestDataFactory;
+  @Autowired private DailyRecordTestDataFactory dailyRecordTestDataFactory;
 
-    @BeforeEach
-    void setup() {
+  @BeforeEach
+  void setup() {
 
-        dailyRecordRepository.deleteAll();
-        nutritionPlanRepository.deleteAll();
+    dailyRecordRepository.deleteAll();
+    nutritionPlanRepository.deleteAll();
 
-        admin = userRepository.save(new User(
-                "admin@test.com",
-                passwordEncoder.encode("1234"),
-                "Admin", "Test", Role.ADMIN));
+    admin =
+        userRepository.save(
+            new User(
+                "admin@test.com", passwordEncoder.encode("1234"), "Admin", "Test", Role.ADMIN));
 
-        User nutritionist = userRepository.save(new User(
+    User nutritionist =
+        userRepository.save(
+            new User(
                 "nutri@test.com",
                 passwordEncoder.encode("1234"),
-                "Nutri", "Test", Role.NUTRITIONIST));
+                "Nutri",
+                "Test",
+                Role.NUTRITIONIST));
 
-        User patient = userRepository.save(new User(
+    User patient =
+        userRepository.save(
+            new User(
                 "patient@test.com",
                 passwordEncoder.encode("1234"),
-                "Patient", "Test", Role.PATIENT));
+                "Patient",
+                "Test",
+                Role.PATIENT));
 
-        User otherPatient = userRepository.save(new User(
-                "other@test.com",
-                passwordEncoder.encode("1234"),
-                "Other", "Test", Role.PATIENT));
+    User otherPatient =
+        userRepository.save(
+            new User(
+                "other@test.com", passwordEncoder.encode("1234"), "Other", "Test", Role.PATIENT));
 
-        patientId = patient.getId();
-        otherPatientId = otherPatient.getId();
+    patientId = patient.getId();
+    otherPatientId = otherPatient.getId();
 
-        patientProfile = patient.getPatientProfile();
-        otherPatientProfile = otherPatient.getPatientProfile();
+    patientProfile = patient.getPatientProfile();
+    otherPatientProfile = otherPatient.getPatientProfile();
 
-        // Garantizar que el paciente principal tenga un plan activo para el reporte de adherencia
-        NutritionPlan plan = NutritionPlan.generate(
-                GoalType.WEIGHT_MAINTENANCE,
-                2000, 150, 200, 60,
-                patientProfile
-        );
-        plan.completeBasic("Plan Inicial", "Descripción de prueba");
-        plan.activate(LocalDate.now().minusMonths(1));
-        nutritionPlanRepository.save(plan);
+    // Garantizar que el paciente principal tenga un plan activo para el reporte de adherencia
+    NutritionPlan plan =
+        NutritionPlan.generate(GoalType.WEIGHT_MAINTENANCE, 2000, 150, 200, 60, patientProfile);
+    plan.completeBasic("Plan Inicial", "Descripción de prueba");
+    plan.activate(LocalDate.now().minusMonths(1));
+    nutritionPlanRepository.save(plan);
 
-        adminToken = "Bearer " + jwtService.generateToken(admin);
-        nutritionistToken = "Bearer " + jwtService.generateToken(nutritionist);
-        patientToken = "Bearer " + jwtService.generateToken(patient);
+    adminToken = "Bearer " + jwtService.generateToken(admin);
+    nutritionistToken = "Bearer " + jwtService.generateToken(nutritionist);
+    patientToken = "Bearer " + jwtService.generateToken(patient);
 
-        DailyRecord record = dailyRecordTestDataFactory.createDailyRecord(
-                patientProfile,
-                LocalDate.now()
-        );
+    DailyRecord record =
+        dailyRecordTestDataFactory.createDailyRecord(patientProfile, LocalDate.now());
 
-        dailyRecordId = record.getId();
+    dailyRecordId = record.getId();
 
-        MealRecord meal = record.getMeals().getFirst();
-        mealRecordId = meal.getId();
+    MealRecord meal = record.getMeals().getFirst();
+    mealRecordId = meal.getId();
 
-        portionId = meal.getFoodPortions()
-                .getFirst()
-                .getId();
+    portionId = meal.getFoodPortions().getFirst().getId();
 
-        foodId = meal.getFoodPortions()
-                .getFirst()
-                .getFood()
-                .getId();
-    }
+    foodId = meal.getFoodPortions().getFirst().getFood().getId();
+  }
 
-    @Test
-    @DisplayName("should return today's daily record when admin requests patient record")
-    void shouldReturnTodayDailyRecordWhenAdminRequestsPatientRecord() throws Exception {
+  @Test
+  @DisplayName("should return today's daily record when admin requests patient record")
+  void shouldReturnTodayDailyRecordWhenAdminRequestsPatientRecord() throws Exception {
 
-        mockMvc.perform(
-                        post("/api/daily-records/patient/" + patientId + "/ensure")
-                                .header("Authorization", adminToken)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.date").exists());
-    }
+    mockMvc
+        .perform(
+            post("/api/daily-records/patient/" + patientId + "/ensure")
+                .header("Authorization", adminToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.date").exists());
+  }
 
-    @Test
-    @DisplayName("should return today's daily record when nutritionist requests patient record")
-    void shouldReturnTodayDailyRecordWhenNutritionistRequestsPatientRecord() throws Exception {
+  @Test
+  @DisplayName("should return today's daily record when nutritionist requests patient record")
+  void shouldReturnTodayDailyRecordWhenNutritionistRequestsPatientRecord() throws Exception {
 
-        mockMvc.perform(
-                        post("/api/daily-records/patient/" + patientId + "/ensure")
-                                .header("Authorization", nutritionistToken)
-                )
-                .andExpect(status().isOk());
-    }
+    mockMvc
+        .perform(
+            post("/api/daily-records/patient/" + patientId + "/ensure")
+                .header("Authorization", nutritionistToken))
+        .andExpect(status().isOk());
+  }
 
-    @Test
-    @DisplayName("should return today's daily record when patient requests own record")
-    void shouldReturnTodayDailyRecordWhenPatientRequestsOwnRecord() throws Exception {
+  @Test
+  @DisplayName("should return today's daily record when patient requests own record")
+  void shouldReturnTodayDailyRecordWhenPatientRequestsOwnRecord() throws Exception {
 
-        mockMvc.perform(
-                        post("/api/daily-records/patient/" + patientId + "/ensure")
-                                .header("Authorization", patientToken)
-                )
-                .andExpect(status().isOk());
-    }
+    mockMvc
+        .perform(
+            post("/api/daily-records/patient/" + patientId + "/ensure")
+                .header("Authorization", patientToken))
+        .andExpect(status().isOk());
+  }
 
-    @Test
-    @DisplayName("should return forbidden when patient requests another patient's today record")
-    void shouldReturnForbiddenWhenPatientRequestsAnotherPatientsTodayRecord()
-            throws Exception {
-        mockMvc.perform(
-                        post("/api/daily-records/patient/" + otherPatientId + "/ensure")
-                                .header("Authorization", patientToken)
-                )
-                .andExpect(status().isForbidden());
-    }
+  @Test
+  @DisplayName("should return forbidden when patient requests another patient's today record")
+  void shouldReturnForbiddenWhenPatientRequestsAnotherPatientsTodayRecord() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/daily-records/patient/" + otherPatientId + "/ensure")
+                .header("Authorization", patientToken))
+        .andExpect(status().isForbidden());
+  }
 
-    @Test
-    @DisplayName("should return unauthorized when user is not authenticated")
-    void shouldReturnUnauthorizedWhenUserIsNotAuthenticated()
-            throws Exception {
+  @Test
+  @DisplayName("should return unauthorized when user is not authenticated")
+  void shouldReturnUnauthorizedWhenUserIsNotAuthenticated() throws Exception {
 
-        mockMvc.perform(
-                        get("/api/daily-records/today/" + patientId)
-                )
-                .andExpect(status().isUnauthorized());
-    }
+    mockMvc
+        .perform(get("/api/daily-records/today/" + patientId))
+        .andExpect(status().isUnauthorized());
+  }
 
-    @Test
-    @DisplayName("should return not found when patient does not exist")
-    void shouldReturnNotFoundWhenPatientDoesNotExist() throws Exception {
-        mockMvc.perform(
-                        post("/api/daily-records/patient/99999/ensure")
-                                .header("Authorization", adminToken)
-                )
-                .andExpect(status().isNotFound());
-    }
+  @Test
+  @DisplayName("should return not found when patient does not exist")
+  void shouldReturnNotFoundWhenPatientDoesNotExist() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/daily-records/patient/99999/ensure").header("Authorization", adminToken))
+        .andExpect(status().isNotFound());
+  }
 
-    // GET /{id}
-    @Test
-    @DisplayName("ADMIN puede obtener DailyRecord por id")
-    void shouldReturnDailyRecordWhenAdminRequestsById() throws Exception {
+  // GET /{id}
+  @Test
+  @DisplayName("ADMIN puede obtener DailyRecord por id")
+  void shouldReturnDailyRecordWhenAdminRequestsById() throws Exception {
 
-        mockMvc.perform(get("/api/daily-records/" + dailyRecordId)
-                        .header("Authorization", adminToken)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(dailyRecordId));
-    }
+    mockMvc
+        .perform(get("/api/daily-records/" + dailyRecordId).header("Authorization", adminToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(dailyRecordId));
+  }
 
-    @Test
-    @DisplayName("NUTRITIONIST puede obtener DailyRecord por id")
-    void shouldReturnDailyRecordWhenNutritionistRequestsById() throws Exception {
+  @Test
+  @DisplayName("NUTRITIONIST puede obtener DailyRecord por id")
+  void shouldReturnDailyRecordWhenNutritionistRequestsById() throws Exception {
 
-        mockMvc.perform(
-                        get("/api/daily-records/" + dailyRecordId)
-                                .header("Authorization", nutritionistToken)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(dailyRecordId));
-    }
+    mockMvc
+        .perform(
+            get("/api/daily-records/" + dailyRecordId).header("Authorization", nutritionistToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(dailyRecordId));
+  }
 
-    @Test
-    @DisplayName("PATIENT dueño puede obtener su DailyRecord")
-    void shouldReturnDailyRecordWhenOwnerPatientRequestsById() throws Exception {
+  @Test
+  @DisplayName("PATIENT dueño puede obtener su DailyRecord")
+  void shouldReturnDailyRecordWhenOwnerPatientRequestsById() throws Exception {
 
-        mockMvc.perform(
-                        get("/api/daily-records/" + dailyRecordId)
-                                .header("Authorization", patientToken)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(dailyRecordId));
-    }
+    mockMvc
+        .perform(get("/api/daily-records/" + dailyRecordId).header("Authorization", patientToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(dailyRecordId));
+  }
 
-    @Test
-    @DisplayName("PATIENT no puede obtener DailyRecord de otro paciente")
-    void shouldReturnForbiddenWhenPatientRequestsAnotherPatientsRecordById()
-            throws Exception {
+  @Test
+  @DisplayName("PATIENT no puede obtener DailyRecord de otro paciente")
+  void shouldReturnForbiddenWhenPatientRequestsAnotherPatientsRecordById() throws Exception {
 
-        User other = userRepository.findById(otherPatientId).orElseThrow();
+    User other = userRepository.findById(otherPatientId).orElseThrow();
 
-        DailyRecord otherRecord = DailyRecord.of(
-                other.getPatientProfile(),
-                LocalDate.now()
-        );
+    DailyRecord otherRecord = DailyRecord.of(other.getPatientProfile(), LocalDate.now());
 
-        Long otherRecordId = dailyRecordRepository.save(otherRecord).getId();
+    Long otherRecordId = dailyRecordRepository.save(otherRecord).getId();
 
-        mockMvc.perform(
-                        get("/api/daily-records/" + otherRecordId)
-                                .header("Authorization", patientToken)
-                )
-                .andExpect(status().isForbidden());
-    }
+    mockMvc
+        .perform(get("/api/daily-records/" + otherRecordId).header("Authorization", patientToken))
+        .andExpect(status().isForbidden());
+  }
 
-    @Test
-    @DisplayName("DailyRecord inexistente devuelve 404")
-    void shouldReturnNotFoundWhenDailyRecordDoesNotExist()
-            throws Exception {
+  @Test
+  @DisplayName("DailyRecord inexistente devuelve 404")
+  void shouldReturnNotFoundWhenDailyRecordDoesNotExist() throws Exception {
 
-        mockMvc.perform(
-                        get("/api/daily-records/999999")
-                                .header("Authorization", adminToken)
-                )
-                .andExpect(status().isNotFound());
-    }
+    mockMvc
+        .perform(get("/api/daily-records/999999").header("Authorization", adminToken))
+        .andExpect(status().isNotFound());
+  }
 
-    // GET /patient/{patientId}
+  // GET /patient/{patientId}
 
-    @Test
-    @DisplayName("ADMIN puede obtener los DailyRecords de cualquier paciente")
-    void shouldReturnPatientDailyRecordsWhenAdminRequests() throws Exception {
+  @Test
+  @DisplayName("ADMIN puede obtener los DailyRecords de cualquier paciente")
+  void shouldReturnPatientDailyRecordsWhenAdminRequests() throws Exception {
 
-        mockMvc.perform(
-                        get("/api/daily-records/patient/" + patientId)
-                                .header("Authorization", adminToken)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].id").value(dailyRecordId));
-    }
+    mockMvc
+        .perform(get("/api/daily-records/patient/" + patientId).header("Authorization", adminToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").isArray())
+        .andExpect(jsonPath("$[0].id").value(dailyRecordId));
+  }
 
-    @Test
-    @DisplayName("NUTRITIONIST puede obtener los DailyRecords de cualquier paciente")
-    void shouldReturnPatientDailyRecordsWhenNutritionistRequests() throws Exception {
+  @Test
+  @DisplayName("NUTRITIONIST puede obtener los DailyRecords de cualquier paciente")
+  void shouldReturnPatientDailyRecordsWhenNutritionistRequests() throws Exception {
 
-        mockMvc.perform(
-                        get("/api/daily-records/patient/" + patientId)
-                                .header("Authorization", nutritionistToken)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].id").value(dailyRecordId));
-    }
+    mockMvc
+        .perform(
+            get("/api/daily-records/patient/" + patientId)
+                .header("Authorization", nutritionistToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").isArray())
+        .andExpect(jsonPath("$[0].id").value(dailyRecordId));
+  }
 
-    @Test
-    @DisplayName("PATIENT dueño puede obtener sus propios DailyRecords")
-    void shouldReturnPatientDailyRecordsWhenOwnerPatientRequests() throws Exception {
+  @Test
+  @DisplayName("PATIENT dueño puede obtener sus propios DailyRecords")
+  void shouldReturnPatientDailyRecordsWhenOwnerPatientRequests() throws Exception {
 
-        mockMvc.perform(
-                        get("/api/daily-records/patient/" + patientId)
-                                .header("Authorization", patientToken)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].id").value(dailyRecordId));
-    }
+    mockMvc
+        .perform(
+            get("/api/daily-records/patient/" + patientId).header("Authorization", patientToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").isArray())
+        .andExpect(jsonPath("$[0].id").value(dailyRecordId));
+  }
 
-    @Test
-    @DisplayName("PATIENT no puede obtener DailyRecords de otro paciente")
-    void shouldReturnForbiddenWhenPatientRequestsAnotherPatientsDailyRecords() throws Exception {
+  @Test
+  @DisplayName("PATIENT no puede obtener DailyRecords de otro paciente")
+  void shouldReturnForbiddenWhenPatientRequestsAnotherPatientsDailyRecords() throws Exception {
 
-        mockMvc.perform(
-                        get("/api/daily-records/patient/" + otherPatientId)
-                                .header("Authorization", patientToken)
-                )
-                .andExpect(status().isForbidden());
-    }
+    mockMvc
+        .perform(
+            get("/api/daily-records/patient/" + otherPatientId)
+                .header("Authorization", patientToken))
+        .andExpect(status().isForbidden());
+  }
 
-    @Test
-    @DisplayName("Paciente sin DailyRecords devuelve lista vacía")
-    void shouldReturnEmptyListWhenPatientHasNoDailyRecords() throws Exception {
+  @Test
+  @DisplayName("Paciente sin DailyRecords devuelve lista vacía")
+  void shouldReturnEmptyListWhenPatientHasNoDailyRecords() throws Exception {
 
-        Long patientWithoutRecordsId = otherPatientId;
+    Long patientWithoutRecordsId = otherPatientId;
 
-        mockMvc.perform(
-                        get("/api/daily-records/patient/" + patientWithoutRecordsId)
-                                .header("Authorization", adminToken)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(0));
-    }
+    mockMvc
+        .perform(
+            get("/api/daily-records/patient/" + patientWithoutRecordsId)
+                .header("Authorization", adminToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").isArray())
+        .andExpect(jsonPath("$.length()").value(0));
+  }
 
-    @Test
-    @DisplayName("ADMIN puede obtener adherence de un paciente")
-    void shouldReturnAdherenceWhenAdminRequests() throws Exception {
+  @Test
+  @DisplayName("ADMIN puede obtener adherence de un paciente")
+  void shouldReturnAdherenceWhenAdminRequests() throws Exception {
 
-        mockMvc.perform(
-                        get("/api/daily-records/patient/" + patientId + "/adherence")
-                                .param("from", LocalDate.now().minusDays(7).toString())
-                                .param("to", LocalDate.now().toString())
-                                .header("Authorization", adminToken)
-                )
-                .andExpect(status().isOk());
-    }
+    mockMvc
+        .perform(
+            get("/api/daily-records/patient/" + patientId + "/adherence")
+                .param("from", LocalDate.now().minusDays(7).toString())
+                .param("to", LocalDate.now().toString())
+                .header("Authorization", adminToken))
+        .andExpect(status().isOk());
+  }
 
-    @Test
-    @DisplayName("PATIENT dueño puede obtener adherence")
-    void shouldReturnAdherenceWhenOwnerPatientRequests() throws Exception {
+  @Test
+  @DisplayName("PATIENT dueño puede obtener adherence")
+  void shouldReturnAdherenceWhenOwnerPatientRequests() throws Exception {
 
-        mockMvc.perform(
-                        get("/api/daily-records/patient/" + patientId + "/adherence")
-                                .param("from", LocalDate.now().minusDays(7).toString())
-                                .param("to", LocalDate.now().toString())
-                                .header("Authorization", patientToken)
-                )
-                .andExpect(status().isOk());
-    }
+    mockMvc
+        .perform(
+            get("/api/daily-records/patient/" + patientId + "/adherence")
+                .param("from", LocalDate.now().minusDays(7).toString())
+                .param("to", LocalDate.now().toString())
+                .header("Authorization", patientToken))
+        .andExpect(status().isOk());
+  }
 
-    @Test
-    @DisplayName("PATIENT no puede obtener adherence de otro paciente")
-    void shouldReturnForbiddenWhenPatientRequestsOtherPatientAdherence()
-            throws Exception {
+  @Test
+  @DisplayName("PATIENT no puede obtener adherence de otro paciente")
+  void shouldReturnForbiddenWhenPatientRequestsOtherPatientAdherence() throws Exception {
 
-        mockMvc.perform(
-                        get("/api/daily-records/patient/" + otherPatientId + "/adherence")
-                                .param("from", LocalDate.now().minusDays(7).toString())
-                                .param("to", LocalDate.now().toString())
-                                .header("Authorization", patientToken)
-                )
-                .andExpect(status().isForbidden());
-    }
+    mockMvc
+        .perform(
+            get("/api/daily-records/patient/" + otherPatientId + "/adherence")
+                .param("from", LocalDate.now().minusDays(7).toString())
+                .param("to", LocalDate.now().toString())
+                .header("Authorization", patientToken))
+        .andExpect(status().isForbidden());
+  }
 
-    @Test
-    @DisplayName("ADMIN puede obtener nutrition comparison")
-    void shouldReturnNutritionComparisonWhenAdminRequests() throws Exception {
+  @Test
+  @DisplayName("ADMIN puede obtener nutrition comparison")
+  void shouldReturnNutritionComparisonWhenAdminRequests() throws Exception {
 
-        mockMvc.perform(
-                        get("/api/daily-records/patient/" + patientId + "/nutrition-comparison")
-                                .param("from", LocalDate.now().minusDays(7).toString())
-                                .param("to", LocalDate.now().toString())
-                                .header("Authorization", adminToken)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.days").exists());
-    }
+    mockMvc
+        .perform(
+            get("/api/daily-records/patient/" + patientId + "/nutrition-comparison")
+                .param("from", LocalDate.now().minusDays(7).toString())
+                .param("to", LocalDate.now().toString())
+                .header("Authorization", adminToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.days").exists());
+  }
 
-    @Test
-    void shouldAddPortionToMeal() throws Exception {
+  @Test
+  void shouldAddPortionToMeal() throws Exception {
 
-        FoodPortionAddRequestDTO dto =
-                new FoodPortionAddRequestDTO(
-                        foodId,
-                        100d,
-                        MeasureUnit.GRAM
-                );
+    FoodPortionAddRequestDTO dto = new FoodPortionAddRequestDTO(foodId, 100d, MeasureUnit.GRAM);
 
-        mockMvc.perform(
-                        post("/api/daily-records/meals/" + mealRecordId + "/portions")
-                                .header("Authorization", patientToken)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isCreated());
-    }
+    mockMvc
+        .perform(
+            post("/api/daily-records/meals/" + mealRecordId + "/portions")
+                .header("Authorization", patientToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isCreated());
+  }
 
-    @Test
-    void shouldUpdateMeal() throws Exception {
+  @Test
+  void shouldUpdateMeal() throws Exception {
 
-        MealRecordUpdateRequestDTO dto =
-                new MealRecordUpdateRequestDTO("Lunch");
+    MealRecordUpdateRequestDTO dto = new MealRecordUpdateRequestDTO("Lunch");
 
-        mockMvc.perform(
-                        patch("/api/daily-records/meals/" + mealRecordId)
-                                .header("Authorization", patientToken)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(dto))
-                )
-                .andExpect(status().isOk());
-    }
+    mockMvc
+        .perform(
+            patch("/api/daily-records/meals/" + mealRecordId)
+                .header("Authorization", patientToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isOk());
+  }
 
-    @Test
-    void shouldRemovePortion() throws Exception {
+  @Test
+  void shouldRemovePortion() throws Exception {
 
-        mockMvc.perform(
-                        delete("/api/daily-records/"
-                                + dailyRecordId
-                                + "/meals/"
-                                + mealRecordId
-                                + "/portions/"
-                                + portionId)
-                                .header("Authorization", patientToken)
-                )
-                .andExpect(status().isNoContent());
-    }
+    mockMvc
+        .perform(
+            delete(
+                    "/api/daily-records/"
+                        + dailyRecordId
+                        + "/meals/"
+                        + mealRecordId
+                        + "/portions/"
+                        + portionId)
+                .header("Authorization", patientToken))
+        .andExpect(status().isNoContent());
+  }
 }

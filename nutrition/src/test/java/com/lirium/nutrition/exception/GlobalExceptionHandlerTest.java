@@ -1,5 +1,9 @@
 package com.lirium.nutrition.exception;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -11,316 +15,185 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-
 class GlobalExceptionHandlerTest {
 
+  private final GlobalExceptionHandler handler = new GlobalExceptionHandler();
 
-    private final GlobalExceptionHandler handler =
-            new GlobalExceptionHandler();
+  private HttpServletRequest request() {
 
+    HttpServletRequest request = mock(HttpServletRequest.class);
 
-    private HttpServletRequest request() {
+    when(request.getRequestURI()).thenReturn("/api/test");
 
-        HttpServletRequest request =
-                mock(HttpServletRequest.class);
+    return request;
+  }
 
-        when(request.getRequestURI())
-                .thenReturn("/api/test");
+  @Test
+  void shouldHandleValidationError() {
 
-        return request;
-    }
+    var target = new Object();
 
+    var bindingResult = new BeanPropertyBindingResult(target, "target");
 
-    @Test
-    void shouldHandleValidationError() {
+    bindingResult.addError(new FieldError("target", "name", "must not be blank"));
 
-        var target = new Object();
+    MethodArgumentNotValidException exception = mock(MethodArgumentNotValidException.class);
 
-        var bindingResult =
-                new BeanPropertyBindingResult(target, "target");
+    when(exception.getBindingResult()).thenReturn(bindingResult);
 
-        bindingResult.addError(
-                new FieldError(
-                        "target",
-                        "name",
-                        "must not be blank"
-                )
-        );
+    ResponseEntity<ApiError> response = handler.handleValidation(exception, request());
 
-        MethodArgumentNotValidException exception =
-                mock(MethodArgumentNotValidException.class);
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 
-        when(exception.getBindingResult())
-                .thenReturn(bindingResult);
+    assertThat(response.getBody().message()).contains("name");
+  }
 
+  @Test
+  void shouldHandleInvalidTag() {
 
-        ResponseEntity<ApiError> response =
-                handler.handleValidation(
-                        exception,
-                        request()
-                );
+    ResponseEntity<ApiError> response =
+        handler.handleInvalidTag(new InvalidTagException("invalid"), request());
 
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
 
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.BAD_REQUEST);
+  @Test
+  void shouldHandleFoodInUse() {
 
-        assertThat(response.getBody().message())
-                .contains("name");
-    }
+    ResponseEntity<ApiError> response =
+        handler.handleFoodInUse(new FoodInUseException("used", 1L), request());
 
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+  }
 
-    @Test
-    void shouldHandleInvalidTag() {
+  @Test
+  void shouldHandleDuplicateFood() {
 
-        ResponseEntity<ApiError> response =
-                handler.handleInvalidTag(
-                        new InvalidTagException("invalid"),
-                        request()
-                );
+    ResponseEntity<ApiError> response =
+        handler.handleDuplicateFood(new DuplicateFoodException("duplicate"), request());
 
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+  }
 
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.BAD_REQUEST);
-    }
+  @Test
+  void shouldHandleDuplicateTemplate() {
 
+    ResponseEntity<ApiError> response =
+        handler.handleDuplicateTemplate(new DuplicateTemplateException("duplicate"), request());
 
-    @Test
-    void shouldHandleFoodInUse() {
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+  }
 
-        ResponseEntity<ApiError> response =
-                handler.handleFoodInUse(
-                        new FoodInUseException("used", 1L),
-                        request()
-                );
+  @Test
+  void shouldHandleResourceNotFound() {
 
+    ResponseEntity<ApiError> response =
+        handler.handleNotFound(new ResourceNotFoundException("missing", 1L), request());
 
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.CONFLICT);
-    }
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+  }
 
+  @Test
+  void shouldHandleEmailAlreadyExists() {
 
-    @Test
-    void shouldHandleDuplicateFood() {
+    ResponseEntity<ApiError> response =
+        handler.handleEmailExists(new EmailAlreadyExistsException("exists"), request());
 
-        ResponseEntity<ApiError> response =
-                handler.handleDuplicateFood(
-                        new DuplicateFoodException("duplicate"),
-                        request()
-                );
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+  }
 
+  @Test
+  void shouldHandleUnauthorizedOperation() {
 
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.CONFLICT);
-    }
+    ResponseEntity<ApiError> response =
+        handler.handleUnauthorized(new UnauthorizedOperationException("no access"), request());
 
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+  }
 
-    @Test
-    void shouldHandleDuplicateTemplate() {
+  @Test
+  void shouldHandleEmailNotValidated() {
 
-        ResponseEntity<ApiError> response =
-                handler.handleDuplicateTemplate(
-                        new DuplicateTemplateException("duplicate"),
-                        request()
-                );
+    ResponseEntity<ApiError> response =
+        handler.handleUnauthorized(new EmailNotValidatedException("not validated"), request());
 
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+  }
 
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.CONFLICT);
-    }
+  @Test
+  void shouldHandleAccountDisabled() {
 
+    ResponseEntity<ApiError> response =
+        handler.handleUnauthorized(new AccountDisabledException(1L), request());
 
-    @Test
-    void shouldHandleResourceNotFound() {
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+  }
 
-        ResponseEntity<ApiError> response =
-                handler.handleNotFound(
-                        new ResourceNotFoundException("missing", 1L),
-                        request()
-                );
+  @Test
+  void shouldHandleInvalidGoal() {
 
+    ResponseEntity<ApiError> response =
+        handler.handleBadRequest(new InvalidGoalException("invalid"), request());
 
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.NOT_FOUND);
-    }
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
 
+  @Test
+  void shouldHandleInvalidMealStructure() {
 
-    @Test
-    void shouldHandleEmailAlreadyExists() {
+    ResponseEntity<ApiError> response =
+        handler.handleBadRequest(new InvalidMealStructureException("invalid"), request());
 
-        ResponseEntity<ApiError> response =
-                handler.handleEmailExists(
-                        new EmailAlreadyExistsException("exists"),
-                        request()
-                );
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
 
+  @Test
+  void shouldHandleGenericException() {
 
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.CONFLICT);
-    }
+    ResponseEntity<ApiError> response =
+        handler.handleGeneric(new RuntimeException("error"), request());
 
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
 
-    @Test
-    void shouldHandleUnauthorizedOperation() {
+    assertThat(response.getBody().message()).isEqualTo("Unexpected error occurred");
+  }
 
-        ResponseEntity<ApiError> response =
-                handler.handleUnauthorized(
-                        new UnauthorizedOperationException("no access"),
-                        request()
-                );
+  @Test
+  void shouldHandleBadCredentials() {
 
+    ResponseEntity<ApiError> response =
+        handler.handleBadCredentials(new BadCredentialsException("bad"), request());
 
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.FORBIDDEN);
-    }
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+  }
 
+  @Test
+  void shouldHandleAccessDenied() {
 
-    @Test
-    void shouldHandleEmailNotValidated() {
+    AuthorizationResult result = mock(AuthorizationResult.class);
 
-        ResponseEntity<ApiError> response =
-                handler.handleUnauthorized(
-                        new EmailNotValidatedException("not validated"),
-                        request()
-                );
+    AuthorizationDeniedException exception = new AuthorizationDeniedException("denied", result);
 
+    ResponseEntity<ApiError> response = handler.handleAccessDenied(exception, request());
 
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.FORBIDDEN);
-    }
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+  }
 
+  @Test
+  void shouldHandleInvalidRefreshToken() {
 
-    @Test
-    void shouldHandleAccountDisabled() {
+    ResponseEntity<ApiError> response =
+        handler.handleInvalidRefreshToken(new InvalidRefreshTokenException("expired"), request());
 
-        ResponseEntity<ApiError> response =
-                handler.handleUnauthorized(
-                        new AccountDisabledException(1L),
-                        request()
-                );
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+  }
 
+  @Test
+  void shouldHandleInvalidEnumValue() {
 
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.FORBIDDEN);
-    }
+    ResponseEntity<ApiError> response =
+        handler.handleInvalidEnum(new InvalidEnumValueException("invalid enum"), request());
 
-
-    @Test
-    void shouldHandleInvalidGoal() {
-
-        ResponseEntity<ApiError> response =
-                handler.handleBadRequest(
-                        new InvalidGoalException("invalid"),
-                        request()
-                );
-
-
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.BAD_REQUEST);
-    }
-
-
-    @Test
-    void shouldHandleInvalidMealStructure() {
-
-        ResponseEntity<ApiError> response =
-                handler.handleBadRequest(
-                        new InvalidMealStructureException("invalid"),
-                        request()
-                );
-
-
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.BAD_REQUEST);
-    }
-
-
-    @Test
-    void shouldHandleGenericException() {
-
-        ResponseEntity<ApiError> response =
-                handler.handleGeneric(
-                        new RuntimeException("error"),
-                        request()
-                );
-
-
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-
-        assertThat(response.getBody().message())
-                .isEqualTo("Unexpected error occurred");
-    }
-
-
-    @Test
-    void shouldHandleBadCredentials() {
-
-        ResponseEntity<ApiError> response =
-                handler.handleBadCredentials(
-                        new BadCredentialsException("bad"),
-                        request()
-                );
-
-
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.UNAUTHORIZED);
-    }
-
-
-    @Test
-    void shouldHandleAccessDenied() {
-
-        AuthorizationResult result =
-                mock(AuthorizationResult.class);
-
-        AuthorizationDeniedException exception =
-                new AuthorizationDeniedException(
-                        "denied",
-                        result
-                );
-
-        ResponseEntity<ApiError> response =
-                handler.handleAccessDenied(
-                        exception,
-                        request()
-                );
-
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.FORBIDDEN);
-    }
-
-
-    @Test
-    void shouldHandleInvalidRefreshToken() {
-
-        ResponseEntity<ApiError> response =
-                handler.handleInvalidRefreshToken(
-                        new InvalidRefreshTokenException("expired"),
-                        request()
-                );
-
-
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.UNAUTHORIZED);
-    }
-
-
-    @Test
-    void shouldHandleInvalidEnumValue() {
-
-        ResponseEntity<ApiError> response =
-                handler.handleInvalidEnum(
-                        new InvalidEnumValueException("invalid enum"),
-                        request()
-                );
-
-
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.BAD_REQUEST);
-    }
-
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
 }

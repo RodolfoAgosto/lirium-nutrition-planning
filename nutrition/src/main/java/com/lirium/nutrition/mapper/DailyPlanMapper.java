@@ -3,48 +3,34 @@ package com.lirium.nutrition.mapper;
 import com.lirium.nutrition.dto.request.*;
 import com.lirium.nutrition.dto.response.*;
 import com.lirium.nutrition.model.entity.*;
-
 import java.time.DayOfWeek;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class DailyPlanMapper {
 
-    private DailyPlanMapper() {}
+  private DailyPlanMapper() {}
 
-    /* === ENTITY -> RESPONSE === */
+  /* === ENTITY -> RESPONSE === */
 
-    public static DailyPlanResponseDTO toResponse(DailyPlan entity) {
+  public static DailyPlanResponseDTO toResponse(DailyPlan entity) {
 
-        List<PlanMealSummaryDTO> meals = entity.getMeals()
-                .stream()
-                .map(PlanMealMapper::toSummary)
-                .toList();
+    List<PlanMealSummaryDTO> meals =
+        entity.getMeals().stream().map(PlanMealMapper::toSummary).toList();
 
-        return new DailyPlanResponseDTO(
-                entity.getId(),
-                entity.getDayOfWeek(),
-                entity.getNutritionPlan().getId(),
-                meals
-        );
-    }
+    return new DailyPlanResponseDTO(
+        entity.getId(), entity.getDayOfWeek(), entity.getNutritionPlan().getId(), meals);
+  }
 
-    public static DailyPlanSummaryDTO toSummary(DailyPlan entity) {
-        return new DailyPlanSummaryDTO(
-                entity.getId(),
-                entity.getDayOfWeek()
-        );
-    }
+  public static DailyPlanSummaryDTO toSummary(DailyPlan entity) {
+    return new DailyPlanSummaryDTO(entity.getId(), entity.getDayOfWeek());
+  }
 
-    /* === CREATE DTO -> ENTITY === */
+  /* === CREATE DTO -> ENTITY === */
 
-    public static DailyPlan toEntity(
-            DailyPlanCreateRequestDTO dto,
-            NutritionPlan nutritionPlan
-    ) {
+  public static DailyPlan toEntity(DailyPlanCreateRequestDTO dto, NutritionPlan nutritionPlan) {
 
-        DayOfWeek day = dto.day();
+    DayOfWeek day = dto.day();
 
-        return DailyPlan.of(day, nutritionPlan);
-    }
+    return DailyPlan.of(day, nutritionPlan);
+  }
 }

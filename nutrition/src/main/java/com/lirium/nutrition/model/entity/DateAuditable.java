@@ -3,20 +3,19 @@ package com.lirium.nutrition.model.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
-import lombok.Getter;
-
 import java.time.LocalDateTime;
+import lombok.Getter;
 
 @MappedSuperclass
 @EntityListeners(org.springframework.data.jpa.domain.support.AuditingEntityListener.class)
 @Getter
 public abstract class DateAuditable {
 
-    @org.springframework.data.annotation.CreatedDate
-    @Column(nullable = false, updatable = false, name = "created_at")
-    private LocalDateTime createdAt;
+  @org.springframework.data.annotation.CreatedDate
+  @Column(nullable = false, updatable = false, name = "created_at")
+  private LocalDateTime createdAt;
 
-    @org.springframework.data.annotation.LastModifiedDate
-    @Column(nullable = false, name = "updated_at")
-    private LocalDateTime updatedAt;
+  @org.springframework.data.annotation.LastModifiedDate
+  @Column(nullable = false, name = "updated_at")
+  private LocalDateTime updatedAt;
 }

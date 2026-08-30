@@ -1,7 +1,7 @@
 package com.lirium.nutrition.service.impl;
 
-import com.lirium.nutrition.dto.response.*;
 import com.lirium.nutrition.dto.request.*;
+import com.lirium.nutrition.dto.response.*;
 import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.RestrictionMapper;
 import com.lirium.nutrition.model.entity.*;
@@ -11,14 +11,14 @@ import com.lirium.nutrition.model.valueobject.Weight;
 import com.lirium.nutrition.repository.*;
 import com.lirium.nutrition.service.PatientProfileService;
 import com.lirium.nutrition.service.PatientService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -26,156 +26,151 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class PatientServiceImpl implements PatientService {
 
-    private final PatientProfileService patientProfileService;
-    private final PatientProfileRepository patientProfileRepository;
-    private final RestrictionRepository restrictionRepository;
-    private final RestrictionMapper restrictionMapper;
+  private final PatientProfileService patientProfileService;
+  private final PatientProfileRepository patientProfileRepository;
+  private final RestrictionRepository restrictionRepository;
+  private final RestrictionMapper restrictionMapper;
 
-    @Override
-    public List<PatientSummaryDTO> searchPatients(
-            String firstName,
-            String lastName,
-            String email,
-            String dni) {
+  @Override
+  public List<PatientSummaryDTO> searchPatients(
+      String firstName, String lastName, String email, String dni) {
 
-        return patientProfileRepository.searchPatients(firstName, lastName, email, dni);
-    }
+    return patientProfileRepository.searchPatients(firstName, lastName, email, dni);
+  }
 
-    @Override
-    public PatientDetailsDTO getPatientDetail(Long patientProfileId) {
+  @Override
+  public PatientDetailsDTO getPatientDetail(Long patientProfileId) {
 
-        log.info("Fetching patient detail patientId={}", patientProfileId);
+    log.info("Fetching patient detail patientId={}", patientProfileId);
 
-        PatientProfile profile = patientProfileRepository
-                .findById(patientProfileId)
-                .orElseThrow(() -> {
-                    log.warn("Patient not found id={}", patientProfileId);
-                    return new ResourceNotFoundException("Patient not found", patientProfileId);
+    PatientProfile profile =
+        patientProfileRepository
+            .findById(patientProfileId)
+            .orElseThrow(
+                () -> {
+                  log.warn("Patient not found id={}", patientProfileId);
+                  return new ResourceNotFoundException("Patient not found", patientProfileId);
                 });
 
-        User user = profile.getUser();
-        // Restriction List
-        Set<RestrictionSummaryDTO> restrictions = profile.getRestrictions()
-                .stream()
-                .map(restrictionMapper::toSummaryDTO).collect(Collectors.toSet());
+    User user = profile.getUser();
+    // Restriction List
+    Set<RestrictionSummaryDTO> restrictions =
+        profile.getRestrictions().stream()
+            .map(restrictionMapper::toSummaryDTO)
+            .collect(Collectors.toSet());
 
-        // Physiological Condition List
-        Set<PhysiologicalCondition> physiologicalConditions = profile.getPhysiologicalConditions();
+    // Physiological Condition List
+    Set<PhysiologicalCondition> physiologicalConditions = profile.getPhysiologicalConditions();
 
-        log.info("Patient detail fetched successfully patientId={}", patientProfileId);
+    log.info("Patient detail fetched successfully patientId={}", patientProfileId);
 
-        return new PatientDetailsDTO(
-                profile.getId(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getEmail(),
-                user.getDni(),
-                profile.getSex(),
-                user.isEnabled(),
-                user.getBirthDate(),
-                profile.getHeight(),
-                profile.getWeight(),
-                profile.getActivityLevel(),
-                profile.getPrimaryGoal(),
-                profile.getMedicalNotes(),
-                restrictions,
-                physiologicalConditions);
-    };
+    return new PatientDetailsDTO(
+        profile.getId(),
+        user.getFirstName(),
+        user.getLastName(),
+        user.getEmail(),
+        user.getDni(),
+        profile.getSex(),
+        user.isEnabled(),
+        user.getBirthDate(),
+        profile.getHeight(),
+        profile.getWeight(),
+        profile.getActivityLevel(),
+        profile.getPrimaryGoal(),
+        profile.getMedicalNotes(),
+        restrictions,
+        physiologicalConditions);
+  }
+  ;
 
-    @Override
-    @Transactional
-    public PatientDetailsDTO updatePatient(Long patientId, PatientUpdateRequestDTO request) {
+  @Override
+  @Transactional
+  public PatientDetailsDTO updatePatient(Long patientId, PatientUpdateRequestDTO request) {
 
-        Objects.requireNonNull(request, "PatientUpdateRequestDTO must not be null");
+    Objects.requireNonNull(request, "PatientUpdateRequestDTO must not be null");
 
-        log.info("Updating patient patientId={}", patientId);
+    log.info("Updating patient patientId={}", patientId);
 
-        PatientProfile profile = patientProfileService.findByUserId(patientId);
-        Set<Restriction> restrictions = null;
+    PatientProfile profile = patientProfileService.findByUserId(patientId);
+    Set<Restriction> restrictions = null;
 
-        if (request.restrictions() != null) {
-            restrictions = resolveRestrictions(request.restrictions());
-        }
-
-        List<PhysiologicalCondition> physiologicalConditions =
-                request.physiologicalConditions();
-
-        User user = profile.getUser();
-
-        if (request.firstName() != null) {
-            user.setFirstName(request.firstName());
-        }
-
-        if (request.lastName() != null) {
-            user.setLastName(request.lastName());
-        }
-
-        if (request.email() != null) {
-            user.setEmail(request.email());
-            user.setEmailValidated(false);
-        }
-
-        if (request.birthDate() != null) {
-            user.setBirthDate(request.birthDate());
-        }
-
-        if (request.dni() != null) {
-            user.setDni(request.dni());
-        }
-
-        if (request.enabled() != null) {
-            user.setEnabled(request.enabled());
-        }
-
-        profile.update(
-                request.sex(),
-                request.activityLevel(),
-                request.weight() != null ? Weight.of(request.weight()) : null,
-                request.height() != null ? Height.of(request.height()) : null,
-                request.medicalNotes(),
-                restrictions,
-                physiologicalConditions,
-                request.goal()
-        );
-
-        log.info("Patient updated successfully patientId={}", patientId);
-
-        return new PatientDetailsDTO(
-                user.getId(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getEmail(),
-                user.getDni(),
-                profile.getSex(),
-                user.isEnabled(),
-                user.getBirthDate(),
-                profile.getHeight(),
-                profile.getWeight(),
-                profile.getActivityLevel(),
-                profile.getPrimaryGoal(),
-                profile.getMedicalNotes(),
-                restrictionMapper.toDTOSet(profile.getRestrictions()),
-                profile.getPhysiologicalConditions()
-        );
+    if (request.restrictions() != null) {
+      restrictions = resolveRestrictions(request.restrictions());
     }
 
-    private Set<Restriction> resolveRestrictions(Set<RestrictionUpdateDTO> dtos) {
-        if (dtos == null || dtos.isEmpty()) return Set.of();
+    List<PhysiologicalCondition> physiologicalConditions = request.physiologicalConditions();
 
-        Set<String> codes = dtos.stream()
-                .map(RestrictionUpdateDTO::code)
-                .collect(Collectors.toSet());
+    User user = profile.getUser();
 
-        Set<Restriction> restrictions = restrictionRepository.findByCodes(codes);
-
-        if (restrictions.size() != codes.size()) {
-            Set<String> foundCodes = restrictions.stream()
-                    .map(Restriction::getCode)
-                    .collect(Collectors.toSet());
-            codes.removeAll(foundCodes);
-            throw new ResourceNotFoundException("Restrictions not found", codes.toString());
-        }
-
-        return restrictions;
+    if (request.firstName() != null) {
+      user.setFirstName(request.firstName());
     }
+
+    if (request.lastName() != null) {
+      user.setLastName(request.lastName());
+    }
+
+    if (request.email() != null) {
+      user.setEmail(request.email());
+      user.setEmailValidated(false);
+    }
+
+    if (request.birthDate() != null) {
+      user.setBirthDate(request.birthDate());
+    }
+
+    if (request.dni() != null) {
+      user.setDni(request.dni());
+    }
+
+    if (request.enabled() != null) {
+      user.setEnabled(request.enabled());
+    }
+
+    profile.update(
+        request.sex(),
+        request.activityLevel(),
+        request.weight() != null ? Weight.of(request.weight()) : null,
+        request.height() != null ? Height.of(request.height()) : null,
+        request.medicalNotes(),
+        restrictions,
+        physiologicalConditions,
+        request.goal());
+
+    log.info("Patient updated successfully patientId={}", patientId);
+
+    return new PatientDetailsDTO(
+        user.getId(),
+        user.getFirstName(),
+        user.getLastName(),
+        user.getEmail(),
+        user.getDni(),
+        profile.getSex(),
+        user.isEnabled(),
+        user.getBirthDate(),
+        profile.getHeight(),
+        profile.getWeight(),
+        profile.getActivityLevel(),
+        profile.getPrimaryGoal(),
+        profile.getMedicalNotes(),
+        restrictionMapper.toDTOSet(profile.getRestrictions()),
+        profile.getPhysiologicalConditions());
+  }
+
+  private Set<Restriction> resolveRestrictions(Set<RestrictionUpdateDTO> dtos) {
+    if (dtos == null || dtos.isEmpty()) return Set.of();
+
+    Set<String> codes = dtos.stream().map(RestrictionUpdateDTO::code).collect(Collectors.toSet());
+
+    Set<Restriction> restrictions = restrictionRepository.findByCodes(codes);
+
+    if (restrictions.size() != codes.size()) {
+      Set<String> foundCodes =
+          restrictions.stream().map(Restriction::getCode).collect(Collectors.toSet());
+      codes.removeAll(foundCodes);
+      throw new ResourceNotFoundException("Restrictions not found", codes.toString());
+    }
+
+    return restrictions;
+  }
 }

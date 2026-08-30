@@ -1,82 +1,72 @@
 package com.lirium.nutrition.model.valueobject;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class ProteinTest {
 
-    @Test
-    void shouldCreateProtein() {
+  @Test
+  void shouldCreateProtein() {
 
-        Protein protein = new Protein(100);
+    Protein protein = new Protein(100);
 
-        assertThat(protein.grams()).isEqualTo(100);
-    }
+    assertThat(protein.grams()).isEqualTo(100);
+  }
 
-    @Test
-    void shouldAcceptZeroProtein() {
+  @Test
+  void shouldAcceptZeroProtein() {
 
-        Protein protein = new Protein(0);
+    Protein protein = new Protein(0);
 
-        assertThat(protein.grams()).isZero();
-    }
+    assertThat(protein.grams()).isZero();
+  }
 
-    @Test
-    void shouldRejectNegativeProtein() {
+  @Test
+  void shouldRejectNegativeProtein() {
 
-        assertThatThrownBy(() -> new Protein(-1))
-                .isInstanceOf(IllegalArgumentException.class);
-    }
+    assertThatThrownBy(() -> new Protein(-1)).isInstanceOf(IllegalArgumentException.class);
+  }
 
-    @Test
-    void shouldAddProtein() {
+  @Test
+  void shouldAddProtein() {
 
-        Protein result =
-                new Protein(100)
-                        .add(new Protein(50));
+    Protein result = new Protein(100).add(new Protein(50));
 
-        assertThat(result.grams()).isEqualTo(150);
-    }
+    assertThat(result.grams()).isEqualTo(150);
+  }
 
-    @Test
-    void shouldAddZeroProtein() {
+  @Test
+  void shouldAddZeroProtein() {
 
-        Protein result =
-                new Protein(100)
-                        .add(new Protein(0));
+    Protein result = new Protein(100).add(new Protein(0));
 
-        assertThat(result.grams()).isEqualTo(100);
-    }
+    assertThat(result.grams()).isEqualTo(100);
+  }
 
-    @Test
-    void shouldRejectNullProteinWhenAdding() {
+  @Test
+  void shouldRejectNullProteinWhenAdding() {
 
-        Protein protein = new Protein(100);
+    Protein protein = new Protein(100);
 
-        assertThatThrownBy(() -> protein.add(null))
-                .isInstanceOf(NullPointerException.class);
-    }
+    assertThatThrownBy(() -> protein.add(null)).isInstanceOf(NullPointerException.class);
+  }
 
-    @Test
-    void shouldConvertProteinToCalories() {
+  @Test
+  void shouldConvertProteinToCalories() {
 
-        Protein protein = new Protein(100);
+    Protein protein = new Protein(100);
 
-        assertThat(protein.toCalories())
-                .isEqualTo(400.0);
-    }
+    assertThat(protein.toCalories()).isEqualTo(400.0);
+  }
 
-    @Test
-    void shouldReturnDisplayString() {
+  @Test
+  void shouldReturnDisplayString() {
 
-        Protein protein = new Protein(75);
+    Protein protein = new Protein(75);
 
-        assertThat(protein.toDisplayString())
-                .isEqualTo("75 g");
-    }
-
+    assertThat(protein.toDisplayString()).isEqualTo("75 g");
+  }
 }

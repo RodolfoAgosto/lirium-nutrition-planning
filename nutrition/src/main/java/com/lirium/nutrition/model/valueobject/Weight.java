@@ -2,39 +2,30 @@ package com.lirium.nutrition.model.valueobject;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-
 import java.util.Locale;
 
 @Embeddable
-public record Weight(
-        @Column(name = "grams")
-        int grams) {
+public record Weight(@Column(name = "grams") int grams) {
 
-    private static final int MIN_WEIGHT_GR = 300;
-    private static final int MAX_WEIGHT_GR = 300_000;
+  private static final int MIN_WEIGHT_GR = 300;
+  private static final int MAX_WEIGHT_GR = 300_000;
 
-    public static Weight of(int value) {
-        return new Weight(value);
+  public static Weight of(int value) {
+    return new Weight(value);
+  }
+
+  public Weight {
+    if (grams < MIN_WEIGHT_GR || grams > MAX_WEIGHT_GR) {
+      throw new IllegalArgumentException(
+          String.format("Weight must be between %d and %d grams", MIN_WEIGHT_GR, MAX_WEIGHT_GR));
     }
+  }
 
-    public Weight {
-        if (grams < MIN_WEIGHT_GR || grams > MAX_WEIGHT_GR) {
-            throw new IllegalArgumentException(
-                    String.format(
-                            "Weight must be between %d and %d grams",
-                            MIN_WEIGHT_GR,
-                            MAX_WEIGHT_GR
-                    )
-            );
-        }
-    }
+  public double toKg() {
+    return grams / 1000.0;
+  }
 
-    public double toKg() {
-        return grams / 1000.0;
-    }
-
-    public String toDisplayString() {
-        return String.format(Locale.US, "%.2f kg", toKg());
-    }
-
+  public String toDisplayString() {
+    return String.format(Locale.US, "%.2f kg", toKg());
+  }
 }

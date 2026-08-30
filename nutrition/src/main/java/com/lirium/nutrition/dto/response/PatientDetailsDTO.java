@@ -3,12 +3,10 @@ package com.lirium.nutrition.dto.response;
 import com.lirium.nutrition.model.enums.*;
 import com.lirium.nutrition.model.valueobject.Height;
 import com.lirium.nutrition.model.valueobject.Weight;
-
 import java.time.LocalDate;
 import java.util.Set;
 
 public record PatientDetailsDTO(
-
     Long patientId,
     String firstName,
     String lastName,
@@ -23,6 +21,4 @@ public record PatientDetailsDTO(
     GoalType goal,
     String medicalNotes,
     Set<RestrictionSummaryDTO> restrictions,
-    Set<PhysiologicalCondition> physiologicalConditions){
-
-}
+    Set<PhysiologicalCondition> physiologicalConditions) {}

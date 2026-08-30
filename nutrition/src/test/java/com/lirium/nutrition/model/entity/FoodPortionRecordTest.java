@@ -1,179 +1,101 @@
 package com.lirium.nutrition.model.entity;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.lirium.nutrition.model.enums.FoodCategory;
 import com.lirium.nutrition.model.enums.MeasureUnit;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class FoodPortionRecordTest {
 
+  private Food createFood() {
 
-    private Food createFood() {
+    return Food.of("Rice", 130, 3, 28, 1, FoodCategory.CARB, null);
+  }
 
-        return Food.of(
-                "Rice",
-                130,
-                3,
-                28,
-                1,
-                FoodCategory.CARB,
-                null
-        );
-    }
+  @Test
+  void shouldCreateFoodPortionRecord() {
 
+    MealRecord meal = new MealRecord();
 
-    @Test
-    void shouldCreateFoodPortionRecord() {
+    Food food = createFood();
 
-        MealRecord meal = new MealRecord();
+    FoodPortionRecord portion = FoodPortionRecord.of(meal, food, 200D, MeasureUnit.GRAM);
 
-        Food food = createFood();
+    assertSame(meal, portion.getMeal());
+    assertSame(food, portion.getFood());
+    assertEquals(200D, portion.getQuantity());
+    assertEquals(MeasureUnit.GRAM, portion.getUnit());
+  }
 
-        FoodPortionRecord portion =
-                FoodPortionRecord.of(
-                        meal,
-                        food,
-                        200D,
-                        MeasureUnit.GRAM
-                );
+  @Test
+  void shouldRejectNullMeal() {
 
+    Food food = createFood();
 
-        assertSame(meal, portion.getMeal());
-        assertSame(food, portion.getFood());
-        assertEquals(200D, portion.getQuantity());
-        assertEquals(MeasureUnit.GRAM, portion.getUnit());
-    }
+    assertThrows(
+        NullPointerException.class, () -> FoodPortionRecord.of(null, food, 100D, MeasureUnit.GRAM));
+  }
 
+  @Test
+  void shouldRejectNullFood() {
 
-    @Test
-    void shouldRejectNullMeal() {
+    MealRecord meal = new MealRecord();
 
-        Food food = createFood();
+    assertThrows(
+        NullPointerException.class, () -> FoodPortionRecord.of(meal, null, 100D, MeasureUnit.GRAM));
+  }
 
-        assertThrows(
-                NullPointerException.class,
-                () -> FoodPortionRecord.of(
-                        null,
-                        food,
-                        100D,
-                        MeasureUnit.GRAM
-                )
-        );
-    }
+  @Test
+  void shouldRejectNullQuantity() {
 
+    MealRecord meal = new MealRecord();
 
-    @Test
-    void shouldRejectNullFood() {
+    assertThrows(
+        NullPointerException.class,
+        () -> FoodPortionRecord.of(meal, createFood(), null, MeasureUnit.GRAM));
+  }
 
-        MealRecord meal = new MealRecord();
+  @Test
+  void shouldRejectNegativeQuantity() {
 
-        assertThrows(
-                NullPointerException.class,
-                () -> FoodPortionRecord.of(
-                        meal,
-                        null,
-                        100D,
-                        MeasureUnit.GRAM
-                )
-        );
-    }
+    MealRecord meal = new MealRecord();
 
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> FoodPortionRecord.of(meal, createFood(), -10D, MeasureUnit.GRAM));
+  }
 
-    @Test
-    void shouldRejectNullQuantity() {
+  @Test
+  void shouldCalculateGrams() {
 
-        MealRecord meal = new MealRecord();
+    MealRecord meal = new MealRecord();
 
-        assertThrows(
-                NullPointerException.class,
-                () -> FoodPortionRecord.of(
-                        meal,
-                        createFood(),
-                        null,
-                        MeasureUnit.GRAM
-                )
-        );
-    }
+    FoodPortionRecord portion = FoodPortionRecord.of(meal, createFood(), 150D, MeasureUnit.GRAM);
 
+    assertEquals(150D, portion.grams());
+  }
 
-    @Test
-    void shouldRejectNegativeQuantity() {
+  @Test
+  void shouldCalculateCalories() {
 
-        MealRecord meal = new MealRecord();
+    MealRecord meal = new MealRecord();
 
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> FoodPortionRecord.of(
-                        meal,
-                        createFood(),
-                        -10D,
-                        MeasureUnit.GRAM
-                )
-        );
-    }
+    FoodPortionRecord portion = FoodPortionRecord.of(meal, createFood(), 200D, MeasureUnit.GRAM);
 
+    // 130 kcal cada 100g -> 260 kcal en 200g
+    assertEquals(260, portion.calories().amount());
+  }
 
-    @Test
-    void shouldCalculateGrams() {
+  @Test
+  void shouldCalculateMacros() {
 
-        MealRecord meal = new MealRecord();
+    MealRecord meal = new MealRecord();
 
-        FoodPortionRecord portion =
-                FoodPortionRecord.of(
-                        meal,
-                        createFood(),
-                        150D,
-                        MeasureUnit.GRAM
-                );
+    FoodPortionRecord portion = FoodPortionRecord.of(meal, createFood(), 200D, MeasureUnit.GRAM);
 
-
-        assertEquals(
-                150D,
-                portion.grams()
-        );
-    }
-
-
-    @Test
-    void shouldCalculateCalories() {
-
-        MealRecord meal = new MealRecord();
-
-        FoodPortionRecord portion =
-                FoodPortionRecord.of(
-                        meal,
-                        createFood(),
-                        200D,
-                        MeasureUnit.GRAM
-                );
-
-
-        // 130 kcal cada 100g -> 260 kcal en 200g
-        assertEquals(
-                260,
-                portion.calories().amount()
-        );
-    }
-
-
-    @Test
-    void shouldCalculateMacros() {
-
-        MealRecord meal = new MealRecord();
-
-        FoodPortionRecord portion =
-                FoodPortionRecord.of(
-                        meal,
-                        createFood(),
-                        200D,
-                        MeasureUnit.GRAM
-                );
-
-
-        assertEquals(6, portion.protein().grams());
-        assertEquals(56, portion.carbs().amount());
-        assertEquals(2, portion.fat().amount());
-    }
-
+    assertEquals(6, portion.protein().grams());
+    assertEquals(56, portion.carbs().amount());
+    assertEquals(2, portion.fat().amount());
+  }
 }

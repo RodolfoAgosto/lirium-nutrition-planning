@@ -11,44 +11,50 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PlanFoodPortionSecurity {
 
-    private final PlanFoodPortionRepository portionRepository;
-    private final PlanMealRepository mealRepository;
+  private final PlanFoodPortionRepository portionRepository;
+  private final PlanMealRepository mealRepository;
 
-    @Transactional(readOnly = true)
-    public boolean isPortionOwner(Long portionId, Authentication authentication) {
-        if (portionId == null || authentication == null) {
-            return false;
-        }
-
-        String userEmail = authentication.getName();
-
-        return portionRepository.findById(portionId)
-                .map(portion -> portion.getMeal()
-                        .getDailyPlan()
-                        .getNutritionPlan()
-                        .getPatientProfile()
-                        .getUser()
-                        .getEmail()
-                        .equals(userEmail))
-                .orElse(false);
+  @Transactional(readOnly = true)
+  public boolean isPortionOwner(Long portionId, Authentication authentication) {
+    if (portionId == null || authentication == null) {
+      return false;
     }
 
-    @Transactional(readOnly = true)
-    public boolean isMealOwner(Long mealId, Authentication authentication) {
-        if (mealId == null || authentication == null) {
-            return false;
-        }
+    String userEmail = authentication.getName();
 
-        String userEmail = authentication.getName();
+    return portionRepository
+        .findById(portionId)
+        .map(
+            portion ->
+                portion
+                    .getMeal()
+                    .getDailyPlan()
+                    .getNutritionPlan()
+                    .getPatientProfile()
+                    .getUser()
+                    .getEmail()
+                    .equals(userEmail))
+        .orElse(false);
+  }
 
-        return mealRepository.findById(mealId)
-                .map(meal -> meal.getDailyPlan()
-                        .getNutritionPlan()
-                        .getPatientProfile()
-                        .getUser()
-                        .getEmail()
-                        .equals(userEmail))
-                .orElse(false);
+  @Transactional(readOnly = true)
+  public boolean isMealOwner(Long mealId, Authentication authentication) {
+    if (mealId == null || authentication == null) {
+      return false;
     }
 
+    String userEmail = authentication.getName();
+
+    return mealRepository
+        .findById(mealId)
+        .map(
+            meal ->
+                meal.getDailyPlan()
+                    .getNutritionPlan()
+                    .getPatientProfile()
+                    .getUser()
+                    .getEmail()
+                    .equals(userEmail))
+        .orElse(false);
+  }
 }

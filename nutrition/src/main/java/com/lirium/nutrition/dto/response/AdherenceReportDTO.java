@@ -4,10 +4,9 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record AdherenceReportDTO(
-        LocalDate from,
-        LocalDate to,
-        int totalExpectedMeals,
-        int totalRecordedMeals,
-        double adherencePercentage,
-        List<DailyAdherenceDTO> daily
-) {}
+    LocalDate from,
+    LocalDate to,
+    int totalExpectedMeals,
+    int totalRecordedMeals,
+    double adherencePercentage,
+    List<DailyAdherenceDTO> daily) {}

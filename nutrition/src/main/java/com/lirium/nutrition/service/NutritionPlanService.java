@@ -4,20 +4,18 @@ import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
 import com.lirium.nutrition.model.entity.NutritionPlan;
-
 import java.util.List;
 import java.util.Optional;
 
 public interface NutritionPlanService {
 
-    NutritionPlanDetailDTO complete(Long id, CompleteNutritionPlanRequestDTO request);
+  NutritionPlanDetailDTO complete(Long id, CompleteNutritionPlanRequestDTO request);
 
-    NutritionPlanDetailDTO activatePlan(Long planId);
+  NutritionPlanDetailDTO activatePlan(Long planId);
 
-    NutritionPlanDetailDTO findById(Long id);
+  NutritionPlanDetailDTO findById(Long id);
 
-    List<NutritionPlanSummaryDTO> findByPatient(Long patientId);
+  List<NutritionPlanSummaryDTO> findByPatient(Long patientId);
 
-    Optional<NutritionPlan> findActivePlan(Long patientId);
-
+  Optional<NutritionPlan> findActivePlan(Long patientId);
 }

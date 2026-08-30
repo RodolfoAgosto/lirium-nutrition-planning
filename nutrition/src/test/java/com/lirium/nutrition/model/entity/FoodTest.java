@@ -1,291 +1,181 @@
 package com.lirium.nutrition.model.entity;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.lirium.nutrition.model.enums.FoodCategory;
 import com.lirium.nutrition.model.enums.FoodTag;
 import com.lirium.nutrition.model.enums.MealType;
 import com.lirium.nutrition.model.enums.MeasureUnit;
-import org.junit.jupiter.api.Test;
-
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class FoodTest {
 
+  private Food createFood() {
+    return Food.of("Rice", 130, 3, 28, 1, FoodCategory.CARB, Set.of(MealType.LUNCH));
+  }
 
-    private Food createFood() {
-        return Food.of(
-                "Rice",
-                130,
-                3,
-                28,
-                1,
-                FoodCategory.CARB,
-                Set.of(MealType.LUNCH)
-        );
-    }
-
-
-    @Test
-    void shouldCreateFoodWithValidData() {
-
-        Food food = createFood();
-
-        assertEquals("Rice", food.getName());
-        assertEquals(130, food.getCaloriesPer100g());
-        assertEquals(FoodCategory.CARB, food.getCategory());
-        assertEquals(MeasureUnit.GRAM, food.getDefaultUnit());
-        assertTrue(food.getSuitableFor().contains(MealType.LUNCH));
-    }
-
-
-    @Test
-    void shouldRejectNullName() {
-
-        assertThrows(
-                NullPointerException.class,
-                () -> Food.of(
-                        null,
-                        100,
-                        10,
-                        10,
-                        5,
-                        FoodCategory.CARB,
-                        null
-                )
-        );
-    }
-
-
-    @Test
-    void shouldRejectBlankName() {
-
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> Food.of(
-                        " ",
-                        100,
-                        10,
-                        10,
-                        5,
-                        FoodCategory.CARB,
-                        null
-                )
-        );
-    }
-
-
-    @Test
-    void shouldRejectInvalidCaloriesRange() {
-
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> Food.of(
-                        "Apple",
-                        2000,
-                        1,
-                        20,
-                        0,
-                        FoodCategory.FRUIT,
-                        null
-                )
-        );
-    }
-
-
-    @Test
-    void shouldConvertGramsCorrectly() {
-
-        Food food = createFood();
-
-        Double grams = food.toGrams(
-                200D,
-                MeasureUnit.GRAM
-        );
-
-        assertEquals(200D, grams);
-    }
-
-
-    @Test
-    void shouldConvertMillilitersUsingDensity() {
-
-        Food milk = Food.ofLiquid(
-                "Milk",
-                60,
-                3,
-                5,
-                3,
-                FoodCategory.DAIRY,
-                null,
-                1.03
-        );
+  @Test
+  void shouldCreateFoodWithValidData() {
 
-        assertEquals(
-                103D,
-                milk.toGrams(100D, MeasureUnit.MILLILITER)
-        );
-    }
+    Food food = createFood();
 
+    assertEquals("Rice", food.getName());
+    assertEquals(130, food.getCaloriesPer100g());
+    assertEquals(FoodCategory.CARB, food.getCategory());
+    assertEquals(MeasureUnit.GRAM, food.getDefaultUnit());
+    assertTrue(food.getSuitableFor().contains(MealType.LUNCH));
+  }
 
-    @Test
-    void shouldFailConvertMillilitersWithoutDensity() {
+  @Test
+  void shouldRejectNullName() {
 
-        Food food = createFood();
+    assertThrows(
+        NullPointerException.class, () -> Food.of(null, 100, 10, 10, 5, FoodCategory.CARB, null));
+  }
 
-        assertThrows(
-                IllegalStateException.class,
-                () -> food.toGrams(100D, MeasureUnit.MILLILITER)
-        );
-    }
+  @Test
+  void shouldRejectBlankName() {
 
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> Food.of(" ", 100, 10, 10, 5, FoodCategory.CARB, null));
+  }
 
-    @Test
-    void shouldConvertUnitsUsingWeight() {
+  @Test
+  void shouldRejectInvalidCaloriesRange() {
 
-        Food egg = Food.ofUnit(
-                "Egg",
-                150,
-                12,
-                1,
-                10,
-                FoodCategory.PROTEIN,
-                null,
-                50D
-        );
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> Food.of("Apple", 2000, 1, 20, 0, FoodCategory.FRUIT, null));
+  }
 
-        assertEquals(
-                100D,
-                egg.toGrams(2D, MeasureUnit.UNIT)
-        );
-    }
+  @Test
+  void shouldConvertGramsCorrectly() {
 
+    Food food = createFood();
 
-    @Test
-    void shouldFailConvertUnitsWithoutWeight() {
+    Double grams = food.toGrams(200D, MeasureUnit.GRAM);
 
-        Food food = createFood();
+    assertEquals(200D, grams);
+  }
 
-        assertThrows(
-                IllegalStateException.class,
-                () -> food.toGrams(2D, MeasureUnit.UNIT)
-        );
-    }
+  @Test
+  void shouldConvertMillilitersUsingDensity() {
 
+    Food milk = Food.ofLiquid("Milk", 60, 3, 5, 3, FoodCategory.DAIRY, null, 1.03);
 
-    @Test
-    void shouldAddAndRemoveSuitableFor() {
+    assertEquals(103D, milk.toGrams(100D, MeasureUnit.MILLILITER));
+  }
 
-        Food food = createFood();
+  @Test
+  void shouldFailConvertMillilitersWithoutDensity() {
 
-        food.addSuitableFor(MealType.BREAKFAST);
+    Food food = createFood();
 
-        assertTrue(
-                food.getSuitableFor()
-                        .contains(MealType.BREAKFAST)
-        );
+    assertThrows(IllegalStateException.class, () -> food.toGrams(100D, MeasureUnit.MILLILITER));
+  }
 
-        food.removeSuitableFor(MealType.BREAKFAST);
+  @Test
+  void shouldConvertUnitsUsingWeight() {
 
-        assertFalse(
-                food.getSuitableFor()
-                        .contains(MealType.BREAKFAST)
-        );
-    }
+    Food egg = Food.ofUnit("Egg", 150, 12, 1, 10, FoodCategory.PROTEIN, null, 50D);
 
+    assertEquals(100D, egg.toGrams(2D, MeasureUnit.UNIT));
+  }
 
-    @Test
-    void shouldNotAllowNullMealType() {
+  @Test
+  void shouldFailConvertUnitsWithoutWeight() {
 
-        Food food = createFood();
+    Food food = createFood();
 
-        assertThrows(
-                NullPointerException.class,
-                () -> food.addSuitableFor(null)
-        );
-    }
+    assertThrows(IllegalStateException.class, () -> food.toGrams(2D, MeasureUnit.UNIT));
+  }
 
+  @Test
+  void shouldAddAndRemoveSuitableFor() {
 
-    @Test
-    void shouldChangeName() {
+    Food food = createFood();
 
-        Food food = createFood();
+    food.addSuitableFor(MealType.BREAKFAST);
 
-        food.changeName("Brown Rice");
+    assertTrue(food.getSuitableFor().contains(MealType.BREAKFAST));
 
-        assertEquals(
-                "Brown Rice",
-                food.getName()
-        );
-    }
+    food.removeSuitableFor(MealType.BREAKFAST);
 
+    assertFalse(food.getSuitableFor().contains(MealType.BREAKFAST));
+  }
 
-    @Test
-    void shouldChangeNutrients() {
+  @Test
+  void shouldNotAllowNullMealType() {
 
-        Food food = createFood();
+    Food food = createFood();
 
-        food.changeCalories(200);
-        food.changeProtein(5);
-        food.changeCarbs(40);
-        food.changeFat(2);
+    assertThrows(NullPointerException.class, () -> food.addSuitableFor(null));
+  }
 
-        assertEquals(200, food.getCaloriesPer100g());
-        assertEquals(5, food.getProteinPer100g());
-        assertEquals(40, food.getCarbsPer100g());
-        assertEquals(2, food.getFatPer100g());
-    }
+  @Test
+  void shouldChangeName() {
 
+    Food food = createFood();
 
-    @Test
-    void shouldManageTags() {
+    food.changeName("Brown Rice");
 
-        Food food = createFood();
+    assertEquals("Brown Rice", food.getName());
+  }
 
-        food.addTag(FoodTag.GELATIN);
+  @Test
+  void shouldChangeNutrients() {
 
-        assertTrue(
-                food.getFoodTags()
-                        .contains(FoodTag.GELATIN)
-        );
+    Food food = createFood();
 
-        food.removeTag(FoodTag.GELATIN);
+    food.changeCalories(200);
+    food.changeProtein(5);
+    food.changeCarbs(40);
+    food.changeFat(2);
 
-        assertFalse(
-                food.getFoodTags()
-                        .contains(FoodTag.GELATIN)
-        );
-    }
+    assertEquals(200, food.getCaloriesPer100g());
+    assertEquals(5, food.getProteinPer100g());
+    assertEquals(40, food.getCarbsPer100g());
+    assertEquals(2, food.getFatPer100g());
+  }
 
+  @Test
+  void shouldManageTags() {
 
-    @Test
-    void shouldReplaceTags() {
+    Food food = createFood();
 
-        Food food = createFood();
+    food.addTag(FoodTag.GELATIN);
 
-        food.addTag(FoodTag.GELATIN);
+    assertTrue(food.getFoodTags().contains(FoodTag.GELATIN));
 
-        food.replaceTags(
-                Set.of(FoodTag.LACTOSE)
-        );
+    food.removeTag(FoodTag.GELATIN);
 
-        assertFalse(food.getFoodTags().contains(FoodTag.GELATIN));
-        assertTrue(food.getFoodTags().contains(FoodTag.LACTOSE));
-    }
+    assertFalse(food.getFoodTags().contains(FoodTag.GELATIN));
+  }
 
+  @Test
+  void shouldReplaceTags() {
 
-    @Test
-    void shouldClearTags() {
+    Food food = createFood();
 
-        Food food = createFood();
+    food.addTag(FoodTag.GELATIN);
 
-        food.addTag(FoodTag.GELATIN);
+    food.replaceTags(Set.of(FoodTag.LACTOSE));
 
-        food.clearTags();
+    assertFalse(food.getFoodTags().contains(FoodTag.GELATIN));
+    assertTrue(food.getFoodTags().contains(FoodTag.LACTOSE));
+  }
 
-        assertTrue(
-                food.getFoodTags().isEmpty()
-        );
-    }
+  @Test
+  void shouldClearTags() {
 
+    Food food = createFood();
+
+    food.addTag(FoodTag.GELATIN);
+
+    food.clearTags();
+
+    assertTrue(food.getFoodTags().isEmpty());
+  }
 }

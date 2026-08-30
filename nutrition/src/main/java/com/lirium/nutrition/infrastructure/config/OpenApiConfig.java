@@ -10,19 +10,23 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
-    @Bean
-    public OpenAPI liriumOpenAPI() {
-        String schemeName = "bearerAuth";
-        return new OpenAPI()
-                .info(new Info()
-                        .title("Lirium Nutrition API")
-                        .description("API for personalized nutritional planning")
-                        .version("v1"))
-                .components(new Components()
-                        .addSecuritySchemes(schemeName, new SecurityScheme()
-                                .name(schemeName)
-                                .type(SecurityScheme.Type.HTTP)
-                                .scheme("bearer")
-                                .bearerFormat("JWT")));
-    }
+  @Bean
+  public OpenAPI liriumOpenAPI() {
+    String schemeName = "bearerAuth";
+    return new OpenAPI()
+        .info(
+            new Info()
+                .title("Lirium Nutrition API")
+                .description("API for personalized nutritional planning")
+                .version("v1"))
+        .components(
+            new Components()
+                .addSecuritySchemes(
+                    schemeName,
+                    new SecurityScheme()
+                        .name(schemeName)
+                        .type(SecurityScheme.Type.HTTP)
+                        .scheme("bearer")
+                        .bearerFormat("JWT")));
+  }
 }

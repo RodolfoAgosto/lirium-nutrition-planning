@@ -29,111 +29,132 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class NutritionPlanGeneratorImpl implements NutritionPlanGenerator {
 
-    private final CalorieCalculator calorieCalculator;
-    private final MacroDistributor macroDistributor;
-    private final PatientProfileRepository repository;
-    private final NutritionPlanAssembler nutritionPlanAssembler;
-    private final NutritionPlanRepository nutritionPlanRepository;
-    private final NutritionPlanTemplateRepository templateRepository;
+  private final CalorieCalculator calorieCalculator;
+  private final MacroDistributor macroDistributor;
+  private final PatientProfileRepository repository;
+  private final NutritionPlanAssembler nutritionPlanAssembler;
+  private final NutritionPlanRepository nutritionPlanRepository;
+  private final NutritionPlanTemplateRepository templateRepository;
 
-    @Transactional
-    public NutritionPlanDetailDTO generate(Long patientId) {
+  @Transactional
+  public NutritionPlanDetailDTO generate(Long patientId) {
 
-        log.info("Generating nutrition plan patientId={}", patientId);
+    log.info("Generating nutrition plan patientId={}", patientId);
 
-        PatientProfile patient = repository.findById(patientId)
-                .orElseThrow(() -> {
-                    log.warn("Patient not found id={}", patientId);
-                    return new ResourceNotFoundException("Patient", patientId);
+    PatientProfile patient =
+        repository
+            .findById(patientId)
+            .orElseThrow(
+                () -> {
+                  log.warn("Patient not found id={}", patientId);
+                  return new ResourceNotFoundException("Patient", patientId);
                 });
 
-        if (nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT)) {
-            log.warn("Plan generation failed - draft already exists patientId={}", patientId);
-            throw new IllegalStateException("Patient already has an active or draft plan");
-        }
-
-        if (patient.getWeight() == null || patient.getHeight() == null ||
-                patient.getActivityLevel() == null || patient.getPrimaryGoal() == null) {
-
-            throw new UnprocessableEntityException(
-                    "Missing required physical metrics or goals for patient"
-            );
-        }
-
-        Calories calories = calorieCalculator.calculate(patient);
-
-        MacroDistribution macros = macroDistributor.distribute(patient, calories);
-
-       log.debug("Calculated values patientId={} calories={} protein={} carbs={} fat={}",
-                    patientId,
-                    calories.amount(),
-                    macros.proteinGrams(),
-                    macros.carbGrams(),
-                    macros.fatGrams());
-
-        NutritionPlan plan = nutritionPlanAssembler.assemble(patient, calories, macros);
-
-        nutritionPlanRepository.save(plan);
-
-        log.info("Nutrition plan generated successfully patientId={} planId={}", patientId, plan.getId());
-
-        return NutritionPlanMapper.toDetail(plan);
-
+    if (nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT)) {
+      log.warn("Plan generation failed - draft already exists patientId={}", patientId);
+      throw new IllegalStateException("Patient already has an active or draft plan");
     }
 
-    @Override
-    @Transactional
-    public NutritionPlanDetailDTO generateFromTemplate(Long patientId, Long templateId) {
+    if (patient.getWeight() == null
+        || patient.getHeight() == null
+        || patient.getActivityLevel() == null
+        || patient.getPrimaryGoal() == null) {
 
-        log.info("Generating nutrition plan from template patientId={} templateId={}", patientId, templateId);
-
-        PatientProfile patient = repository.findById(patientId)
-                .orElseThrow(() -> {
-                    log.warn("Patient not found id={}", patientId);
-                    return new ResourceNotFoundException("Patient not found: ", patientId);
-                });
-
-        if (nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT) ||
-                nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE)) {
-            log.warn("Template plan generation failed - existing plan found patientId={}", patientId);
-            throw new PlanConflictException("Patient already has an active or draft plan");
-        }
-
-        NutritionPlanTemplate template = templateRepository.findById(templateId)
-                .orElseThrow(() -> {
-                    log.warn("Template not found id={}", templateId);
-                    return new ResourceNotFoundException("Template not found: ", templateId);
-                });
-
-        if (patient.getWeight() == null || patient.getHeight() == null ||
-                patient.getActivityLevel() == null || patient.getPrimaryGoal() == null) {
-
-            throw new UnprocessableEntityException(
-                    "Missing required physical metrics or goals for patient"
-            );
-        }
-
-        Calories calories = calorieCalculator.calculate(patient);
-
-        MacroDistribution macros = macroDistributor.distributeFromTemplate(calories, template);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Template values patientId={} templateId={} calories={} protein={} carbs={} fat={}",
-                    patientId,
-                    templateId,
-                    calories.amount(),
-                    macros.proteinGrams(),
-                    macros.carbGrams(),
-                    macros.fatGrams());
-        }
-
-        NutritionPlan plan = nutritionPlanAssembler.assemble(patient, calories, macros, template.getExcludedTags());
-
-        nutritionPlanRepository.save(plan);
-
-        log.info("Nutrition plan generated from template successfully patientId={} planId={} templateId={}", patientId, plan.getId(), templateId);
-
-        return NutritionPlanMapper.toDetail(plan);
+      throw new UnprocessableEntityException(
+          "Missing required physical metrics or goals for patient");
     }
 
+    Calories calories = calorieCalculator.calculate(patient);
+
+    MacroDistribution macros = macroDistributor.distribute(patient, calories);
+
+    log.debug(
+        "Calculated values patientId={} calories={} protein={} carbs={} fat={}",
+        patientId,
+        calories.amount(),
+        macros.proteinGrams(),
+        macros.carbGrams(),
+        macros.fatGrams());
+
+    NutritionPlan plan = nutritionPlanAssembler.assemble(patient, calories, macros);
+
+    nutritionPlanRepository.save(plan);
+
+    log.info(
+        "Nutrition plan generated successfully patientId={} planId={}", patientId, plan.getId());
+
+    return NutritionPlanMapper.toDetail(plan);
+  }
+
+  @Override
+  @Transactional
+  public NutritionPlanDetailDTO generateFromTemplate(Long patientId, Long templateId) {
+
+    log.info(
+        "Generating nutrition plan from template patientId={} templateId={}",
+        patientId,
+        templateId);
+
+    PatientProfile patient =
+        repository
+            .findById(patientId)
+            .orElseThrow(
+                () -> {
+                  log.warn("Patient not found id={}", patientId);
+                  return new ResourceNotFoundException("Patient not found: ", patientId);
+                });
+
+    if (nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT)
+        || nutritionPlanRepository.existsByPatientProfileIdAndStatus(
+            patientId, PlanStatus.ACTIVE)) {
+      log.warn("Template plan generation failed - existing plan found patientId={}", patientId);
+      throw new PlanConflictException("Patient already has an active or draft plan");
+    }
+
+    NutritionPlanTemplate template =
+        templateRepository
+            .findById(templateId)
+            .orElseThrow(
+                () -> {
+                  log.warn("Template not found id={}", templateId);
+                  return new ResourceNotFoundException("Template not found: ", templateId);
+                });
+
+    if (patient.getWeight() == null
+        || patient.getHeight() == null
+        || patient.getActivityLevel() == null
+        || patient.getPrimaryGoal() == null) {
+
+      throw new UnprocessableEntityException(
+          "Missing required physical metrics or goals for patient");
+    }
+
+    Calories calories = calorieCalculator.calculate(patient);
+
+    MacroDistribution macros = macroDistributor.distributeFromTemplate(calories, template);
+
+    if (log.isDebugEnabled()) {
+      log.debug(
+          "Template values patientId={} templateId={} calories={} protein={} carbs={} fat={}",
+          patientId,
+          templateId,
+          calories.amount(),
+          macros.proteinGrams(),
+          macros.carbGrams(),
+          macros.fatGrams());
+    }
+
+    NutritionPlan plan =
+        nutritionPlanAssembler.assemble(patient, calories, macros, template.getExcludedTags());
+
+    nutritionPlanRepository.save(plan);
+
+    log.info(
+        "Nutrition plan generated from template successfully patientId={} planId={} templateId={}",
+        patientId,
+        plan.getId(),
+        templateId);
+
+    return NutritionPlanMapper.toDetail(plan);
+  }
 }

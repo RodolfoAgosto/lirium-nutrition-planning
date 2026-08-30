@@ -10,107 +10,106 @@ import com.lirium.nutrition.model.entity.NutritionPlan;
 import com.lirium.nutrition.model.enums.PlanStatus;
 import com.lirium.nutrition.repository.NutritionPlanRepository;
 import com.lirium.nutrition.service.NutritionPlanService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service("nutritionPlanService")
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class NutritionPlanServiceImpl implements NutritionPlanService {
 
-    private final NutritionPlanRepository repository;
-    private final Clock clock;
+  private final NutritionPlanRepository repository;
+  private final Clock clock;
 
-    @Transactional
-    public NutritionPlanDetailDTO complete(Long id, CompleteNutritionPlanRequestDTO request) {
+  @Transactional
+  public NutritionPlanDetailDTO complete(Long id, CompleteNutritionPlanRequestDTO request) {
 
-        NutritionPlan plan = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("NutritionPlan not found", id));
-
-        if (plan.getStatus() != PlanStatus.ACTIVE) {
-            throw new PlanConflictException(
-                    "Only ACTIVE plans can be completed. Current status: " + plan.getStatus());
-        }
-
-        plan.update(
-                request.name(),
-                request.description(),
-                plan.getStartDate(),
-                LocalDate.now(clock),
-                plan.getTargetGoal(),
-                plan.getDailyCalories(),
-                plan.getProteinGrams(),
-                plan.getCarbGrams(),
-                plan.getFatGrams());
-        plan.deactivate();
-
-        return NutritionPlanMapper.toDetail(plan);
-
-    }
-
-    @Override
-    @Transactional
-    public NutritionPlanDetailDTO activatePlan(Long planId) {
-
-        NutritionPlan newPlan = repository.findById(planId)
-                .orElseThrow(() -> new ResourceNotFoundException("NutritionPlan", planId));
-
-        Long patientId = newPlan.getPatientProfile().getId();
-
-        // Cierra el plan anterior si existe
+    NutritionPlan plan =
         repository
-                .findByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE)
-                .ifPresent(previousPlan -> {
-                    previousPlan.close(LocalDate.now(clock).minusDays(1));
-                    repository.save(previousPlan);
-                });
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("NutritionPlan not found", id));
 
-        // Activa el nuevo
-        newPlan.activate(LocalDate.now(clock));
-        repository.save(newPlan);
-
-        return NutritionPlanMapper.toDetail(newPlan);
+    if (plan.getStatus() != PlanStatus.ACTIVE) {
+      throw new PlanConflictException(
+          "Only ACTIVE plans can be completed. Current status: " + plan.getStatus());
     }
 
-    @Override
-    public NutritionPlanDetailDTO findById(Long id) {
-        NutritionPlan plan = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("NutritionPlan", id));
-        return NutritionPlanMapper.toDetail(plan);
-    }
+    plan.update(
+        request.name(),
+        request.description(),
+        plan.getStartDate(),
+        LocalDate.now(clock),
+        plan.getTargetGoal(),
+        plan.getDailyCalories(),
+        plan.getProteinGrams(),
+        plan.getCarbGrams(),
+        plan.getFatGrams());
+    plan.deactivate();
 
-    @Override
-    public List<NutritionPlanSummaryDTO> findByPatient(Long patientId) {
-        return repository
-                .findByPatientProfileIdOrderByStartDateDesc(patientId)
-                .stream()
-                .map(NutritionPlanMapper::toSummary)
-                .toList();
-    }
+    return NutritionPlanMapper.toDetail(plan);
+  }
 
-    @Override
-    public Optional<NutritionPlan> findActivePlan(Long patientId) {
-        return repository.findByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE);
-    }
+  @Override
+  @Transactional
+  public NutritionPlanDetailDTO activatePlan(Long planId) {
 
-    public Optional<NutritionPlan> findActivePlanByUserId(Long userId) {
-        return repository.findByPatientProfileUserIdAndStatus(
-                userId,
-                PlanStatus.ACTIVE
-        );
-    }
+    NutritionPlan newPlan =
+        repository
+            .findById(planId)
+            .orElseThrow(() -> new ResourceNotFoundException("NutritionPlan", planId));
 
-    public boolean belongsToPatient(Long planId, Long patientId) {
-        return repository.findById(planId)
-                .map(plan -> plan.getPatientProfile()
-                        .getUser().getId().equals(patientId))
-                .orElse(false);
-    }
+    Long patientId = newPlan.getPatientProfile().getId();
 
+    // Cierra el plan anterior si existe
+    repository
+        .findByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE)
+        .ifPresent(
+            previousPlan -> {
+              previousPlan.close(LocalDate.now(clock).minusDays(1));
+              repository.save(previousPlan);
+            });
+
+    // Activa el nuevo
+    newPlan.activate(LocalDate.now(clock));
+    repository.save(newPlan);
+
+    return NutritionPlanMapper.toDetail(newPlan);
+  }
+
+  @Override
+  public NutritionPlanDetailDTO findById(Long id) {
+    NutritionPlan plan =
+        repository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("NutritionPlan", id));
+    return NutritionPlanMapper.toDetail(plan);
+  }
+
+  @Override
+  public List<NutritionPlanSummaryDTO> findByPatient(Long patientId) {
+    return repository.findByPatientProfileIdOrderByStartDateDesc(patientId).stream()
+        .map(NutritionPlanMapper::toSummary)
+        .toList();
+  }
+
+  @Override
+  public Optional<NutritionPlan> findActivePlan(Long patientId) {
+    return repository.findByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE);
+  }
+
+  public Optional<NutritionPlan> findActivePlanByUserId(Long userId) {
+    return repository.findByPatientProfileUserIdAndStatus(userId, PlanStatus.ACTIVE);
+  }
+
+  public boolean belongsToPatient(Long planId, Long patientId) {
+    return repository
+        .findById(planId)
+        .map(plan -> plan.getPatientProfile().getUser().getId().equals(patientId))
+        .orElse(false);
+  }
 }

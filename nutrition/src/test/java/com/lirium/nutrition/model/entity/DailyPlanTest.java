@@ -1,175 +1,120 @@
 package com.lirium.nutrition.model.entity;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.lirium.nutrition.model.enums.GoalType;
 import com.lirium.nutrition.model.enums.MealType;
+import java.time.DayOfWeek;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.time.DayOfWeek;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 class DailyPlanTest {
 
-    private NutritionPlan nutritionPlan;
-    private DailyPlan dailyPlan;
+  private NutritionPlan nutritionPlan;
+  private DailyPlan dailyPlan;
 
-    @BeforeEach
-    void setUp() {
+  @BeforeEach
+  void setUp() {
 
-        nutritionPlan = NutritionPlan.generate(
-                GoalType.WEIGHT_LOSS,
-                2000,
-                150,
-                200,
-                60,
-                null
-        );
+    nutritionPlan = NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 150, 200, 60, null);
 
-        dailyPlan = DailyPlan.of(
-                DayOfWeek.MONDAY,
-                nutritionPlan
-        );
-    }
+    dailyPlan = DailyPlan.of(DayOfWeek.MONDAY, nutritionPlan);
+  }
 
+  @Test
+  @DisplayName("Debe crear un DailyPlan correctamente")
+  void shouldCreateDailyPlan() {
 
-    @Test
-    @DisplayName("Debe crear un DailyPlan correctamente")
-    void shouldCreateDailyPlan() {
+    assertNotNull(dailyPlan);
+    assertEquals(DayOfWeek.MONDAY, dailyPlan.getDayOfWeek());
+  }
 
-        assertNotNull(dailyPlan);
-        assertEquals(DayOfWeek.MONDAY, dailyPlan.getDayOfWeek());
-    }
+  @Test
+  @DisplayName("Debe lanzar excepción cuando el día es null")
+  void shouldThrowWhenDayIsNull() {
 
+    assertThrows(NullPointerException.class, () -> DailyPlan.of(null, nutritionPlan));
+  }
 
-    @Test
-    @DisplayName("Debe lanzar excepción cuando el día es null")
-    void shouldThrowWhenDayIsNull() {
+  @Test
+  @DisplayName("Debe lanzar excepción cuando el nutrition plan es null")
+  void shouldThrowWhenNutritionPlanIsNull() {
 
-        assertThrows(
-                NullPointerException.class,
-                () -> DailyPlan.of(null, nutritionPlan)
-        );
-    }
+    assertThrows(NullPointerException.class, () -> DailyPlan.of(DayOfWeek.MONDAY, null));
+  }
 
+  @Test
+  @DisplayName("Debe agregar una comida al día")
+  void shouldAddMeal() {
 
-    @Test
-    @DisplayName("Debe lanzar excepción cuando el nutrition plan es null")
-    void shouldThrowWhenNutritionPlanIsNull() {
+    PlanMeal meal = PlanMeal.of(MealType.BREAKFAST, dailyPlan);
 
-        assertThrows(
-                NullPointerException.class,
-                () -> DailyPlan.of(DayOfWeek.MONDAY, null)
-        );
-    }
+    dailyPlan.addMeal(meal);
 
+    assertEquals(1, dailyPlan.getMeals().size());
+    assertTrue(dailyPlan.getMeals().contains(meal));
+  }
 
-    @Test
-    @DisplayName("Debe agregar una comida al día")
-    void shouldAddMeal() {
+  @Test
+  @DisplayName("Debe rechazar agregar una comida null")
+  void shouldThrowWhenAddingNullMeal() {
 
-        PlanMeal meal = PlanMeal.of(
-                MealType.BREAKFAST,
-                dailyPlan
-        );
+    assertThrows(NullPointerException.class, () -> dailyPlan.addMeal(null));
+  }
 
-        dailyPlan.addMeal(meal);
+  @Test
+  @DisplayName("No debe permitir dos comidas del mismo tipo")
+  void shouldNotAllowDuplicateMealType() {
 
-        assertEquals(1, dailyPlan.getMeals().size());
-        assertTrue(dailyPlan.getMeals().contains(meal));
-    }
+    PlanMeal breakfast1 = PlanMeal.of(MealType.BREAKFAST, dailyPlan);
 
+    PlanMeal breakfast2 = PlanMeal.of(MealType.BREAKFAST, dailyPlan);
 
-    @Test
-    @DisplayName("Debe rechazar agregar una comida null")
-    void shouldThrowWhenAddingNullMeal() {
+    dailyPlan.addMeal(breakfast1);
 
-        assertThrows(
-                NullPointerException.class,
-                () -> dailyPlan.addMeal(null)
-        );
-    }
+    assertThrows(IllegalArgumentException.class, () -> dailyPlan.addMeal(breakfast2));
+  }
 
+  @Test
+  @DisplayName("Debe eliminar una comida")
+  void shouldRemoveMeal() {
 
-    @Test
-    @DisplayName("No debe permitir dos comidas del mismo tipo")
-    void shouldNotAllowDuplicateMealType() {
+    PlanMeal meal = PlanMeal.of(MealType.LUNCH, dailyPlan);
 
-        PlanMeal breakfast1 = PlanMeal.of(
-                MealType.BREAKFAST,
-                dailyPlan
-        );
+    dailyPlan.addMeal(meal);
 
-        PlanMeal breakfast2 = PlanMeal.of(
-                MealType.BREAKFAST,
-                dailyPlan
-        );
+    dailyPlan.removeMeal(meal);
 
-        dailyPlan.addMeal(breakfast1);
+    assertTrue(dailyPlan.getMeals().isEmpty());
+  }
 
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> dailyPlan.addMeal(breakfast2)
-        );
-    }
+  @Test
+  @DisplayName("Debe lanzar excepción al eliminar una comida null")
+  void shouldThrowWhenRemovingNullMeal() {
 
+    assertThrows(NullPointerException.class, () -> dailyPlan.removeMeal(null));
+  }
 
-    @Test
-    @DisplayName("Debe eliminar una comida")
-    void shouldRemoveMeal() {
+  @Test
+  @DisplayName("Debe limpiar todas las comidas")
+  void shouldClearMeals() {
 
-        PlanMeal meal = PlanMeal.of(
-                MealType.LUNCH,
-                dailyPlan
-        );
+    dailyPlan.addMeal(PlanMeal.of(MealType.BREAKFAST, dailyPlan));
 
-        dailyPlan.addMeal(meal);
+    dailyPlan.addMeal(PlanMeal.of(MealType.DINNER, dailyPlan));
 
-        dailyPlan.removeMeal(meal);
+    dailyPlan.clearMeals();
 
-        assertTrue(dailyPlan.getMeals().isEmpty());
-    }
+    assertTrue(dailyPlan.getMeals().isEmpty());
+  }
 
+  @Test
+  @DisplayName("Debe devolver lista de comidas no modificable")
+  void shouldReturnUnmodifiableMeals() {
 
-    @Test
-    @DisplayName("Debe lanzar excepción al eliminar una comida null")
-    void shouldThrowWhenRemovingNullMeal() {
-
-        assertThrows(
-                NullPointerException.class,
-                () -> dailyPlan.removeMeal(null)
-        );
-    }
-
-
-    @Test
-    @DisplayName("Debe limpiar todas las comidas")
-    void shouldClearMeals() {
-
-        dailyPlan.addMeal(
-                PlanMeal.of(MealType.BREAKFAST, dailyPlan)
-        );
-
-        dailyPlan.addMeal(
-                PlanMeal.of(MealType.DINNER, dailyPlan)
-        );
-
-        dailyPlan.clearMeals();
-
-        assertTrue(dailyPlan.getMeals().isEmpty());
-    }
-
-
-    @Test
-    @DisplayName("Debe devolver lista de comidas no modificable")
-    void shouldReturnUnmodifiableMeals() {
-
-        assertThrows(
-                UnsupportedOperationException.class,
-                () -> dailyPlan.getMeals().add(
-                        PlanMeal.of(MealType.BREAKFAST, dailyPlan)
-                )
-        );
-    }
+    assertThrows(
+        UnsupportedOperationException.class,
+        () -> dailyPlan.getMeals().add(PlanMeal.of(MealType.BREAKFAST, dailyPlan)));
+  }
 }

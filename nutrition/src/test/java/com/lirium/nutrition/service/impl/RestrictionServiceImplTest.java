@@ -1,5 +1,8 @@
 package com.lirium.nutrition.service.impl;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.lirium.nutrition.dto.request.RestrictionCatalogUpdateDTO;
 import com.lirium.nutrition.dto.request.RestrictionCreateRequestDTO;
 import com.lirium.nutrition.dto.response.RestrictionResponseDTO;
@@ -10,286 +13,242 @@ import com.lirium.nutrition.mapper.RestrictionMapper;
 import com.lirium.nutrition.model.entity.Restriction;
 import com.lirium.nutrition.model.enums.RestrictionCategory;
 import com.lirium.nutrition.repository.RestrictionRepository;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-
 @ExtendWith(MockitoExtension.class)
 class RestrictionServiceImplTest {
 
-    @Mock
-    private RestrictionRepository restrictionRepository;
-    @Mock
-    private RestrictionMapper restrictionMapper;
-    @InjectMocks
-    private RestrictionServiceImpl restrictionService;
+  @Mock private RestrictionRepository restrictionRepository;
+  @Mock private RestrictionMapper restrictionMapper;
+  @InjectMocks private RestrictionServiceImpl restrictionService;
 
-    @Test
-    void shouldReturnAllRestrictions() {
+  @Test
+  void shouldReturnAllRestrictions() {
 
-        // Given
-        Restriction restriction1 = mock(Restriction.class);
-        Restriction restriction2 = mock(Restriction.class);
+    // Given
+    Restriction restriction1 = mock(Restriction.class);
+    Restriction restriction2 = mock(Restriction.class);
 
-        RestrictionSummaryDTO dto1 = mock(RestrictionSummaryDTO.class);
-        RestrictionSummaryDTO dto2 = mock(RestrictionSummaryDTO.class);
+    RestrictionSummaryDTO dto1 = mock(RestrictionSummaryDTO.class);
+    RestrictionSummaryDTO dto2 = mock(RestrictionSummaryDTO.class);
 
-        when(restrictionRepository.findAll())
-            .thenReturn(List.of(restriction1, restriction2));
+    when(restrictionRepository.findAll()).thenReturn(List.of(restriction1, restriction2));
 
-        when(restrictionMapper.toSummaryDTO(restriction1))
-            .thenReturn(dto1);
+    when(restrictionMapper.toSummaryDTO(restriction1)).thenReturn(dto1);
 
-        when(restrictionMapper.toSummaryDTO(restriction2))
-            .thenReturn(dto2);
+    when(restrictionMapper.toSummaryDTO(restriction2)).thenReturn(dto2);
 
-        // When
-         Set<RestrictionSummaryDTO> result = restrictionService.findAll();
+    // When
+    Set<RestrictionSummaryDTO> result = restrictionService.findAll();
 
-        // Then
-        assertEquals(2, result.size());
-        assertTrue(result.contains(dto1));
-        assertTrue(result.contains(dto2));
+    // Then
+    assertEquals(2, result.size());
+    assertTrue(result.contains(dto1));
+    assertTrue(result.contains(dto2));
 
-        verify(restrictionRepository).findAll();
-        verify(restrictionMapper).toSummaryDTO(restriction1);
-        verify(restrictionMapper).toSummaryDTO(restriction2);
-        verify(restrictionMapper, times(2)).toSummaryDTO(any());
+    verify(restrictionRepository).findAll();
+    verify(restrictionMapper).toSummaryDTO(restriction1);
+    verify(restrictionMapper).toSummaryDTO(restriction2);
+    verify(restrictionMapper, times(2)).toSummaryDTO(any());
+  }
 
-    }
+  @Test
+  void shouldReturnRestrictionById() {
 
-    @Test
-    void shouldReturnRestrictionById() {
+    // Given
+    Long id = 1L;
 
-        // Given
-        Long id = 1L;
+    Restriction restriction = mock(Restriction.class);
+    RestrictionResponseDTO responseDTO = mock(RestrictionResponseDTO.class);
 
-        Restriction restriction = mock(Restriction.class);
-        RestrictionResponseDTO responseDTO = mock(RestrictionResponseDTO.class);
+    when(restrictionRepository.findById(id)).thenReturn(Optional.of(restriction));
 
-        when(restrictionRepository.findById(id))
-                .thenReturn(Optional.of(restriction));
+    when(restrictionMapper.toResponseDTO(restriction)).thenReturn(responseDTO);
 
-        when(restrictionMapper.toResponseDTO(restriction))
-                .thenReturn(responseDTO);
+    // When
+    RestrictionResponseDTO result = restrictionService.findById(id);
 
-        // When
-        RestrictionResponseDTO result = restrictionService.findById(id);
+    // Then
+    assertEquals(responseDTO, result);
 
-        // Then
-        assertEquals(responseDTO, result);
+    verify(restrictionRepository).findById(id);
+    verify(restrictionMapper).toResponseDTO(restriction);
+  }
 
-        verify(restrictionRepository).findById(id);
-        verify(restrictionMapper).toResponseDTO(restriction);
+  @Test
+  void shouldThrowWhenRestrictionNotFound() {
 
-    }
+    // Given
+    Long id = 1L;
 
-    @Test
-    void shouldThrowWhenRestrictionNotFound() {
+    when(restrictionRepository.findById(id)).thenReturn(Optional.empty());
 
-        // Given
-        Long id = 1L;
+    // When + Then
+    ResourceNotFoundException ex =
+        assertThrows(ResourceNotFoundException.class, () -> restrictionService.findById(id));
 
-        when(restrictionRepository.findById(id))
-                .thenReturn(Optional.empty());
+    // Assert del mensaje (importante para negocio)
+    assertTrue(ex.getMessage().contains("Restriction"));
 
-        // When + Then
-        ResourceNotFoundException ex = assertThrows(
-                ResourceNotFoundException.class,
-                () -> restrictionService.findById(id)
-        );
+    verify(restrictionRepository).findById(id);
+    verifyNoInteractions(restrictionMapper);
+  }
 
-        // Assert del mensaje (importante para negocio)
-        assertTrue(ex.getMessage().contains("Restriction"));
+  @Test
+  void shouldCreateRestriction() {
 
-        verify(restrictionRepository).findById(id);
-        verifyNoInteractions(restrictionMapper);
-    }
+    // Given
+    RestrictionCreateRequestDTO request =
+        new RestrictionCreateRequestDTO(
+            "GLUTEN", "Gluten intolerance", "INTOLERANCES", RestrictionCategory.INTOLERANCES);
 
-    @Test
-    void shouldCreateRestriction() {
+    Restriction savedRestriction = mock(Restriction.class);
+    RestrictionSummaryDTO summaryDTO = mock(RestrictionSummaryDTO.class);
 
-        // Given
-        RestrictionCreateRequestDTO request =
-                new RestrictionCreateRequestDTO(
-                        "GLUTEN",
-                        "Gluten intolerance",
-                        "INTOLERANCES",
-                        RestrictionCategory.INTOLERANCES
-                );
+    when(restrictionRepository.save(any(Restriction.class))).thenReturn(savedRestriction);
 
-        Restriction savedRestriction = mock(Restriction.class);
-        RestrictionSummaryDTO summaryDTO = mock(RestrictionSummaryDTO.class);
-
-        when(restrictionRepository.save(any(Restriction.class)))
-                .thenReturn(savedRestriction);
-
-        when(restrictionMapper.toSummaryDTO(savedRestriction))
-                .thenReturn(summaryDTO);
-
-        // When
-        RestrictionSummaryDTO result =
-                restrictionService.create(request);
-
-        // Then
-        assertEquals(summaryDTO, result);
+    when(restrictionMapper.toSummaryDTO(savedRestriction)).thenReturn(summaryDTO);
 
-        verify(restrictionRepository).save(any(Restriction.class));
-        verify(restrictionMapper).toSummaryDTO(savedRestriction);
-    }
+    // When
+    RestrictionSummaryDTO result = restrictionService.create(request);
 
-    @Test
-    void shouldUpdateRestriction() {
+    // Then
+    assertEquals(summaryDTO, result);
 
-        // Given
-        Long id = 1L;
+    verify(restrictionRepository).save(any(Restriction.class));
+    verify(restrictionMapper).toSummaryDTO(savedRestriction);
+  }
 
-        Restriction existingRestriction = Restriction.builder()
-                .id(id)
-                .code("LACTOSE")
-                .name("Lactose")
-                .description("Avoid lactose")
-                .category(RestrictionCategory.INTOLERANCES)
-                .build();
+  @Test
+  void shouldUpdateRestriction() {
 
-        RestrictionCatalogUpdateDTO request = new RestrictionCatalogUpdateDTO(
-                "LACTOSE",
-                "Lactose Intolerance",
-                "Avoid dairy products",
-                RestrictionCategory.INTOLERANCES
-        );
+    // Given
+    Long id = 1L;
 
-        RestrictionSummaryDTO responseDTO = new RestrictionSummaryDTO(
-                id,
-                "LACTOSE",
-                "Lactose Intolerance",
-                RestrictionCategory.INTOLERANCES
-        );
+    Restriction existingRestriction =
+        Restriction.builder()
+            .id(id)
+            .code("LACTOSE")
+            .name("Lactose")
+            .description("Avoid lactose")
+            .category(RestrictionCategory.INTOLERANCES)
+            .build();
 
-        when(restrictionRepository.findById(id))
-                .thenReturn(Optional.of(existingRestriction));
+    RestrictionCatalogUpdateDTO request =
+        new RestrictionCatalogUpdateDTO(
+            "LACTOSE",
+            "Lactose Intolerance",
+            "Avoid dairy products",
+            RestrictionCategory.INTOLERANCES);
 
-        when(restrictionMapper.toSummaryDTO(existingRestriction))
-                .thenReturn(responseDTO);
+    RestrictionSummaryDTO responseDTO =
+        new RestrictionSummaryDTO(
+            id, "LACTOSE", "Lactose Intolerance", RestrictionCategory.INTOLERANCES);
 
-        // When
-        RestrictionSummaryDTO result = restrictionService.update(id, request);
+    when(restrictionRepository.findById(id)).thenReturn(Optional.of(existingRestriction));
 
-        // Then
-        assertNotNull(result);
-        assertEquals(responseDTO, result);
-        assertEquals("Lactose Intolerance", existingRestriction.getName());
-        assertEquals("Avoid dairy products", existingRestriction.getDescription());
+    when(restrictionMapper.toSummaryDTO(existingRestriction)).thenReturn(responseDTO);
 
-        verify(restrictionRepository).findById(id);
-        verify(restrictionMapper).toSummaryDTO(existingRestriction);
-    }
+    // When
+    RestrictionSummaryDTO result = restrictionService.update(id, request);
 
-    @Test
-    void shouldThrowWhenUpdatingNonExistingRestriction() {
+    // Then
+    assertNotNull(result);
+    assertEquals(responseDTO, result);
+    assertEquals("Lactose Intolerance", existingRestriction.getName());
+    assertEquals("Avoid dairy products", existingRestriction.getDescription());
 
-        // Given
-        Long id = 1L;
+    verify(restrictionRepository).findById(id);
+    verify(restrictionMapper).toSummaryDTO(existingRestriction);
+  }
 
-        RestrictionCatalogUpdateDTO request =
-                new RestrictionCatalogUpdateDTO(
-                        "LACTOSE",
-                        "Lactose Intolerance",
-                        "Avoid dairy products",
-                        RestrictionCategory.INTOLERANCES
-                );
+  @Test
+  void shouldThrowWhenUpdatingNonExistingRestriction() {
 
-        when(restrictionRepository.findById(id))
-                .thenReturn(Optional.empty());
+    // Given
+    Long id = 1L;
 
-        // When + Then
-        RestrictionNotFoundException ex = assertThrows(
-                RestrictionNotFoundException.class,
-                () -> restrictionService.update(id, request)
-        );
+    RestrictionCatalogUpdateDTO request =
+        new RestrictionCatalogUpdateDTO(
+            "LACTOSE",
+            "Lactose Intolerance",
+            "Avoid dairy products",
+            RestrictionCategory.INTOLERANCES);
 
-        assertTrue(ex.getMessage().contains("Restriction not found with id: " + id));
+    when(restrictionRepository.findById(id)).thenReturn(Optional.empty());
 
-        verify(restrictionRepository).findById(id);
-        verifyNoMoreInteractions(restrictionRepository);
-        verifyNoInteractions(restrictionMapper);
-    }
+    // When + Then
+    RestrictionNotFoundException ex =
+        assertThrows(
+            RestrictionNotFoundException.class, () -> restrictionService.update(id, request));
 
-    @Test
-    void shouldThrowWhenDeletingNonExistingRestriction() {
+    assertTrue(ex.getMessage().contains("Restriction not found with id: " + id));
 
-        // Given
-        Long id = 1L;
+    verify(restrictionRepository).findById(id);
+    verifyNoMoreInteractions(restrictionRepository);
+    verifyNoInteractions(restrictionMapper);
+  }
 
-        when(restrictionRepository.findById(id))
-                .thenReturn(Optional.empty());
+  @Test
+  void shouldThrowWhenDeletingNonExistingRestriction() {
 
-        // When + Then
-        ResourceNotFoundException ex = assertThrows(
-                ResourceNotFoundException.class,
-                () -> restrictionService.deleteById(id)
-        );
+    // Given
+    Long id = 1L;
 
-        assertTrue(ex.getMessage().contains("Restriction"));
+    when(restrictionRepository.findById(id)).thenReturn(Optional.empty());
 
-        verify(restrictionRepository).findById(id);
+    // When + Then
+    ResourceNotFoundException ex =
+        assertThrows(ResourceNotFoundException.class, () -> restrictionService.deleteById(id));
 
-        verify(restrictionRepository, never()).delete(any());
-    }
+    assertTrue(ex.getMessage().contains("Restriction"));
 
-    @Test
-    void shouldDeleteRestrictionSuccessfully() {
+    verify(restrictionRepository).findById(id);
 
-        Restriction restriction = mock(Restriction.class);
+    verify(restrictionRepository, never()).delete(any());
+  }
 
-        when(restrictionRepository.findById(1L))
-                .thenReturn(Optional.of(restriction));
+  @Test
+  void shouldDeleteRestrictionSuccessfully() {
 
-        restrictionService.deleteById(1L);
+    Restriction restriction = mock(Restriction.class);
 
-        verify(restrictionRepository).delete(restriction);
-    }
+    when(restrictionRepository.findById(1L)).thenReturn(Optional.of(restriction));
 
-    @Test
-    void shouldCreateRestrictionWhenValid() {
+    restrictionService.deleteById(1L);
 
-        // Given
-        RestrictionCreateRequestDTO request =
-                new RestrictionCreateRequestDTO(
-                        "GLUTEN",
-                        "Gluten intolerance",
-                        "INTOLERANCES",
-                        RestrictionCategory.INTOLERANCES
-                );
+    verify(restrictionRepository).delete(restriction);
+  }
 
-        Restriction savedRestriction = mock(Restriction.class);
-        RestrictionSummaryDTO summaryDTO = mock(RestrictionSummaryDTO.class);
+  @Test
+  void shouldCreateRestrictionWhenValid() {
 
-        when(restrictionRepository.save(any(Restriction.class)))
-                .thenReturn(savedRestriction);
+    // Given
+    RestrictionCreateRequestDTO request =
+        new RestrictionCreateRequestDTO(
+            "GLUTEN", "Gluten intolerance", "INTOLERANCES", RestrictionCategory.INTOLERANCES);
 
-        when(restrictionMapper.toSummaryDTO(savedRestriction))
-                .thenReturn(summaryDTO);
+    Restriction savedRestriction = mock(Restriction.class);
+    RestrictionSummaryDTO summaryDTO = mock(RestrictionSummaryDTO.class);
 
-        // When
-        RestrictionSummaryDTO result =
-                restrictionService.create(request);
+    when(restrictionRepository.save(any(Restriction.class))).thenReturn(savedRestriction);
 
-        // Then
-        assertEquals(summaryDTO, result);
+    when(restrictionMapper.toSummaryDTO(savedRestriction)).thenReturn(summaryDTO);
 
-        verify(restrictionRepository).save(any(Restriction.class));
-        verify(restrictionMapper).toSummaryDTO(savedRestriction);
-    }
+    // When
+    RestrictionSummaryDTO result = restrictionService.create(request);
 
+    // Then
+    assertEquals(summaryDTO, result);
+
+    verify(restrictionRepository).save(any(Restriction.class));
+    verify(restrictionMapper).toSummaryDTO(savedRestriction);
+  }
 }

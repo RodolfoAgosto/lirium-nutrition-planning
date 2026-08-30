@@ -2,8 +2,7 @@ package com.lirium.nutrition.exception;
 
 public class UnauthorizedOperationException extends RuntimeException {
 
-    public UnauthorizedOperationException(String message) {
-        super(message);
-    }
-
+  public UnauthorizedOperationException(String message) {
+    super(message);
+  }
 }

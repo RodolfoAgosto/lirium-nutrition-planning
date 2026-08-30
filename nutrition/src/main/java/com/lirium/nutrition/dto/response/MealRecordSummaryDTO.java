@@ -4,8 +4,4 @@ import com.lirium.nutrition.model.enums.MealType;
 import java.time.LocalDateTime;
 
 public record MealRecordSummaryDTO(
-        Long id,
-        MealType type,
-        LocalDateTime eatenAt,
-        boolean overridden
-) {}
+    Long id, MealType type, LocalDateTime eatenAt, boolean overridden) {}

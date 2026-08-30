@@ -4,32 +4,23 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 @Embeddable
-public record Height(
-        @Column(name = "height")
-        int cm) {
+public record Height(@Column(name = "height") int cm) {
 
-    private static final int MIN_HEIGHT = 30;
-    private static final int MAX_HEIGHT = 250;
+  private static final int MIN_HEIGHT = 30;
+  private static final int MAX_HEIGHT = 250;
 
-    public Height {
-        if (cm < MIN_HEIGHT || cm > MAX_HEIGHT) {
-            throw new IllegalArgumentException(
-                    String.format(
-                            "Height must be between %d and %d cm",
-                            MIN_HEIGHT,
-                            MAX_HEIGHT
-                    )
-            );
-        }
+  public Height {
+    if (cm < MIN_HEIGHT || cm > MAX_HEIGHT) {
+      throw new IllegalArgumentException(
+          String.format("Height must be between %d and %d cm", MIN_HEIGHT, MAX_HEIGHT));
     }
+  }
 
-    public static Height of(int value) {
-        return new Height(value);
-    }
+  public static Height of(int value) {
+    return new Height(value);
+  }
 
-
-    public String toDisplayString() {
-        return cm + " cm";
-    }
-
+  public String toDisplayString() {
+    return cm + " cm";
+  }
 }

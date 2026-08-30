@@ -15,31 +15,29 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class PatientProfileServiceImpl implements PatientProfileService {
 
-    private final PatientProfileRepository patientProfileRepository;
+  private final PatientProfileRepository patientProfileRepository;
 
-    @Override
-    public PatientProfile findByUserId(Long userId) {
+  @Override
+  public PatientProfile findByUserId(Long userId) {
 
-        return patientProfileRepository.findByUserIdFetchUser(userId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Patient profile not found", userId)
-                );
-    }
+    return patientProfileRepository
+        .findByUserIdFetchUser(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("Patient profile not found", userId));
+  }
 
-    @Override
-    @Transactional
-    public PatientProfileResponseDTO update(PatientProfile patientProfile) {
+  @Override
+  @Transactional
+  public PatientProfileResponseDTO update(PatientProfile patientProfile) {
 
-        PatientProfile saved = patientProfileRepository.save(patientProfile);
+    PatientProfile saved = patientProfileRepository.save(patientProfile);
 
-        return PatientProfileMapper.toResponse(saved);
+    return PatientProfileMapper.toResponse(saved);
+  }
 
-    }
-
-    @Override
-    public PatientProfile findById(Long patientId) {
-        return patientProfileRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("PatientProfile", patientId));
-    }
-
+  @Override
+  public PatientProfile findById(Long patientId) {
+    return patientProfileRepository
+        .findById(patientId)
+        .orElseThrow(() -> new ResourceNotFoundException("PatientProfile", patientId));
+  }
 }

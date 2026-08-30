@@ -5,10 +5,9 @@ import com.lirium.nutrition.model.entity.PatientProfile;
 
 public interface PatientProfileService {
 
-    public PatientProfile findByUserId(Long patientId);
+  public PatientProfile findByUserId(Long patientId);
 
-    PatientProfileResponseDTO update(PatientProfile patientProfile);
+  PatientProfileResponseDTO update(PatientProfile patientProfile);
 
-    public PatientProfile findById(Long patientId);
-
+  public PatientProfile findById(Long patientId);
 }

@@ -5,10 +5,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record MealRecordResponseDTO(
-        Long id,
-        MealType type,
-        boolean overridden,
-        String notes,
-        LocalDateTime eatenAt,
-        List<FoodPortionRecordResponseDTO> portions
-) {}
+    Long id,
+    MealType type,
+    boolean overridden,
+    String notes,
+    LocalDateTime eatenAt,
+    List<FoodPortionRecordResponseDTO> portions) {}

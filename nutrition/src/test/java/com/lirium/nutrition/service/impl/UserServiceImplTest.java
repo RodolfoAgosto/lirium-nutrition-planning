@@ -1,5 +1,8 @@
 package com.lirium.nutrition.service.impl;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.lirium.nutrition.dto.request.CreatePatientRequestDTO;
 import com.lirium.nutrition.dto.request.CreateUserRequestDTO;
 import com.lirium.nutrition.dto.request.UserUpdateRequestDTO;
@@ -10,447 +13,381 @@ import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.UserMapper;
 import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.repository.UserRepository;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
 
-    @Mock
-    private UserRepository userRepository;
+  @Mock private UserRepository userRepository;
 
-    @Mock
-    private UserMapper userMapper;
+  @Mock private UserMapper userMapper;
 
-    @Mock
-    private BCryptPasswordEncoder passwordEncoder;
+  @Mock private BCryptPasswordEncoder passwordEncoder;
 
-    @InjectMocks
-    private UserServiceImpl userService;
+  @InjectMocks private UserServiceImpl userService;
 
-    @Test
-    void shouldRegisterUser() {
+  @Test
+  void shouldRegisterUser() {
 
-        // Given
-        CreateUserRequestDTO request = mock(CreateUserRequestDTO.class);
-        User user = mock(User.class);
-        User savedUser = mock(User.class);
-        UserResponseDTO response = mock(UserResponseDTO.class);
+    // Given
+    CreateUserRequestDTO request = mock(CreateUserRequestDTO.class);
+    User user = mock(User.class);
+    User savedUser = mock(User.class);
+    UserResponseDTO response = mock(UserResponseDTO.class);
 
-        when(request.email()).thenReturn("test@test.com");
-        when(request.password()).thenReturn("123456");
+    when(request.email()).thenReturn("test@test.com");
+    when(request.password()).thenReturn("123456");
 
-        when(userRepository.existsByEmail("test@test.com"))
-                .thenReturn(false);
+    when(userRepository.existsByEmail("test@test.com")).thenReturn(false);
 
-        when(userMapper.toEntity(request))
-                .thenReturn(user);
+    when(userMapper.toEntity(request)).thenReturn(user);
 
-        when(passwordEncoder.encode("123456"))
-                .thenReturn("hashed-password");
+    when(passwordEncoder.encode("123456")).thenReturn("hashed-password");
 
-        when(userRepository.save(user))
-                .thenReturn(savedUser);
+    when(userRepository.save(user)).thenReturn(savedUser);
 
-        when(userMapper.toResponseDTO(savedUser))
-                .thenReturn(response);
+    when(userMapper.toResponseDTO(savedUser)).thenReturn(response);
 
-        // When
-        UserResponseDTO result = userService.registerUser(request);
+    // When
+    UserResponseDTO result = userService.registerUser(request);
 
-        // Then
-        assertNotNull(result);
+    // Then
+    assertNotNull(result);
 
-        verify(userRepository).existsByEmail("test@test.com");
-        verify(userMapper).toEntity(request);
-        verify(passwordEncoder).encode("123456");
-        verify(user).setPasswordHash("hashed-password");
-        verify(userRepository).save(user);
-        verify(userMapper).toResponseDTO(savedUser);
-    }
+    verify(userRepository).existsByEmail("test@test.com");
+    verify(userMapper).toEntity(request);
+    verify(passwordEncoder).encode("123456");
+    verify(user).setPasswordHash("hashed-password");
+    verify(userRepository).save(user);
+    verify(userMapper).toResponseDTO(savedUser);
+  }
 
-    @Test
-    void shouldThrowWhenRegisterUserWithExistingEmail() {
+  @Test
+  void shouldThrowWhenRegisterUserWithExistingEmail() {
 
-        // Given
-        CreateUserRequestDTO request = mock(CreateUserRequestDTO.class);
+    // Given
+    CreateUserRequestDTO request = mock(CreateUserRequestDTO.class);
 
-        when(request.email()).thenReturn("test@test.com");
+    when(request.email()).thenReturn("test@test.com");
 
-        when(userRepository.existsByEmail("test@test.com"))
-                .thenReturn(true);
+    when(userRepository.existsByEmail("test@test.com")).thenReturn(true);
 
-        // When / Then
-        assertThrows(
-                EmailAlreadyExistsException.class,
-                () -> userService.registerUser(request)
-        );
+    // When / Then
+    assertThrows(EmailAlreadyExistsException.class, () -> userService.registerUser(request));
 
-        verify(userRepository).existsByEmail("test@test.com");
+    verify(userRepository).existsByEmail("test@test.com");
 
-        verify(userMapper, never())
-                .toEntity(any(CreateUserRequestDTO.class));
+    verify(userMapper, never()).toEntity(any(CreateUserRequestDTO.class));
 
-        verify(userRepository, never()).save(any());
+    verify(userRepository, never()).save(any());
 
-        verifyNoInteractions(passwordEncoder);
+    verifyNoInteractions(passwordEncoder);
+  }
 
-    }
+  @Test
+  void shouldRegisterPatient() {
 
-    @Test
-    void shouldRegisterPatient() {
+    // Given
+    CreatePatientRequestDTO request = mock(CreatePatientRequestDTO.class);
+    User user = mock(User.class);
+    User savedUser = mock(User.class);
+    UserResponseDTO response = mock(UserResponseDTO.class);
 
-        // Given
-        CreatePatientRequestDTO request = mock(CreatePatientRequestDTO.class);
-        User user = mock(User.class);
-        User savedUser = mock(User.class);
-        UserResponseDTO response = mock(UserResponseDTO.class);
+    when(request.email()).thenReturn("patient@test.com");
 
-        when(request.email()).thenReturn("patient@test.com");
+    when(userRepository.existsByEmail("patient@test.com")).thenReturn(false);
 
-        when(userRepository.existsByEmail("patient@test.com"))
-                .thenReturn(false);
+    when(userMapper.toEntity(request)).thenReturn(user);
 
-        when(userMapper.toEntity(request))
-                .thenReturn(user);
+    when(userRepository.save(user)).thenReturn(savedUser);
 
-        when(userRepository.save(user))
-                .thenReturn(savedUser);
+    when(userMapper.toResponseDTO(savedUser)).thenReturn(response);
 
-        when(userMapper.toResponseDTO(savedUser))
-                .thenReturn(response);
+    // When
+    UserResponseDTO result = userService.registerPatient(request);
 
-        // When
-        UserResponseDTO result = userService.registerPatient(request);
+    // Then
+    assertNotNull(result);
 
-        // Then
-        assertNotNull(result);
+    verify(userRepository).existsByEmail("patient@test.com");
+    verify(userMapper).toEntity(request);
+    verify(userRepository).save(user);
+    verify(userMapper).toResponseDTO(savedUser);
 
-        verify(userRepository).existsByEmail("patient@test.com");
-        verify(userMapper).toEntity(request);
-        verify(userRepository).save(user);
-        verify(userMapper).toResponseDTO(savedUser);
+    verify(passwordEncoder).encode(anyString());
+  }
 
-        verify(passwordEncoder).encode(anyString());
-    }
+  @Test
+  void shouldThrowWhenRegisterPatientWithExistingEmail() {
 
-    @Test
-    void shouldThrowWhenRegisterPatientWithExistingEmail() {
+    // Given
+    CreatePatientRequestDTO request = mock(CreatePatientRequestDTO.class);
 
-        // Given
-        CreatePatientRequestDTO request = mock(CreatePatientRequestDTO.class);
+    when(request.email()).thenReturn("patient@test.com");
 
-        when(request.email()).thenReturn("patient@test.com");
+    when(userRepository.existsByEmail("patient@test.com")).thenReturn(true);
 
-        when(userRepository.existsByEmail("patient@test.com"))
-                .thenReturn(true);
+    // When / Then
+    assertThrows(EmailAlreadyExistsException.class, () -> userService.registerPatient(request));
 
-        // When / Then
-        assertThrows(
-                EmailAlreadyExistsException.class,
-                () -> userService.registerPatient(request)
-        );
+    verify(userRepository).existsByEmail("patient@test.com");
 
-        verify(userRepository).existsByEmail("patient@test.com");
+    verify(userMapper, never()).toEntity(any(CreatePatientRequestDTO.class));
 
-        verify(userMapper, never())
-                .toEntity(any(CreatePatientRequestDTO.class));
+    verify(userRepository, never()).save(any());
 
-        verify(userRepository, never()).save(any());
+    verifyNoInteractions(passwordEncoder);
+  }
 
-        verifyNoInteractions(passwordEncoder);
-    }
+  @Test
+  void shouldFindUserById() {
 
-    @Test
-    void shouldFindUserById() {
+    // Given
+    User user = mock(User.class);
+    UserResponseDTO response = mock(UserResponseDTO.class);
 
-        // Given
-        User user = mock(User.class);
-        UserResponseDTO response = mock(UserResponseDTO.class);
+    when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        when(userRepository.findById(1L))
-                .thenReturn(Optional.of(user));
+    when(userMapper.toResponseDTO(user)).thenReturn(response);
 
-        when(userMapper.toResponseDTO(user))
-                .thenReturn(response);
+    // When
+    UserResponseDTO result = userService.findById(1L);
 
-        // When
-        UserResponseDTO result = userService.findById(1L);
+    // Then
+    assertNotNull(result);
 
-        // Then
-        assertNotNull(result);
+    verify(userRepository).findById(1L);
+    verify(userMapper).toResponseDTO(user);
+  }
 
-        verify(userRepository).findById(1L);
-        verify(userMapper).toResponseDTO(user);
-    }
+  @Test
+  void shouldThrowWhenUserNotFoundById() {
 
-    @Test
-    void shouldThrowWhenUserNotFoundById() {
+    // Given
+    when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        // Given
-        when(userRepository.findById(1L))
-                .thenReturn(Optional.empty());
+    // When / Then
+    assertThrows(ResourceNotFoundException.class, () -> userService.findById(1L));
 
-        // When / Then
-        assertThrows(
-                ResourceNotFoundException.class,
-                () -> userService.findById(1L)
-        );
+    verify(userRepository).findById(1L);
 
-        verify(userRepository).findById(1L);
+    verify(userMapper, never()).toResponseDTO(any(User.class));
+  }
 
-        verify(userMapper, never()).toResponseDTO(any(User.class));
-    }
+  @Test
+  void shouldFindUserByEmail() {
 
-    @Test
-    void shouldFindUserByEmail() {
+    // Given
+    User user = mock(User.class);
+    UserResponseDTO response = mock(UserResponseDTO.class);
 
-        // Given
-        User user = mock(User.class);
-        UserResponseDTO response = mock(UserResponseDTO.class);
+    when(userRepository.findByEmail("test@test.com")).thenReturn(Optional.of(user));
 
-        when(userRepository.findByEmail("test@test.com"))
-                .thenReturn(Optional.of(user));
+    when(userMapper.toResponseDTO(user)).thenReturn(response);
 
-        when(userMapper.toResponseDTO(user))
-                .thenReturn(response);
+    // When
+    UserResponseDTO result = userService.findByEmail("test@test.com");
 
-        // When
-        UserResponseDTO result = userService.findByEmail("test@test.com");
+    // Then
+    assertNotNull(result);
 
-        // Then
-        assertNotNull(result);
+    verify(userRepository).findByEmail("test@test.com");
+    verify(userMapper).toResponseDTO(user);
+  }
 
-        verify(userRepository).findByEmail("test@test.com");
-        verify(userMapper).toResponseDTO(user);
-    }
+  @Test
+  void shouldThrowWhenUserNotFoundByEmail() {
 
-    @Test
-    void shouldThrowWhenUserNotFoundByEmail() {
+    // Given
+    when(userRepository.findByEmail("test@test.com")).thenReturn(Optional.empty());
 
-        // Given
-        when(userRepository.findByEmail("test@test.com"))
-                .thenReturn(Optional.empty());
+    // When / Then
+    assertThrows(ResourceNotFoundException.class, () -> userService.findByEmail("test@test.com"));
 
-        // When / Then
-        assertThrows(
-                ResourceNotFoundException.class,
-                () -> userService.findByEmail("test@test.com")
-        );
+    verify(userRepository).findByEmail("test@test.com");
 
-        verify(userRepository).findByEmail("test@test.com");
+    verify(userMapper, never()).toResponseDTO(any(User.class));
+  }
 
-        verify(userMapper, never()).toResponseDTO(any(User.class));
-    }
+  @Test
+  void shouldReturnAllUsers() {
 
-    @Test
-    void shouldReturnAllUsers() {
+    // Given
+    User user1 = mock(User.class);
+    User user2 = mock(User.class);
 
-        // Given
-        User user1 = mock(User.class);
-        User user2 = mock(User.class);
+    UserResponseDTO dto1 = mock(UserResponseDTO.class);
+    UserResponseDTO dto2 = mock(UserResponseDTO.class);
 
-        UserResponseDTO dto1 = mock(UserResponseDTO.class);
-        UserResponseDTO dto2 = mock(UserResponseDTO.class);
+    when(userRepository.findAll()).thenReturn(List.of(user1, user2));
 
-        when(userRepository.findAll())
-                .thenReturn(List.of(user1, user2));
+    when(userMapper.toResponseDTO(user1)).thenReturn(dto1);
 
-        when(userMapper.toResponseDTO(user1))
-                .thenReturn(dto1);
+    when(userMapper.toResponseDTO(user2)).thenReturn(dto2);
 
-        when(userMapper.toResponseDTO(user2))
-                .thenReturn(dto2);
+    // When
+    List<UserResponseDTO> result = userService.findAll();
 
-        // When
-        List<UserResponseDTO> result = userService.findAll();
+    // Then
+    assertEquals(2, result.size());
+    assertTrue(result.contains(dto1));
+    assertTrue(result.contains(dto2));
 
-        // Then
-        assertEquals(2, result.size());
-        assertTrue(result.contains(dto1));
-        assertTrue(result.contains(dto2));
+    verify(userRepository).findAll();
+    verify(userMapper).toResponseDTO(user1);
+    verify(userMapper).toResponseDTO(user2);
+    verify(userMapper, times(2)).toResponseDTO(any(User.class));
+  }
 
-        verify(userRepository).findAll();
-        verify(userMapper).toResponseDTO(user1);
-        verify(userMapper).toResponseDTO(user2);
-        verify(userMapper, times(2)).toResponseDTO(any(User.class));
-    }
+  @Test
+  void shouldUpdateBasicInfo() {
 
-    @Test
-    void shouldUpdateBasicInfo() {
+    // Given
+    User user = mock(User.class);
+    UserUpdateRequestDTO request = mock(UserUpdateRequestDTO.class);
+    UserResponseDTO response = mock(UserResponseDTO.class);
 
-        // Given
-        User user = mock(User.class);
-        UserUpdateRequestDTO request = mock(UserUpdateRequestDTO.class);
-        UserResponseDTO response = mock(UserResponseDTO.class);
+    when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        when(userRepository.findById(1L))
-                .thenReturn(Optional.of(user));
+    when(userMapper.toResponseDTO(user)).thenReturn(response);
 
-        when(userMapper.toResponseDTO(user))
-                .thenReturn(response);
+    // When
+    UserResponseDTO result = userService.updateBasicInfo(1L, request);
 
-        // When
-        UserResponseDTO result =
-                userService.updateBasicInfo(1L, request);
+    // Then
+    assertNotNull(result);
 
-        // Then
-        assertNotNull(result);
+    verify(userRepository).findById(1L);
+    verify(userMapper).updateUserFromDTO(request, user);
+    verify(userMapper).toResponseDTO(user);
+  }
 
-        verify(userRepository).findById(1L);
-        verify(userMapper).updateUserFromDTO(request, user);
-        verify(userMapper).toResponseDTO(user);
-    }
+  @Test
+  void shouldThrowWhenUpdatingNonExistingUser() {
 
-    @Test
-    void shouldThrowWhenUpdatingNonExistingUser() {
+    // Given
+    UserUpdateRequestDTO request = mock(UserUpdateRequestDTO.class);
 
-        // Given
-        UserUpdateRequestDTO request = mock(UserUpdateRequestDTO.class);
+    when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        when(userRepository.findById(1L))
-                .thenReturn(Optional.empty());
+    // When / Then
+    assertThrows(ResourceNotFoundException.class, () -> userService.updateBasicInfo(1L, request));
 
-        // When / Then
-        assertThrows(
-                ResourceNotFoundException.class,
-                () -> userService.updateBasicInfo(1L, request)
-        );
+    verify(userRepository).findById(1L);
 
-        verify(userRepository).findById(1L);
+    verify(userMapper, never()).updateUserFromDTO(any(UserUpdateRequestDTO.class), any(User.class));
 
-        verify(userMapper, never())
-                .updateUserFromDTO(any(UserUpdateRequestDTO.class), any(User.class));
+    verify(userMapper, never()).toResponseDTO(any(User.class));
+  }
 
-        verify(userMapper, never())
-                .toResponseDTO(any(User.class));
-    }
+  @Test
+  void shouldEnableUser() {
 
-    @Test
-    void shouldEnableUser() {
+    // Given
+    User user = mock(User.class);
+    UserResponseDTO response = mock(UserResponseDTO.class);
 
-        // Given
-        User user = mock(User.class);
-        UserResponseDTO response = mock(UserResponseDTO.class);
+    when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        when(userRepository.findById(1L))
-                .thenReturn(Optional.of(user));
+    when(userMapper.toResponseDTO(user)).thenReturn(response);
 
-        when(userMapper.toResponseDTO(user))
-                .thenReturn(response);
+    // When
+    UserResponseDTO result = userService.setEnabled(1L, true);
 
-        // When
-        UserResponseDTO result = userService.setEnabled(1L, true);
+    // Then
+    assertNotNull(result);
 
-        // Then
-        assertNotNull(result);
+    verify(userRepository).findById(1L);
+    verify(user).setEnabled(true);
+    verify(userMapper).toResponseDTO(user);
+  }
 
-        verify(userRepository).findById(1L);
-        verify(user).setEnabled(true);
-        verify(userMapper).toResponseDTO(user);
-    }
+  @Test
+  void shouldDisableUserWithSetEnabled() {
 
-    @Test
-    void shouldDisableUserWithSetEnabled() {
+    // Given
+    User user = mock(User.class);
+    UserResponseDTO response = mock(UserResponseDTO.class);
 
-        // Given
-        User user = mock(User.class);
-        UserResponseDTO response = mock(UserResponseDTO.class);
+    when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        when(userRepository.findById(1L))
-                .thenReturn(Optional.of(user));
+    when(userMapper.toResponseDTO(user)).thenReturn(response);
 
-        when(userMapper.toResponseDTO(user))
-                .thenReturn(response);
+    // When
+    UserResponseDTO result = userService.setEnabled(1L, false);
 
-        // When
-        UserResponseDTO result = userService.setEnabled(1L, false);
+    // Then
+    assertNotNull(result);
 
-        // Then
-        assertNotNull(result);
+    verify(userRepository).findById(1L);
+    verify(user).setEnabled(false);
+    verify(userMapper).toResponseDTO(user);
+  }
 
-        verify(userRepository).findById(1L);
-        verify(user).setEnabled(false);
-        verify(userMapper).toResponseDTO(user);
-    }
+  @Test
+  void shouldValidateEmail() {
 
-    @Test
-    void shouldValidateEmail() {
+    // Given
+    User user = mock(User.class);
+    UserResponseDTO response = mock(UserResponseDTO.class);
 
-        // Given
-        User user = mock(User.class);
-        UserResponseDTO response = mock(UserResponseDTO.class);
+    when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        when(userRepository.findById(1L))
-                .thenReturn(Optional.of(user));
+    when(userMapper.toResponseDTO(user)).thenReturn(response);
 
-        when(userMapper.toResponseDTO(user))
-                .thenReturn(response);
+    // When
+    UserResponseDTO result = userService.validateEmail(1L);
 
-        // When
-        UserResponseDTO result = userService.validateEmail(1L);
+    // Then
+    assertNotNull(result);
 
-        // Then
-        assertNotNull(result);
+    verify(userRepository).findById(1L);
+    verify(user).setEmailValidated(true);
+    verify(userMapper).toResponseDTO(user);
+  }
 
-        verify(userRepository).findById(1L);
-        verify(user).setEmailValidated(true);
-        verify(userMapper).toResponseDTO(user);
-    }
+  @Test
+  void shouldDeleteUserByDisablingIt() {
 
-    @Test
-    void shouldDeleteUserByDisablingIt() {
+    // Given
+    User user = mock(User.class);
 
-        // Given
-        User user = mock(User.class);
+    when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        when(userRepository.findById(1L))
-                .thenReturn(Optional.of(user));
+    when(user.isEnabled()).thenReturn(true);
 
-        when(user.isEnabled())
-                .thenReturn(true);
+    // When
+    userService.deleteById(1L);
 
-        // When
-        userService.deleteById(1L);
+    // Then
+    verify(userRepository).findById(1L);
+    verify(user).isEnabled();
+    verify(user).setEnabled(false);
+  }
 
-        // Then
-        verify(userRepository).findById(1L);
-        verify(user).isEnabled();
-        verify(user).setEnabled(false);
-    }
+  @Test
+  void shouldThrowWhenDeletingAlreadyDisabledUser() {
 
-    @Test
-    void shouldThrowWhenDeletingAlreadyDisabledUser() {
+    // Given
+    User user = mock(User.class);
 
-        // Given
-        User user = mock(User.class);
+    when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        when(userRepository.findById(1L))
-                .thenReturn(Optional.of(user));
+    when(user.isEnabled()).thenReturn(false);
 
-        when(user.isEnabled())
-                .thenReturn(false);
+    // When / Then
+    assertThrows(AccountDisabledException.class, () -> userService.deleteById(1L));
 
-        // When / Then
-        assertThrows(
-                AccountDisabledException.class,
-                () -> userService.deleteById(1L)
-        );
+    verify(userRepository).findById(1L);
+    verify(user).isEnabled();
 
-        verify(userRepository).findById(1L);
-        verify(user).isEnabled();
-
-        verify(user, never()).setEnabled(false);
-    }
-
+    verify(user, never()).setEnabled(false);
+  }
 }

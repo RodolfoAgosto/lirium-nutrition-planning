@@ -1,5 +1,8 @@
 package com.lirium.nutrition.service.impl;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
@@ -12,13 +15,6 @@ import com.lirium.nutrition.model.enums.*;
 import com.lirium.nutrition.model.valueobject.Height;
 import com.lirium.nutrition.model.valueobject.Weight;
 import com.lirium.nutrition.repository.NutritionPlanRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -26,439 +22,346 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class NutritionPlanServiceImplTest {
 
-    @Mock
-    private NutritionPlanRepository repository;
+  @Mock private NutritionPlanRepository repository;
 
-    @InjectMocks
-    private NutritionPlanServiceImpl service;
-
-    private final Clock clock = Clock.fixed(
-            Instant.parse("2025-01-15T10:00:00Z"),
-            ZoneOffset.UTC
-    );
-
-    @BeforeEach
-    void setUp() {
-        service = new NutritionPlanServiceImpl(
-                repository,
-                // demás dependencias,
-                clock
-        );
-    }
+  @InjectMocks private NutritionPlanServiceImpl service;
 
-    @Test
-    void shouldCompleteNutritionPlan() {
+  private final Clock clock = Clock.fixed(Instant.parse("2025-01-15T10:00:00Z"), ZoneOffset.UTC);
 
-        // Given
-        Long planId = 1L;
-        LocalDate today = LocalDate.now(clock);
+  @BeforeEach
+  void setUp() {
+    service =
+        new NutritionPlanServiceImpl(
+            repository,
+            // demás dependencias,
+            clock);
+  }
 
-        NutritionPlan plan = NutritionPlan.generate(
-                GoalType.WEIGHT_LOSS,
-                2000,
-                120,
-                200,
-                60,
-                generateUser().getPatientProfile()
-        );
+  @Test
+  void shouldCompleteNutritionPlan() {
 
-        plan.activate(today.minusDays(1));
+    // Given
+    Long planId = 1L;
+    LocalDate today = LocalDate.now(clock);
 
-        CompleteNutritionPlanRequestDTO request =
-                new CompleteNutritionPlanRequestDTO(
-                        "Volume",
-                        "Muscle-building plan"
-                );
+    NutritionPlan plan =
+        NutritionPlan.generate(
+            GoalType.WEIGHT_LOSS, 2000, 120, 200, 60, generateUser().getPatientProfile());
 
-        when(repository.findById(planId)).thenReturn(Optional.of(plan));
+    plan.activate(today.minusDays(1));
 
-        // When
-        service.complete(planId, request);
+    CompleteNutritionPlanRequestDTO request =
+        new CompleteNutritionPlanRequestDTO("Volume", "Muscle-building plan");
 
-        // Then
-        verify(repository).findById(planId);
-        assertEquals(PlanStatus.INACTIVE, plan.getStatus());
-        assertEquals("Volume", plan.getName());
-        assertEquals("Muscle-building plan", plan.getDescription());
-    }
+    when(repository.findById(planId)).thenReturn(Optional.of(plan));
 
-    @Test
-    void shouldThrowWhenPlanNotFoundInComplete() {
+    // When
+    service.complete(planId, request);
 
-        // Given
-        Long planId = 1L;
+    // Then
+    verify(repository).findById(planId);
+    assertEquals(PlanStatus.INACTIVE, plan.getStatus());
+    assertEquals("Volume", plan.getName());
+    assertEquals("Muscle-building plan", plan.getDescription());
+  }
 
-        CompleteNutritionPlanRequestDTO request =
-                new CompleteNutritionPlanRequestDTO(
-                        "Volume",
-                        "Muscle-building plan"
-                );
+  @Test
+  void shouldThrowWhenPlanNotFoundInComplete() {
 
-        when(repository.findById(planId))
-                .thenReturn(Optional.empty());
+    // Given
+    Long planId = 1L;
 
-        // When + Then
-        RuntimeException ex = assertThrows(
-                RuntimeException.class,
-                () -> service.complete(planId, request)
-        );
+    CompleteNutritionPlanRequestDTO request =
+        new CompleteNutritionPlanRequestDTO("Volume", "Muscle-building plan");
 
-        assertTrue(ex.getMessage().contains("NutritionPlan"));
-        assertTrue(ex.getMessage().contains("1"));
+    when(repository.findById(planId)).thenReturn(Optional.empty());
 
+    // When + Then
+    RuntimeException ex =
+        assertThrows(RuntimeException.class, () -> service.complete(planId, request));
 
-        verify(repository).findById(planId);
+    assertTrue(ex.getMessage().contains("NutritionPlan"));
+    assertTrue(ex.getMessage().contains("1"));
 
-        verifyNoMoreInteractions(repository);
-    }
+    verify(repository).findById(planId);
 
-    @Test
-    void shouldActivatePlanWhenNoPreviousActivePlanExists() {
+    verifyNoMoreInteractions(repository);
+  }
 
-        // Given
-        Long planId = 1L;
-        Long patientId = 10L;
+  @Test
+  void shouldActivatePlanWhenNoPreviousActivePlanExists() {
 
-        PatientProfile patient = mock(PatientProfile.class);
-        NutritionPlan newPlan = mock(NutritionPlan.class);
+    // Given
+    Long planId = 1L;
+    Long patientId = 10L;
 
-        when(newPlan.getPatientProfile()).thenReturn(patient);
-        when(patient.getId()).thenReturn(patientId);
+    PatientProfile patient = mock(PatientProfile.class);
+    NutritionPlan newPlan = mock(NutritionPlan.class);
 
-        when(repository.findById(planId))
-                .thenReturn(Optional.of(newPlan));
+    when(newPlan.getPatientProfile()).thenReturn(patient);
+    when(patient.getId()).thenReturn(patientId);
 
-        when(repository.findByPatientProfileIdAndStatus(
-                patientId,
-                PlanStatus.ACTIVE))
-                .thenReturn(Optional.empty());
+    when(repository.findById(planId)).thenReturn(Optional.of(newPlan));
 
-        // When
-        NutritionPlanDetailDTO result =
-                service.activatePlan(planId);
+    when(repository.findByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE))
+        .thenReturn(Optional.empty());
 
-        // Then
-        assertNotNull(result);
+    // When
+    NutritionPlanDetailDTO result = service.activatePlan(planId);
 
-        verify(repository).findById(planId);
+    // Then
+    assertNotNull(result);
 
-        verify(repository)
-                .findByPatientProfileIdAndStatus(
-                        patientId,
-                        PlanStatus.ACTIVE
-                );
+    verify(repository).findById(planId);
 
-        verify(newPlan).activate(any(LocalDate.class));
+    verify(repository).findByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE);
 
-        verify(repository).save(newPlan);
+    verify(newPlan).activate(any(LocalDate.class));
 
-        verify(repository, times(1)).save(any());
+    verify(repository).save(newPlan);
 
-    }
+    verify(repository, times(1)).save(any());
+  }
 
-    @Test
-    void shouldClosePreviousPlanAndActivateNewPlan() {
+  @Test
+  void shouldClosePreviousPlanAndActivateNewPlan() {
 
-        // Given
-        Long planId = 1L;
-        Long patientId = 10L;
+    // Given
+    Long planId = 1L;
+    Long patientId = 10L;
 
-        PatientProfile patient = mock(PatientProfile.class);
+    PatientProfile patient = mock(PatientProfile.class);
 
-        NutritionPlan previousPlan = mock(NutritionPlan.class);
-        NutritionPlan newPlan = mock(NutritionPlan.class);
+    NutritionPlan previousPlan = mock(NutritionPlan.class);
+    NutritionPlan newPlan = mock(NutritionPlan.class);
 
-        when(newPlan.getPatientProfile()).thenReturn(patient);
-        when(patient.getId()).thenReturn(patientId);
+    when(newPlan.getPatientProfile()).thenReturn(patient);
+    when(patient.getId()).thenReturn(patientId);
 
-        when(repository.findById(planId))
-                .thenReturn(Optional.of(newPlan));
+    when(repository.findById(planId)).thenReturn(Optional.of(newPlan));
 
-        when(repository.findByPatientProfileIdAndStatus(
-                patientId,
-                PlanStatus.ACTIVE))
-                .thenReturn(Optional.of(previousPlan));
+    when(repository.findByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE))
+        .thenReturn(Optional.of(previousPlan));
 
-        // When
-        service.activatePlan(planId);
+    // When
+    service.activatePlan(planId);
 
-        // Then
-        verify(previousPlan)
-                .close(any(LocalDate.class));
+    // Then
+    verify(previousPlan).close(any(LocalDate.class));
 
-        verify(repository)
-                .save(previousPlan);
+    verify(repository).save(previousPlan);
 
-        verify(newPlan)
-                .activate(any(LocalDate.class));
+    verify(newPlan).activate(any(LocalDate.class));
 
-        verify(repository)
-                .save(newPlan);
-    }
+    verify(repository).save(newPlan);
+  }
 
-    @Test
-    void shouldThrowWhenPlanNotFoundInActivatePlan() {
+  @Test
+  void shouldThrowWhenPlanNotFoundInActivatePlan() {
 
-        // Given
-        Long planId = 1L;
+    // Given
+    Long planId = 1L;
 
-        when(repository.findById(planId))
-                .thenReturn(Optional.empty());
+    when(repository.findById(planId)).thenReturn(Optional.empty());
 
-        // When + Then
-        assertThrows(
-                ResourceNotFoundException.class,
-                () -> service.activatePlan(planId)
-        );
+    // When + Then
+    assertThrows(ResourceNotFoundException.class, () -> service.activatePlan(planId));
 
-        verify(repository).findById(planId);
+    verify(repository).findById(planId);
 
-        verify(repository, never())
-                .findByPatientProfileIdAndStatus(
-                        anyLong(),
-                        any()
-                );
+    verify(repository, never()).findByPatientProfileIdAndStatus(anyLong(), any());
 
-        verify(repository, never())
-                .save(any());
-    }
+    verify(repository, never()).save(any());
+  }
 
-    @Test
-    void shouldThrowWhenNutritionPlanNotFound() {
+  @Test
+  void shouldThrowWhenNutritionPlanNotFound() {
 
-        // Given
-        Long planId = 1L;
+    // Given
+    Long planId = 1L;
 
-        when(repository.findById(planId))
-                .thenReturn(Optional.empty());
+    when(repository.findById(planId)).thenReturn(Optional.empty());
 
-        // When + Then
-        ResourceNotFoundException ex = assertThrows(
-                ResourceNotFoundException.class,
-                () -> service.findById(planId)
-        );
+    // When + Then
+    ResourceNotFoundException ex =
+        assertThrows(ResourceNotFoundException.class, () -> service.findById(planId));
 
-        assertTrue(ex.getMessage().contains("NutritionPlan"));
-        assertTrue(ex.getMessage().contains(planId.toString()));
+    assertTrue(ex.getMessage().contains("NutritionPlan"));
+    assertTrue(ex.getMessage().contains(planId.toString()));
 
-        verify(repository).findById(planId);
-    }
+    verify(repository).findById(planId);
+  }
 
-    @Test
-    void shouldReturnPlansForPatient() {
+  @Test
+  void shouldReturnPlansForPatient() {
 
-        // Given
-        Long patientId = 1L;
+    // Given
+    Long patientId = 1L;
 
-        NutritionPlan plan1 = mock(NutritionPlan.class);
-        NutritionPlan plan2 = mock(NutritionPlan.class);
+    NutritionPlan plan1 = mock(NutritionPlan.class);
+    NutritionPlan plan2 = mock(NutritionPlan.class);
 
-        when(repository.findByPatientProfileIdOrderByStartDateDesc(patientId))
-                .thenReturn(List.of(plan1, plan2));
+    when(repository.findByPatientProfileIdOrderByStartDateDesc(patientId))
+        .thenReturn(List.of(plan1, plan2));
 
-        // When
-        List<NutritionPlanSummaryDTO> result =
-                service.findByPatient(patientId);
+    // When
+    List<NutritionPlanSummaryDTO> result = service.findByPatient(patientId);
 
-        // Then
-        assertAll(
-                () -> assertNotNull(result),
-                () -> assertEquals(2, result.size())
-        );
+    // Then
+    assertAll(() -> assertNotNull(result), () -> assertEquals(2, result.size()));
 
-        verify(repository)
-                .findByPatientProfileIdOrderByStartDateDesc(patientId);
-    }
+    verify(repository).findByPatientProfileIdOrderByStartDateDesc(patientId);
+  }
 
-    @Test
-    void shouldReturnEmptyListWhenPatientHasNoPlans() {
+  @Test
+  void shouldReturnEmptyListWhenPatientHasNoPlans() {
 
-        // Given
-        Long patientId = 1L;
+    // Given
+    Long patientId = 1L;
 
-        when(repository.findByPatientProfileIdOrderByStartDateDesc(patientId))
-                .thenReturn(List.of());
+    when(repository.findByPatientProfileIdOrderByStartDateDesc(patientId)).thenReturn(List.of());
 
-        // When
-        List<NutritionPlanSummaryDTO> result =
-                service.findByPatient(patientId);
+    // When
+    List<NutritionPlanSummaryDTO> result = service.findByPatient(patientId);
 
-        // Then
-        assertAll(
-                () -> assertNotNull(result),
-                () -> assertTrue(result.isEmpty())
-        );
+    // Then
+    assertAll(() -> assertNotNull(result), () -> assertTrue(result.isEmpty()));
 
-        verify(repository)
-                .findByPatientProfileIdOrderByStartDateDesc(patientId);
-    }
+    verify(repository).findByPatientProfileIdOrderByStartDateDesc(patientId);
+  }
 
-    @Test
-    void shouldReturnActivePlan() {
+  @Test
+  void shouldReturnActivePlan() {
 
-        // Given
-        Long patientId = 1L;
+    // Given
+    Long patientId = 1L;
 
-        NutritionPlan plan = mock(NutritionPlan.class);
+    NutritionPlan plan = mock(NutritionPlan.class);
 
-        when(repository.findByPatientProfileIdAndStatus(
-                patientId,
-                PlanStatus.ACTIVE))
-                .thenReturn(Optional.of(plan));
+    when(repository.findByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE))
+        .thenReturn(Optional.of(plan));
 
-        // When
-        Optional<NutritionPlan> result =
-                service.findActivePlan(patientId);
+    // When
+    Optional<NutritionPlan> result = service.findActivePlan(patientId);
 
-        // Then
-        assertTrue(result.isPresent());
-        assertEquals(plan, result.get());
+    // Then
+    assertTrue(result.isPresent());
+    assertEquals(plan, result.get());
 
-        verify(repository)
-                .findByPatientProfileIdAndStatus(
-                        patientId,
-                        PlanStatus.ACTIVE
-                );
-    }
+    verify(repository).findByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE);
+  }
 
-    @Test
-    void shouldReturnEmptyOptionalWhenNoActivePlanExists() {
+  @Test
+  void shouldReturnEmptyOptionalWhenNoActivePlanExists() {
 
-        // Given
-        Long patientId = 1L;
+    // Given
+    Long patientId = 1L;
 
-        when(repository.findByPatientProfileIdAndStatus(
-                patientId,
-                PlanStatus.ACTIVE))
-                .thenReturn(Optional.empty());
+    when(repository.findByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE))
+        .thenReturn(Optional.empty());
 
-        // When
-        Optional<NutritionPlan> result =
-                service.findActivePlan(patientId);
+    // When
+    Optional<NutritionPlan> result = service.findActivePlan(patientId);
 
-        // Then
-        assertTrue(result.isEmpty());
+    // Then
+    assertTrue(result.isEmpty());
 
-        verify(repository)
-                .findByPatientProfileIdAndStatus(
-                        patientId,
-                        PlanStatus.ACTIVE
-                );
-    }
+    verify(repository).findByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE);
+  }
 
-    @Test
-    void shouldReturnTrueWhenPlanBelongsToPatient() {
+  @Test
+  void shouldReturnTrueWhenPlanBelongsToPatient() {
 
-        Long planId = 1L;
-        Long patientId = 10L;
+    Long planId = 1L;
+    Long patientId = 10L;
 
-        User user = generateUser();
-        user.setId(10L);
+    User user = generateUser();
+    user.setId(10L);
 
-        PatientProfile patientProfile = user.getPatientProfile();
+    PatientProfile patientProfile = user.getPatientProfile();
 
-        NutritionPlan plan = NutritionPlan.generate(
-                GoalType.WEIGHT_MAINTENANCE,
-                2000,
-                150,
-                200,
-                60,
-                patientProfile
-        );
+    NutritionPlan plan =
+        NutritionPlan.generate(GoalType.WEIGHT_MAINTENANCE, 2000, 150, 200, 60, patientProfile);
 
-        when(repository.findById(planId))
-                .thenReturn(Optional.of(plan));
+    when(repository.findById(planId)).thenReturn(Optional.of(plan));
 
-        boolean result = service.belongsToPatient(planId, patientId);
+    boolean result = service.belongsToPatient(planId, patientId);
 
-        assertTrue(result);
+    assertTrue(result);
 
-        verify(repository).findById(planId);
-    }
+    verify(repository).findById(planId);
+  }
 
-    @Test
-    void shouldReturnFalseWhenPlanBelongsToAnotherPatient() {
+  @Test
+  void shouldReturnFalseWhenPlanBelongsToAnotherPatient() {
 
-        Long planId = 1L;
-        Long patientId = 10L;
+    Long planId = 1L;
+    Long patientId = 10L;
 
-        User user = generateUser();
-        user.setId(99L); // distinto
+    User user = generateUser();
+    user.setId(99L); // distinto
 
-        PatientProfile patientProfile = user.getPatientProfile();
+    PatientProfile patientProfile = user.getPatientProfile();
 
-        NutritionPlan plan = NutritionPlan.generate(
-                GoalType.WEIGHT_MAINTENANCE,
-                2000,
-                150,
-                200,
-                60,
-                patientProfile
-        );
+    NutritionPlan plan =
+        NutritionPlan.generate(GoalType.WEIGHT_MAINTENANCE, 2000, 150, 200, 60, patientProfile);
 
-        when(repository.findById(planId))
-                .thenReturn(Optional.of(plan));
+    when(repository.findById(planId)).thenReturn(Optional.of(plan));
 
-        boolean result = service.belongsToPatient(planId, patientId);
+    boolean result = service.belongsToPatient(planId, patientId);
 
-        assertFalse(result);
+    assertFalse(result);
 
-        verify(repository).findById(planId);
-    }
+    verify(repository).findById(planId);
+  }
 
-    @Test
-    void shouldReturnFalseWhenPlanNotFound() {
+  @Test
+  void shouldReturnFalseWhenPlanNotFound() {
 
-        Long planId = 1L;
-        Long patientId = 10L;
+    Long planId = 1L;
+    Long patientId = 10L;
 
-        when(repository.findById(planId))
-                .thenReturn(Optional.empty());
+    when(repository.findById(planId)).thenReturn(Optional.empty());
 
-        boolean result = service.belongsToPatient(planId, patientId);
+    boolean result = service.belongsToPatient(planId, patientId);
 
-        assertFalse(result);
+    assertFalse(result);
 
-        verify(repository).findById(planId);
-    }
+    verify(repository).findById(planId);
+  }
 
-    private User generateUser(){
+  private User generateUser() {
 
-        User user = new User(
-                "john@test.com",
-                "hash",
-                "John",
-                "Doe",
-                Role.PATIENT
-        );
+    User user = new User("john@test.com", "hash", "John", "Doe", Role.PATIENT);
 
-        user.setDni("12345678");
+    user.setDni("12345678");
 
-        PatientProfile profile = user.getPatientProfile();
+    PatientProfile profile = user.getPatientProfile();
 
-        profile.update(
-                Sex.MALE,
-                ActivityLevel.MODERATE,
-                Weight.of(80000),
-                Height.of(180),
-                "notes",
-                Set.of(),
-                List.of(),
-                GoalType.WEIGHT_MAINTENANCE
-        );
+    profile.update(
+        Sex.MALE,
+        ActivityLevel.MODERATE,
+        Weight.of(80000),
+        Height.of(180),
+        "notes",
+        Set.of(),
+        List.of(),
+        GoalType.WEIGHT_MAINTENANCE);
 
-        Restriction restriction = mock(Restriction.class);
+    Restriction restriction = mock(Restriction.class);
 
-        profile.addRestriction(restriction);
+    profile.addRestriction(restriction);
 
-        return user;
-    }
-
+    return user;
+  }
 }

@@ -1,63 +1,62 @@
 package com.lirium.nutrition.model.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
 import jakarta.persistence.Id;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import lombok.*;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = "id")
 @Table(
-        name = "daily_records",
-        uniqueConstraints = @UniqueConstraint(
-                name = "uk_daily_record_patient_date",
-                columnNames = {"patient_profile_id", "record_date"}
-        )
-)
+    name = "daily_records",
+    uniqueConstraints =
+        @UniqueConstraint(
+            name = "uk_daily_record_patient_date",
+            columnNames = {"patient_profile_id", "record_date"}))
 public class DailyRecord extends Auditable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "daily_record_seq")
-    @SequenceGenerator(name = "daily_record_seq", sequenceName = "daily_record_seq", allocationSize = 1)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "daily_record_seq")
+  @SequenceGenerator(
+      name = "daily_record_seq",
+      sequenceName = "daily_record_seq",
+      allocationSize = 1)
+  private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "patient_profile_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_daily_record_patient_profile")
-    )
-    private PatientProfile patient;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(
+      name = "patient_profile_id",
+      nullable = false,
+      foreignKey = @ForeignKey(name = "fk_daily_record_patient_profile"))
+  private PatientProfile patient;
 
-    @Column(nullable = false, name = "record_date")
-    private LocalDate date;
+  @Column(nullable = false, name = "record_date")
+  private LocalDate date;
 
-    @OneToMany(mappedBy = "dailyRecord", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MealRecord> meals = new ArrayList<>();
+  @OneToMany(mappedBy = "dailyRecord", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<MealRecord> meals = new ArrayList<>();
 
-    private DailyRecord(PatientProfile patient, LocalDate date) {
-        this.patient = Objects.requireNonNull(patient);
-        this.date = Objects.requireNonNull(date);
-    }
+  private DailyRecord(PatientProfile patient, LocalDate date) {
+    this.patient = Objects.requireNonNull(patient);
+    this.date = Objects.requireNonNull(date);
+  }
 
-    public static DailyRecord of(PatientProfile patient, LocalDate date) {
-        return new DailyRecord(patient, date);
-    }
+  public static DailyRecord of(PatientProfile patient, LocalDate date) {
+    return new DailyRecord(patient, date);
+  }
 
-    public void addMeal(MealRecord meal) {
-        Objects.requireNonNull(meal);
-        meals.add(meal);
-    }
+  public void addMeal(MealRecord meal) {
+    Objects.requireNonNull(meal);
+    meals.add(meal);
+  }
 
-    public List<MealRecord> getMeals() {
-        return Collections.unmodifiableList(meals);
-    }
-
+  public List<MealRecord> getMeals() {
+    return Collections.unmodifiableList(meals);
+  }
 }

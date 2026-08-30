@@ -1,12 +1,11 @@
 package com.lirium.nutrition.model.entity;
 
 import jakarta.persistence.*;
+import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.Instant;
 
 @Entity
 @Table(name = "refresh_tokens")
@@ -15,34 +14,34 @@ import java.time.Instant;
 @EqualsAndHashCode(of = "id")
 public class RefreshToken {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(name = "token", nullable = false, unique = true)
-    private String token;
+  @Column(name = "token", nullable = false, unique = true)
+  private String token;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+  @OneToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
 
-    @Column(name = "expires_at", nullable = false)
-    private Instant expiresAt;
+  @Column(name = "expires_at", nullable = false)
+  private Instant expiresAt;
 
-    @Column(name = "revoked", nullable = false)
-    private boolean revoked = false;
+  @Column(name = "revoked", nullable = false)
+  private boolean revoked = false;
 
-    public RefreshToken(User user, String token, Instant expiresAt) {
-        this.user = user;
-        this.token = token;
-        this.expiresAt = expiresAt;
-    }
+  public RefreshToken(User user, String token, Instant expiresAt) {
+    this.user = user;
+    this.token = token;
+    this.expiresAt = expiresAt;
+  }
 
-    public boolean isExpired() {
-        return Instant.now().isAfter(expiresAt);
-    }
+  public boolean isExpired() {
+    return Instant.now().isAfter(expiresAt);
+  }
 
-    public void revoke() {
-        this.revoked = true;
-    }
+  public void revoke() {
+    this.revoked = true;
+  }
 }

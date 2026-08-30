@@ -3,29 +3,28 @@ package com.lirium.nutrition.mapper;
 import com.lirium.nutrition.dto.request.*;
 import com.lirium.nutrition.dto.response.*;
 import com.lirium.nutrition.model.entity.Restriction;
-import org.mapstruct.*;
 import java.util.Set;
+import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
 public interface RestrictionMapper {
 
-    // === ENTITY → DTO ===
+  // === ENTITY → DTO ===
 
-    RestrictionResponseDTO toResponseDTO(Restriction restriction);
+  RestrictionResponseDTO toResponseDTO(Restriction restriction);
 
-    RestrictionSummaryDTO toSummaryDTO(Restriction restriction);
+  RestrictionSummaryDTO toSummaryDTO(Restriction restriction);
 
-    // === DTO → ENTITY ===
+  // === DTO → ENTITY ===
 
-    Restriction toEntity(RestrictionCreateRequestDTO dto);
+  Restriction toEntity(RestrictionCreateRequestDTO dto);
 
-    // === UPDATE ===
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateEntityFromDTO(RestrictionUpdateDTO dto, @MappingTarget Restriction entity);
+  // === UPDATE ===
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  void updateEntityFromDTO(RestrictionUpdateDTO dto, @MappingTarget Restriction entity);
 
-    // === Set<DTO> - Set<ENTITY>
-    Set<Restriction> toEntitySet(Set<RestrictionUpdateDTO> dtoSet);
+  // === Set<DTO> - Set<ENTITY>
+  Set<Restriction> toEntitySet(Set<RestrictionUpdateDTO> dtoSet);
 
-    Set<RestrictionSummaryDTO> toDTOSet(Set<Restriction> restrictions);
-
+  Set<RestrictionSummaryDTO> toDTOSet(Set<Restriction> restrictions);
 }

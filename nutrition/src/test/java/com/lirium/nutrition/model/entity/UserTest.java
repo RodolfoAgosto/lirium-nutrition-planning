@@ -1,169 +1,84 @@
 package com.lirium.nutrition.model.entity;
 
-import com.lirium.nutrition.model.enums.Role;
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.lirium.nutrition.model.enums.Role;
+import org.junit.jupiter.api.Test;
+
 class UserTest {
 
+  @Test
+  void shouldCreatePatientUserWithProfile() {
 
-    @Test
-    void shouldCreatePatientUserWithProfile() {
+    User user = new User("patient@test.com", "hash", "John", "Doe", Role.PATIENT);
 
-        User user =
-                new User(
-                        "patient@test.com",
-                        "hash",
-                        "John",
-                        "Doe",
-                        Role.PATIENT
-                );
+    assertThat(user.getEmail()).isEqualTo("patient@test.com");
 
+    assertThat(user.getPassword()).isEqualTo("hash");
 
-        assertThat(user.getEmail())
-                .isEqualTo("patient@test.com");
+    assertThat(user.getRole()).isEqualTo(Role.PATIENT);
 
-        assertThat(user.getPassword())
-                .isEqualTo("hash");
+    assertThat(user.getPatientProfile()).isNotNull();
 
-        assertThat(user.getRole())
-                .isEqualTo(Role.PATIENT);
+    assertThat(user.getPatientProfile().getUser()).isEqualTo(user);
+  }
 
-        assertThat(user.getPatientProfile())
-                .isNotNull();
+  @Test
+  void shouldNotCreatePatientProfileForNonPatientRole() {
 
-        assertThat(user.getPatientProfile().getUser())
-                .isEqualTo(user);
-    }
+    User user = new User("admin@test.com", "hash", "Admin", "User", Role.ADMIN);
 
+    assertThat(user.getPatientProfile()).isNull();
+  }
 
-    @Test
-    void shouldNotCreatePatientProfileForNonPatientRole() {
+  @Test
+  void shouldReturnEmailAsUsername() {
 
-        User user =
-                new User(
-                        "admin@test.com",
-                        "hash",
-                        "Admin",
-                        "User",
-                        Role.ADMIN
-                );
+    User user = new User("user@test.com", "hash", "John", "Doe", Role.PATIENT);
 
+    assertThat(user.getUsername()).isEqualTo("user@test.com");
+  }
 
-        assertThat(user.getPatientProfile())
-                .isNull();
-    }
+  @Test
+  void shouldReturnPasswordHash() {
 
+    User user = new User("user@test.com", "hash123", "John", "Doe", Role.PATIENT);
 
-    @Test
-    void shouldReturnEmailAsUsername() {
+    assertThat(user.getPassword()).isEqualTo("hash123");
+  }
 
-        User user =
-                new User(
-                        "user@test.com",
-                        "hash",
-                        "John",
-                        "Doe",
-                        Role.PATIENT
-                );
+  @Test
+  void shouldBeAccountValidByDefault() {
 
+    User user = new User("user@test.com", "hash", "John", "Doe", Role.PATIENT);
 
-        assertThat(user.getUsername())
-                .isEqualTo("user@test.com");
-    }
+    assertThat(user.isAccountNonExpired()).isTrue();
 
+    assertThat(user.isAccountNonLocked()).isTrue();
 
-    @Test
-    void shouldReturnPasswordHash() {
+    assertThat(user.isCredentialsNonExpired()).isTrue();
+  }
 
-        User user =
-                new User(
-                        "user@test.com",
-                        "hash123",
-                        "John",
-                        "Doe",
-                        Role.PATIENT
-                );
+  @Test
+  void shouldReturnAuthoritiesFromRole() {
 
+    User user = new User("admin@test.com", "hash", "Admin", "User", Role.ADMIN);
 
-        assertThat(user.getPassword())
-                .isEqualTo("hash123");
-    }
+    assertThat(user.getAuthorities()).isNotEmpty();
+  }
 
+  @Test
+  void shouldNotAllowNullEmail() {
 
-    @Test
-    void shouldBeAccountValidByDefault() {
+    assertThatThrownBy(() -> new User(null, "hash", "John", "Doe", Role.PATIENT))
+        .isInstanceOf(NullPointerException.class);
+  }
 
-        User user =
-                new User(
-                        "user@test.com",
-                        "hash",
-                        "John",
-                        "Doe",
-                        Role.PATIENT
-                );
+  @Test
+  void shouldNotAllowNullPassword() {
 
-
-        assertThat(user.isAccountNonExpired())
-                .isTrue();
-
-        assertThat(user.isAccountNonLocked())
-                .isTrue();
-
-        assertThat(user.isCredentialsNonExpired())
-                .isTrue();
-    }
-
-
-    @Test
-    void shouldReturnAuthoritiesFromRole() {
-
-        User user =
-                new User(
-                        "admin@test.com",
-                        "hash",
-                        "Admin",
-                        "User",
-                        Role.ADMIN
-                );
-
-
-        assertThat(user.getAuthorities())
-                .isNotEmpty();
-    }
-
-
-    @Test
-    void shouldNotAllowNullEmail() {
-
-        assertThatThrownBy(() ->
-                new User(
-                        null,
-                        "hash",
-                        "John",
-                        "Doe",
-                        Role.PATIENT
-                )
-        )
-                .isInstanceOf(NullPointerException.class);
-    }
-
-
-    @Test
-    void shouldNotAllowNullPassword() {
-
-        assertThatThrownBy(() ->
-                new User(
-                        "user@test.com",
-                        null,
-                        "John",
-                        "Doe",
-                        Role.PATIENT
-                )
-        )
-                .isInstanceOf(NullPointerException.class);
-    }
-
+    assertThatThrownBy(() -> new User("user@test.com", null, "John", "Doe", Role.PATIENT))
+        .isInstanceOf(NullPointerException.class);
+  }
 }

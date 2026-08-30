@@ -1,126 +1,78 @@
 package com.lirium.nutrition.mapper;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.lirium.nutrition.dto.request.DailyPlanCreateRequestDTO;
 import com.lirium.nutrition.dto.response.DailyPlanResponseDTO;
 import com.lirium.nutrition.dto.response.DailyPlanSummaryDTO;
 import com.lirium.nutrition.model.entity.*;
-        import com.lirium.nutrition.model.enums.GoalType;
+import com.lirium.nutrition.model.enums.GoalType;
 import com.lirium.nutrition.model.enums.MealType;
 import com.lirium.nutrition.model.enums.Role;
-import org.junit.jupiter.api.Test;
-
 import java.time.DayOfWeek;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class DailyPlanMapperTest {
 
-    @Test
-    void shouldMapEntityToResponse() {
+  @Test
+  void shouldMapEntityToResponse() {
 
-        PatientProfile patient = createPatient();
+    PatientProfile patient = createPatient();
 
-        NutritionPlan plan = NutritionPlan.generate(
-                GoalType.WEIGHT_LOSS,
-                2000,
-                150,
-                200,
-                70,
-                patient
-        );
+    NutritionPlan plan = NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 150, 200, 70, patient);
 
-        DailyPlan dailyPlan = DailyPlan.of(
-                DayOfWeek.MONDAY,
-                plan
-        );
+    DailyPlan dailyPlan = DailyPlan.of(DayOfWeek.MONDAY, plan);
 
-        PlanMeal breakfast = PlanMeal.of(
-                MealType.BREAKFAST,
-                dailyPlan
-        );
+    PlanMeal breakfast = PlanMeal.of(MealType.BREAKFAST, dailyPlan);
 
-        dailyPlan.addMeal(breakfast);
+    dailyPlan.addMeal(breakfast);
 
-        DailyPlanResponseDTO dto =
-                DailyPlanMapper.toResponse(dailyPlan);
+    DailyPlanResponseDTO dto = DailyPlanMapper.toResponse(dailyPlan);
 
-        assertThat(dto.id()).isEqualTo(dailyPlan.getId());
-        assertThat(dto.day()).isEqualTo(DayOfWeek.MONDAY);
-        assertThat(dto.nutritionPlanId()).isEqualTo(plan.getId());
+    assertThat(dto.id()).isEqualTo(dailyPlan.getId());
+    assertThat(dto.day()).isEqualTo(DayOfWeek.MONDAY);
+    assertThat(dto.nutritionPlanId()).isEqualTo(plan.getId());
 
-        assertThat(dto.meals())
-                .hasSize(1);
+    assertThat(dto.meals()).hasSize(1);
 
-        assertThat(dto.meals().getFirst().type())
-                .isEqualTo(MealType.BREAKFAST.toString());
-    }
+    assertThat(dto.meals().getFirst().type()).isEqualTo(MealType.BREAKFAST.toString());
+  }
 
-    @Test
-    void shouldMapEntityToSummary() {
+  @Test
+  void shouldMapEntityToSummary() {
 
-        PatientProfile patient = createPatient();
+    PatientProfile patient = createPatient();
 
-        NutritionPlan plan = NutritionPlan.generate(
-                GoalType.WEIGHT_LOSS,
-                2000,
-                150,
-                200,
-                70,
-                patient
-        );
+    NutritionPlan plan = NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 150, 200, 70, patient);
 
-        DailyPlan dailyPlan = DailyPlan.of(
-                DayOfWeek.TUESDAY,
-                plan
-        );
+    DailyPlan dailyPlan = DailyPlan.of(DayOfWeek.TUESDAY, plan);
 
-        DailyPlanSummaryDTO dto =
-                DailyPlanMapper.toSummary(dailyPlan);
+    DailyPlanSummaryDTO dto = DailyPlanMapper.toSummary(dailyPlan);
 
-        assertThat(dto.id()).isEqualTo(dailyPlan.getId());
-        assertThat(dto.day()).isEqualTo(DayOfWeek.TUESDAY);
-    }
+    assertThat(dto.id()).isEqualTo(dailyPlan.getId());
+    assertThat(dto.day()).isEqualTo(DayOfWeek.TUESDAY);
+  }
 
-    @Test
-    void shouldMapCreateRequestToEntity() {
+  @Test
+  void shouldMapCreateRequestToEntity() {
 
-        PatientProfile patient = createPatient();
+    PatientProfile patient = createPatient();
 
-        NutritionPlan plan = NutritionPlan.generate(
-                GoalType.WEIGHT_LOSS,
-                2000,
-                150,
-                200,
-                70,
-                patient
-        );
+    NutritionPlan plan = NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 150, 200, 70, patient);
 
-        DailyPlanCreateRequestDTO dto = new DailyPlanCreateRequestDTO(
-                DayOfWeek.MONDAY,
-                1L,
-                null
-        );
+    DailyPlanCreateRequestDTO dto = new DailyPlanCreateRequestDTO(DayOfWeek.MONDAY, 1L, null);
 
-        DailyPlan entity =
-                DailyPlanMapper.toEntity(dto, plan);
+    DailyPlan entity = DailyPlanMapper.toEntity(dto, plan);
 
-        assertThat(entity.getDayOfWeek())
-                .isEqualTo(DayOfWeek.MONDAY);
+    assertThat(entity.getDayOfWeek()).isEqualTo(DayOfWeek.MONDAY);
 
-        assertThat(entity.getNutritionPlan())
-                .isSameAs(plan);
-    }
+    assertThat(entity.getNutritionPlan()).isSameAs(plan);
+  }
 
-    private PatientProfile createPatient() {
+  private PatientProfile createPatient() {
 
-        User user = new User(
-                "patient@test.com",
-                "123456",
-                "Juan",
-                "Perez",
-                Role.PATIENT
-        );
+    User user = new User("patient@test.com", "123456", "Juan", "Perez", Role.PATIENT);
 
-        return user.getPatientProfile();
-    }
+    return user.getPatientProfile();
+  }
 }

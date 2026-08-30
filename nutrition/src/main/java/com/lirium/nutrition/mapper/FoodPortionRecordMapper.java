@@ -9,42 +9,33 @@ import com.lirium.nutrition.model.entity.MealRecord;
 
 public class FoodPortionRecordMapper {
 
-    private FoodPortionRecordMapper() {}
+  private FoodPortionRecordMapper() {}
 
-    /* === ENTITY -> RESPONSE ==== */
+  /* === ENTITY -> RESPONSE ==== */
 
-    public static FoodPortionRecordResponseDTO toResponse(FoodPortionRecord entity) {
-        return new FoodPortionRecordResponseDTO(
-                entity.getId(),
-                entity.getFood().getName(),
-                entity.getQuantity(),
-                entity.getFood().getDefaultUnit(),
-                entity.calories().amount(),
-                entity.protein().grams(),
-                entity.carbs().amount(),
-                entity.fat().amount()
-        );
-    }
+  public static FoodPortionRecordResponseDTO toResponse(FoodPortionRecord entity) {
+    return new FoodPortionRecordResponseDTO(
+        entity.getId(),
+        entity.getFood().getName(),
+        entity.getQuantity(),
+        entity.getFood().getDefaultUnit(),
+        entity.calories().amount(),
+        entity.protein().grams(),
+        entity.carbs().amount(),
+        entity.fat().amount());
+  }
 
-    public static FoodPortionRecordSummaryDTO toSummary(FoodPortionRecord entity) {
+  public static FoodPortionRecordSummaryDTO toSummary(FoodPortionRecord entity) {
 
-        return new FoodPortionRecordSummaryDTO(
-                entity.getId(),
-                entity.getFood().getId(),
-                entity.getQuantity(),
-                entity.getMeasureUnit()
-        );
-    }
+    return new FoodPortionRecordSummaryDTO(
+        entity.getId(), entity.getFood().getId(), entity.getQuantity(), entity.getMeasureUnit());
+  }
 
-    /* ==== CREATE DTO -> ENTITY === */
+  /* ==== CREATE DTO -> ENTITY === */
 
-    public static FoodPortionRecord toEntity(
-            FoodPortionRecordCreateRequestDTO dto,
-            MealRecord meal,
-            Food food
-    ) {
+  public static FoodPortionRecord toEntity(
+      FoodPortionRecordCreateRequestDTO dto, MealRecord meal, Food food) {
 
-        return FoodPortionRecord.of(meal, food, dto.quantity(), dto.unit());
-    }
-
+    return FoodPortionRecord.of(meal, food, dto.quantity(), dto.unit());
+  }
 }
