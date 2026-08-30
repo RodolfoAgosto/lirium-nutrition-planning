@@ -5,13 +5,11 @@ import com.lirium.nutrition.model.entity.DailyPlan;
 import com.lirium.nutrition.model.entity.NutritionPlan;
 import com.lirium.nutrition.model.entity.PlanFoodPortion;
 import com.lirium.nutrition.model.entity.PlanMeal;
-import org.springframework.stereotype.Component;
 
-@Component
 public class NutritionPlanMapper {
 
-    public NutritionPlanMapper() {
-
+    private NutritionPlanMapper() {
+        throw new UnsupportedOperationException("Utility class");
     }
 
     public static NutritionPlanDetailDTO toDetail(NutritionPlan plan) {
