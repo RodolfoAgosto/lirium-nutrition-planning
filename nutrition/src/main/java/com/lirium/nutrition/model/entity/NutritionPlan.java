@@ -122,8 +122,9 @@ public class NutritionPlan extends Auditable{
             Integer fatGrams
     ) {
 
-        validateUpdateFields(name, description, startDate, endDate,
-                dailyCalories, proteinGrams, carbGrams, fatGrams);
+        validateTextFields(name, description);
+        validateDates(startDate, endDate);
+        validateNutritionValues(dailyCalories, proteinGrams, carbGrams, fatGrams);
 
         if (name != null) this.name = name;
         if (description != null) this.description = description;
@@ -182,19 +183,17 @@ public class NutritionPlan extends Auditable{
         }
     }
 
-    private void validateUpdateFields(
-            String name,
-            String description,
-            LocalDate startDate,
-            LocalDate endDate,
+    private static void validateTextFields(String name, String description) {
+        validateNotBlankIfPresent(name, "Name cannot be blank");
+        validateNotBlankIfPresent(description, "Description cannot be blank");
+    }
+
+    private static void validateNutritionValues(
             Integer dailyCalories,
             Integer proteinGrams,
             Integer carbGrams,
             Integer fatGrams
     ) {
-        validateNotBlankIfPresent(name, "Name cannot be blank");
-        validateNotBlankIfPresent(description, "Description cannot be blank");
-        validateDates(startDate, endDate);
         validatePositive(dailyCalories, "Daily calories must be greater than zero");
         validateNonNegative(proteinGrams, "Protein grams cannot be negative");
         validateNonNegative(carbGrams, "Carb grams cannot be negative");
