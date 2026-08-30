@@ -31,6 +31,7 @@ public class PlanMealServiceImpl implements PlanMealService {
     private final PlanFoodPortionRepository planFoodPortionRepository;
     private final FoodServiceImpl foodService;
     private final PlanFoodPortionServiceImpl planFoodPortionService;
+    private static final String PLAN_MEAL = "PlanMeal";
 
     @Override
     public PlanMealResponseDTO getById(Long id) {
@@ -105,7 +106,7 @@ public class PlanMealServiceImpl implements PlanMealService {
     public PlanMealResponseDTO addPortion(Long mealId, FoodPortionAddRequestDTO dto) {
 
         PlanMeal planMeal = repository.findById(mealId)
-                .orElseThrow(() -> new ResourceNotFoundException("PlanMeal", mealId));
+                .orElseThrow(() -> new ResourceNotFoundException(PLAN_MEAL, mealId));
 
         planMeal.getDailyPlan().getNutritionPlan().ensureEditable();
 
@@ -130,7 +131,7 @@ public class PlanMealServiceImpl implements PlanMealService {
     public PlanMealResponseDTO removePortion(Long mealId, Long portionId) {
 
         PlanMeal planMeal = repository.findById(mealId)
-                .orElseThrow(() -> new ResourceNotFoundException("PlanMeal", mealId));
+                .orElseThrow(() -> new ResourceNotFoundException(PLAN_MEAL, mealId));
 
 
         planMeal.getDailyPlan().getNutritionPlan().ensureEditable();
@@ -156,7 +157,7 @@ public class PlanMealServiceImpl implements PlanMealService {
         log.info("Updating quantity to {} for portionId={} in mealId={}", request.quantity(), portionId, mealId);
 
         PlanMeal meal = repository.findById(mealId)
-                .orElseThrow(() -> new ResourceNotFoundException("PlanMeal", mealId));
+                .orElseThrow(() -> new ResourceNotFoundException(PLAN_MEAL, mealId));
 
         PlanFoodPortion portion = planFoodPortionRepository.findById(portionId)
                 .orElseThrow(() -> new ResourceNotFoundException("PlanFoodPortion", portionId));
