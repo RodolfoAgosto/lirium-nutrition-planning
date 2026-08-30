@@ -34,6 +34,8 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class DailyRecordServiceImpl implements DailyRecordService {
 
+    private static final String MEAL_RECORD = "MealRecord";
+
     private final DailyRecordRepository dailyRecordRepository;
     private final PatientProfileService patientProfileService;
     private final NutritionPlanService nutritionPlanService;
@@ -131,7 +133,7 @@ public class DailyRecordServiceImpl implements DailyRecordService {
         MealRecord meal = dailyRecord.getMeals().stream()
                 .filter(m -> m.getId().equals(mealRecordId))
                 .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("MealRecord", mealRecordId));
+                .orElseThrow(() -> new ResourceNotFoundException(MEAL_RECORD, mealRecordId));
 
         if (request.notes() != null) {
             meal.markAsOverridden(request.notes());
@@ -154,7 +156,7 @@ public class DailyRecordServiceImpl implements DailyRecordService {
         MealRecord meal = dailyRecord.getMeals().stream()
                 .filter(m -> m.getId().equals(mealRecordId))
                 .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("MealRecord", mealRecordId));
+                .orElseThrow(() -> new ResourceNotFoundException(MEAL_RECORD, mealRecordId));
 
         Food food = foodService.findEntityById(request.foodId());
 
@@ -180,7 +182,7 @@ public class DailyRecordServiceImpl implements DailyRecordService {
         MealRecord meal = dailyRecord.getMeals().stream()
                 .filter(m -> m.getId().equals(mealRecordId))
                 .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("MealRecord", mealRecordId));
+                .orElseThrow(() -> new ResourceNotFoundException(MEAL_RECORD, mealRecordId));
 
         FoodPortionRecord portion = meal.getFoodPortions().stream()
                 .filter(p -> p.getId().equals(portionId))
