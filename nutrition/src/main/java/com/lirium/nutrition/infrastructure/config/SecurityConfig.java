@@ -28,6 +28,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    private static final String ROLE_ADMIN = "ADMIN";
+    private static final String ROLE_NUTRITIONIST = "NUTRITIONIST";
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsServiceImpl userDetailsServiceImpl;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
@@ -59,21 +62,21 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/plan-meals/**").authenticated()
 
                         // Only ADMIN
-                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
-                        .requestMatchers("/api/users/*/enabled").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole(ROLE_ADMIN)
+                        .requestMatchers("/api/users/*/enabled").hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.DELETE,"/api/nutrition-plan-templates/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/foods/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/foods/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/foods/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/foods/**").hasRole(ROLE_ADMIN)
+                        .requestMatchers(HttpMethod.PUT, "/api/foods/**").hasRole(ROLE_ADMIN)
+                        .requestMatchers(HttpMethod.DELETE, "/api/foods/**").hasRole(ROLE_ADMIN)
 
                         // ADMIN and NUTRITIONIST
-                        .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "NUTRITIONIST")
-                        .requestMatchers("/api/restrictions/**").hasAnyRole("ADMIN", "NUTRITIONIST")
-                        .requestMatchers("/api/plan-meals", "/api/plan-meals/**").hasAnyRole("ADMIN", "NUTRITIONIST")
-                        .requestMatchers("/api/nutrition-plan-templates/**").hasAnyRole("ADMIN", "NUTRITIONIST")
-                        .requestMatchers(HttpMethod.POST, "/api/nutrition-plans/**").hasAnyRole("ADMIN", "NUTRITIONIST")
-                        .requestMatchers(HttpMethod.PATCH, "/api/nutrition-plans/**").hasAnyRole("ADMIN", "NUTRITIONIST")
-                        .requestMatchers("/api/plan-food-portions/**").hasAnyRole("ADMIN", "NUTRITIONIST")
+                        .requestMatchers("/api/users/**").hasAnyRole(ROLE_ADMIN, ROLE_NUTRITIONIST)
+                        .requestMatchers("/api/restrictions/**").hasAnyRole(ROLE_ADMIN, ROLE_NUTRITIONIST)
+                        .requestMatchers("/api/plan-meals", "/api/plan-meals/**").hasAnyRole(ROLE_ADMIN, ROLE_NUTRITIONIST)
+                        .requestMatchers("/api/nutrition-plan-templates/**").hasAnyRole(ROLE_ADMIN, ROLE_NUTRITIONIST)
+                        .requestMatchers(HttpMethod.POST, "/api/nutrition-plans/**").hasAnyRole(ROLE_ADMIN, ROLE_NUTRITIONIST)
+                        .requestMatchers(HttpMethod.PATCH, "/api/nutrition-plans/**").hasAnyRole(ROLE_ADMIN, ROLE_NUTRITIONIST)
+                        .requestMatchers("/api/plan-food-portions/**").hasAnyRole(ROLE_ADMIN, ROLE_NUTRITIONIST)
 
                         // MULTI-ROLE READING (Properly authenticated in Controller/Service)
                         .requestMatchers("/api/patients/**").authenticated()
