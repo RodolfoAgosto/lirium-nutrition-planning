@@ -64,7 +64,7 @@ public class SecurityConfig {
                         // Only ADMIN
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole(ROLE_ADMIN)
                         .requestMatchers("/api/users/*/enabled").hasRole(ROLE_ADMIN)
-                        .requestMatchers(HttpMethod.DELETE,"/api/nutrition-plan-templates/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE,"/api/nutrition-plan-templates/**").hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.POST, "/api/foods/**").hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.PUT, "/api/foods/**").hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.DELETE, "/api/foods/**").hasRole(ROLE_ADMIN)
