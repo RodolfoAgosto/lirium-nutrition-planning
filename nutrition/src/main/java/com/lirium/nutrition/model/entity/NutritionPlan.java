@@ -110,12 +110,6 @@ public class NutritionPlan extends Auditable{
         this.week.add(dailyPlan);
     }
 
-    private static void validateNotBlankIfPresent(String value, String message) {
-        if (value != null && value.isBlank()) {
-            throw new IllegalArgumentException(message);
-        }
-    }
-
     public void update(
             String name,
             String description,
@@ -128,33 +122,19 @@ public class NutritionPlan extends Auditable{
             Integer fatGrams
     ) {
 
-        validateNotBlankIfPresent(name, "Name cannot be blank");
-        validateNotBlankIfPresent(description, "Description cannot be blank");
+        validateUpdateFields(name, description, startDate, endDate,
+                dailyCalories, proteinGrams, carbGrams, fatGrams);
 
-        LocalDate newStart = startDate!=null ? startDate : this.startDate;
-        LocalDate newEnd   = endDate!=null ? endDate : this.endDate;
+        if (name != null) this.name = name;
+        if (description != null) this.description = description;
+        if (startDate != null) this.startDate = startDate;
+        if (endDate != null) this.endDate = endDate;
+        if (targetGoal != null) this.targetGoal = targetGoal;
+        if (dailyCalories != null) this.dailyCalories = dailyCalories;
+        if (proteinGrams != null) this.proteinGrams = proteinGrams;
+        if (carbGrams != null) this.carbGrams = carbGrams;
+        if (fatGrams != null) this.fatGrams = fatGrams;
 
-        if(newEnd!=null && newStart!=null && newEnd.isBefore(newStart))
-            throw new IllegalArgumentException("End date before start date");
-
-        if(dailyCalories!=null && dailyCalories<=0)
-            throw new IllegalArgumentException("Daily calories must be greater than zero");
-        if(proteinGrams!=null && proteinGrams<0)
-            throw new IllegalArgumentException("Protein grams cannot be negative");
-        if(carbGrams!=null && carbGrams<0)
-            throw new IllegalArgumentException("Carb grams cannot be negative");
-        if(fatGrams!=null && fatGrams<0)
-            throw new IllegalArgumentException("Fat grams cannot be negative");
-
-        if(name!=null) this.name=name;
-        if(description!=null) this.description=description;
-        if(startDate!=null) this.startDate=startDate;
-        if(endDate!=null) this.endDate=endDate;
-        if(targetGoal!=null) this.targetGoal=targetGoal;
-        if(dailyCalories!=null) this.dailyCalories=dailyCalories;
-        if(proteinGrams!=null) this.proteinGrams=proteinGrams;
-        if(carbGrams!=null) this.carbGrams=carbGrams;
-        if(fatGrams!=null) this.fatGrams=fatGrams;
     }
 
     public boolean isDraft() {
@@ -199,6 +179,52 @@ public class NutritionPlan extends Auditable{
             throw new UnprocessableEntityException(
                     "Nutrition plan is not editable in its current status"
             );
+        }
+    }
+
+    private void validateUpdateFields(
+            String name,
+            String description,
+            LocalDate startDate,
+            LocalDate endDate,
+            Integer dailyCalories,
+            Integer proteinGrams,
+            Integer carbGrams,
+            Integer fatGrams
+    ) {
+        validateNotBlankIfPresent(name, "Name cannot be blank");
+        validateNotBlankIfPresent(description, "Description cannot be blank");
+        validateDates(startDate, endDate);
+        validatePositive(dailyCalories, "Daily calories must be greater than zero");
+        validateNonNegative(proteinGrams, "Protein grams cannot be negative");
+        validateNonNegative(carbGrams, "Carb grams cannot be negative");
+        validateNonNegative(fatGrams, "Fat grams cannot be negative");
+    }
+
+    private static void validateNotBlankIfPresent(String value, String message) {
+        if (value != null && value.isBlank()) {
+            throw new IllegalArgumentException(message);
+        }
+    }
+
+    private void validateDates(LocalDate startDate, LocalDate endDate) {
+        LocalDate newStart = startDate != null ? startDate : this.startDate;
+        LocalDate newEnd = endDate != null ? endDate : this.endDate;
+
+        if (newStart != null && newEnd != null && newEnd.isBefore(newStart)) {
+            throw new IllegalArgumentException("End date before start date");
+        }
+    }
+
+    private static void validatePositive(Integer value, String message) {
+        if (value != null && value <= 0) {
+            throw new IllegalArgumentException(message);
+        }
+    }
+
+    private static void validateNonNegative(Integer value, String message) {
+        if (value != null && value < 0) {
+            throw new IllegalArgumentException(message);
         }
     }
 
