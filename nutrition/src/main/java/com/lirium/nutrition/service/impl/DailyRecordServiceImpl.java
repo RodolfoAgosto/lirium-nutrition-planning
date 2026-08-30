@@ -198,76 +198,25 @@ public class DailyRecordServiceImpl implements DailyRecordService {
     public NutritionComparisonReportDTO getNutritionComparison(
             Long patientId, LocalDate from, LocalDate to) {
 
-        if (from == null || to == null) {
-            throw new IllegalArgumentException("Date range is required");
-        }
-
-        if (from.isAfter(to)) {
-            throw new IllegalArgumentException(
-                    "The 'from' date cannot be after the 'to' date"
-            );
-        }
-
-        if (!patientProfileRepository.existsById(patientId)) {
-            throw new ResourceNotFoundException("Patient", patientId);
-        }
+        validateDateRange(from, to);
+        validatePatientExists(patientId);
 
         NutritionPlan activePlan = nutritionPlanService.findActivePlan(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Active nutrition plan not found for patient with id:", patientId));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Active nutrition plan not found for patient with id:", patientId));
 
-        LocalDate planStart = activePlan.getStartDate();
-        LocalDate effectiveFrom = (planStart != null && from.isBefore(planStart))
-                ? planStart
-                : from;
+        LocalDate effectiveFrom = getEffectiveFrom(activePlan, from);
 
         if (effectiveFrom.isAfter(to)) {
             return new NutritionComparisonReportDTO(from, to, List.of());
         }
 
-        int targetCal  = activePlan.getDailyCalories();
-        int targetProt = activePlan.getProteinGrams();
-        int targetCarb = activePlan.getCarbGrams();
-        int targetFat  = activePlan.getFatGrams();
-
-        // Registros del rango
         List<DailyRecord> records = dailyRecordRepository
                 .findByPatient_IdAndDateBetween(patientId, effectiveFrom, to);
 
-        List<DailyNutritionComparisonDTO> days = effectiveFrom.datesUntil(to.plusDays(1))
-                .map(date -> {
-                    Optional<DailyRecord> record = records.stream()
-                            .filter(r -> r.getDate().equals(date))
-                            .findFirst();
-
-                    int consumedCal  = 0;
-                    int consumedProt = 0;
-                    int consumedCarb = 0;
-                    int consumedFat  = 0;
-
-                    if (record.isPresent()) {
-                        for (MealRecord meal : record.get().getMeals()) {
-                            for (FoodPortionRecord portion : meal.getFoodPortions()) {
-                                consumedCal  += portion.calories().amount();
-                                consumedProt += portion.protein().grams();
-                                consumedCarb += portion.carbs().amount();
-                                consumedFat  += portion.fat().amount();
-                            }
-                        }
-                    }
-
-                    double adherence = targetCal > 0
-                            ? Math.min(100.0, consumedCal * 100.0 / targetCal)
-                            : 0.0;
-
-                    return new DailyNutritionComparisonDTO(
-                            date,
-                            targetCal,  consumedCal,
-                            targetProt, consumedProt,
-                            targetCarb, consumedCarb,
-                            targetFat,  consumedFat,
-                            Math.round(adherence * 10.0) / 10.0
-                    );
-                })
+        List<DailyNutritionComparisonDTO> days = effectiveFrom
+                .datesUntil(to.plusDays(1))
+                .map(date -> buildDailyComparison(date, records, activePlan))
                 .toList();
 
         return new NutritionComparisonReportDTO(effectiveFrom, to, days);
@@ -301,6 +250,98 @@ public class DailyRecordServiceImpl implements DailyRecordService {
     @Override
     public boolean existsForPatientAndDate(Long patientId, LocalDate date) {
         return dailyRecordRepository.existsByPatient_IdAndDate(patientId, date);
+    }
+
+    private void validateDateRange(LocalDate from, LocalDate to) {
+        if (from == null || to == null) {
+            throw new IllegalArgumentException("Date range is required");
+        }
+
+        if (from.isAfter(to)) {
+            throw new IllegalArgumentException(
+                    "The 'from' date cannot be after the 'to' date"
+            );
+        }
+    }
+
+    private void validatePatientExists(Long patientId) {
+        if (!patientProfileRepository.existsById(patientId)) {
+            throw new ResourceNotFoundException("Patient", patientId);
+        }
+    }
+
+    private LocalDate getEffectiveFrom(NutritionPlan activePlan, LocalDate from) {
+        LocalDate planStart = activePlan.getStartDate();
+
+        if (planStart != null && from.isBefore(planStart)) {
+            return planStart;
+        }
+
+        return from;
+    }
+
+    private DailyNutritionComparisonDTO buildDailyComparison(
+            LocalDate date,
+            List<DailyRecord> records,
+            NutritionPlan activePlan) {
+
+        Optional<DailyRecord> record = records.stream()
+                .filter(r -> r.getDate().equals(date))
+                .findFirst();
+
+        NutritionTotals consumed = calculateConsumedNutrition(record);
+
+        int targetCal = activePlan.getDailyCalories();
+        double adherence = calculateAdherence(targetCal, consumed.calories());
+
+        return new DailyNutritionComparisonDTO(
+                date,
+                targetCal, consumed.calories(),
+                activePlan.getProteinGrams(), consumed.protein(),
+                activePlan.getCarbGrams(), consumed.carbs(),
+                activePlan.getFatGrams(), consumed.fat(),
+                Math.round(adherence * 10.0) / 10.0
+        );
+    }
+
+    private record NutritionTotals(
+            int calories,
+            int protein,
+            int carbs,
+            int fat
+    ) {
+    }
+
+    private NutritionTotals calculateConsumedNutrition(
+            Optional<DailyRecord> record) {
+
+        if (record.isEmpty()) {
+            return new NutritionTotals(0, 0, 0, 0);
+        }
+
+        int calories = 0;
+        int protein = 0;
+        int carbs = 0;
+        int fat = 0;
+
+        for (MealRecord meal : record.get().getMeals()) {
+            for (FoodPortionRecord portion : meal.getFoodPortions()) {
+                calories += portion.calories().amount();
+                protein += portion.protein().grams();
+                carbs += portion.carbs().amount();
+                fat += portion.fat().amount();
+            }
+        }
+
+        return new NutritionTotals(calories, protein, carbs, fat);
+    }
+
+    private double calculateAdherence(int targetCalories, int consumedCalories) {
+        if (targetCalories <= 0) {
+            return 0.0;
+        }
+
+        return Math.min(100.0, consumedCalories * 100.0 / targetCalories);
     }
 
 }
