@@ -85,6 +85,8 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
+      - name: Check code formatting
+        run: mvn spotless:check
       - name: Verify Flyway migrations apply cleanly
         run: >
           mvn flyway:migrate
