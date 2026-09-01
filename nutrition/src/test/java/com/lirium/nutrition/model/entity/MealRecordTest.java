@@ -6,19 +6,16 @@ import com.lirium.nutrition.model.enums.FoodCategory;
 import com.lirium.nutrition.model.enums.MealType;
 import com.lirium.nutrition.model.enums.MeasureUnit;
 import com.lirium.nutrition.model.enums.Role;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-
 import org.junit.jupiter.api.Test;
 
 class MealRecordTest {
 
   @Test
   void shouldCreateManualMealRecord() {
-    MealRecord meal =
-            MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
+    MealRecord meal = MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
 
     assertEquals(MealType.LUNCH, meal.getType());
     assertFalse(meal.isOverridden());
@@ -28,24 +25,21 @@ class MealRecordTest {
   @Test
   void shouldRejectNullMealType() {
     assertThrows(
-            NullPointerException.class,
-            () -> MealRecord.of(null, todayAtNoon(), createDailyRecord()));
+        NullPointerException.class, () -> MealRecord.of(null, todayAtNoon(), createDailyRecord()));
   }
 
   @Test
   void shouldRejectFutureDate() {
-    LocalDateTime tomorrow =
-            LocalDate.now(ARGENTINA_ZONE).plusDays(1).atTime(12, 0);
+    LocalDateTime tomorrow = LocalDate.now(ARGENTINA_ZONE).plusDays(1).atTime(12, 0);
 
     assertThrows(
-            IllegalArgumentException.class,
-            () -> MealRecord.of(MealType.DINNER, tomorrow, createDailyRecord()));
+        IllegalArgumentException.class,
+        () -> MealRecord.of(MealType.DINNER, tomorrow, createDailyRecord()));
   }
 
   @Test
   void shouldAddFoodPortion() {
-    MealRecord meal =
-            MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
+    MealRecord meal = MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
 
     Food food = createFood();
 
@@ -57,8 +51,7 @@ class MealRecordTest {
 
   @Test
   void shouldNotAddDuplicateFoodPortion() {
-    MealRecord meal =
-            MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
+    MealRecord meal = MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
 
     Food food = createFood();
 
@@ -70,8 +63,7 @@ class MealRecordTest {
 
   @Test
   void shouldRemoveFoodPortion() {
-    MealRecord meal =
-            MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
+    MealRecord meal = MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
 
     Food food = createFood();
 
@@ -86,8 +78,7 @@ class MealRecordTest {
 
   @Test
   void shouldClearFoods() {
-    MealRecord meal =
-            MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
+    MealRecord meal = MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
 
     meal.addFoodPortion(createFood(), 100D, MeasureUnit.GRAM);
 
@@ -98,8 +89,7 @@ class MealRecordTest {
 
   @Test
   void shouldMarkAsOverridden() {
-    MealRecord meal =
-            MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
+    MealRecord meal = MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
 
     meal.markAsOverridden();
 
@@ -108,8 +98,7 @@ class MealRecordTest {
 
   @Test
   void shouldMarkAsOverriddenWithReason() {
-    MealRecord meal =
-            MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
+    MealRecord meal = MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
 
     meal.markAsOverridden("Changed because patient was sick");
 
@@ -119,18 +108,14 @@ class MealRecordTest {
 
   @Test
   void shouldRejectBlankOverrideReason() {
-    MealRecord meal =
-            MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
+    MealRecord meal = MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
 
-    assertThrows(
-            IllegalArgumentException.class,
-            () -> meal.markAsOverridden(" "));
+    assertThrows(IllegalArgumentException.class, () -> meal.markAsOverridden(" "));
   }
 
   @Test
   void shouldUpdateNotes() {
-    MealRecord meal =
-            MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
+    MealRecord meal = MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
 
     meal.updateNotes("Ate outside plan");
 
@@ -139,8 +124,7 @@ class MealRecordTest {
 
   @Test
   void shouldClearOverride() {
-    MealRecord meal =
-            MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
+    MealRecord meal = MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
 
     meal.markAsOverridden("Reason");
 
@@ -155,20 +139,16 @@ class MealRecordTest {
   }
 
   private DailyRecord createDailyRecord() {
-    User user =
-            new User("test@test.com", "password", "Test", "User", Role.PATIENT);
+    User user = new User("test@test.com", "password", "Test", "User", Role.PATIENT);
 
     PatientProfile patient = user.getPatientProfile();
 
-    return DailyRecord.of(
-            patient,
-            LocalDate.now(ARGENTINA_ZONE));
+    return DailyRecord.of(patient, LocalDate.now(ARGENTINA_ZONE));
   }
 
   private Food createFood() {
     return Food.of("Rice", 130, 3, 28, 1, FoodCategory.CARB, null);
   }
 
-  private static final ZoneId ARGENTINA_ZONE =   ZoneId.of("America/Argentina/Buenos_Aires");
-
+  private static final ZoneId ARGENTINA_ZONE = ZoneId.of("America/Argentina/Buenos_Aires");
 }

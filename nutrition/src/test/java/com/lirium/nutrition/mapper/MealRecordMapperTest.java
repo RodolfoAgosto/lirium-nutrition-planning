@@ -31,14 +31,10 @@ class MealRecordMapperTest {
 
     PatientProfile patient = new PatientProfile(user);
 
-    DailyRecord dailyRecord =
-            DailyRecord.of(patient, LocalDate.now(ARGENTINA_ZONE));
+    DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now(ARGENTINA_ZONE));
 
     MealRecord meal =
-            MealRecord.of(
-                    MealType.LUNCH,
-                    LocalDateTime.now(ARGENTINA_ZONE).minusHours(1),
-                    dailyRecord);
+        MealRecord.of(MealType.LUNCH, LocalDateTime.now(ARGENTINA_ZONE).minusHours(1), dailyRecord);
 
     Food rice = Food.of("Rice", 360, 7, 80, 1, FoodCategory.CARB, Set.of(MealType.LUNCH));
 
@@ -71,14 +67,11 @@ class MealRecordMapperTest {
 
     PatientProfile patient = new PatientProfile(user);
 
-    DailyRecord dailyRecord =
-            DailyRecord.of(patient, LocalDate.now(ARGENTINA_ZONE));
+    DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now(ARGENTINA_ZONE));
 
     MealRecord meal =
-            MealRecord.of(
-                    MealType.BREAKFAST,
-                    LocalDateTime.now(ARGENTINA_ZONE).minusHours(2),
-                    dailyRecord);
+        MealRecord.of(
+            MealType.BREAKFAST, LocalDateTime.now(ARGENTINA_ZONE).minusHours(2), dailyRecord);
 
     MealRecordSummaryDTO dto = MealRecordMapper.toSummary(meal);
 

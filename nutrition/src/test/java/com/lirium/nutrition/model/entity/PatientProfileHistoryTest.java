@@ -6,7 +6,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.lirium.nutrition.model.enums.*;
 import com.lirium.nutrition.model.valueobject.Height;
 import com.lirium.nutrition.model.valueobject.Weight;
-
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.HashSet;
@@ -61,7 +60,7 @@ class PatientProfileHistoryTest {
     assertThat(history.getPrimaryGoal()).isEqualTo(GoalType.WEIGHT_LOSS);
 
     assertThat(history.getVisitDate())
-    .isEqualTo(LocalDate.now(ZoneId.of("America/Argentina/Buenos_Aires")));
+        .isEqualTo(LocalDate.now(ZoneId.of("America/Argentina/Buenos_Aires")));
   }
 
   @Test
