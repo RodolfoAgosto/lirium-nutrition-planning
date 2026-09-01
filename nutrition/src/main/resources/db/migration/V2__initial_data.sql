@@ -167,7 +167,8 @@ INSERT INTO users (
       (DATE '1990-05-10', FALSE, TRUE, TIMESTAMP '2026-08-02 16:51:57.955872', 1, TIMESTAMP '2026-08-02 16:51:57.955872', '30111222', 'Ana', 'Lopez', 'ana@test.com', '$2a$10$Snpx9uY2JwrDKwV.619M4erTgRGe9MA7yMiMi0Q/rjz.zd3n6ULhK', 'system', 'PATIENT', 'system'),
       (DATE '1985-03-22', FALSE, TRUE, TIMESTAMP '2026-08-02 16:51:57.994523', 2, TIMESTAMP '2026-08-02 16:51:57.994523', '28999111', 'Juan', 'Perez', 'juan@test.com', '$2a$10$OZFFadt4tovt4X.D/BDh8OJSxCDMLUx0BAPVfqlqeJ/YKkAYKosri', 'system', 'PATIENT', 'system'),
       (DATE '2000-01-15', FALSE, TRUE, TIMESTAMP '2026-08-02 16:51:57.996521', 3, TIMESTAMP '2026-08-02 16:51:57.996521', '40123456', 'Maria', 'Gomez', 'maria@test.com', '$2a$10$vGVd3olBpCRbLOK2lzhPjO5LME4vVEaH8AYXIA/v9Dmv3QcOBQQOO', 'system', 'PATIENT', 'system'),
-      (NULL, FALSE, TRUE, TIMESTAMP '2026-08-02 16:51:57.999035', 4, TIMESTAMP '2026-08-02 16:51:57.999035', NULL, 'Admin', 'Lirium', 'admin@lirium.com', '$2a$10$8pn4Vs4dQEj714nquwNeku10ATxE89s34jiWpbFDVdRqaML/uj.tG', 'system', 'ADMIN', 'system');
+      (NULL, FALSE, TRUE, TIMESTAMP '2026-08-02 16:51:57.999035', 4, TIMESTAMP '2026-08-02 16:51:57.999035', NULL, 'Admin', 'Lirium', 'admin@lirium.com', '$2a$10$8pn4Vs4dQEj714nquwNeku10ATxE89s34jiWpbFDVdRqaML/uj.tG', 'system', 'ADMIN', 'system'),
+      (DATE '1988-11-02', FALSE, TRUE, NOW(), 5, NOW(), '35555444', 'Ivana', 'Medina', 'ivana.medina@lirium.com', '$2a$10$Snpx9uY2JwrDKwV.619M4erTgRGe9MA7yMiMi0Q/rjz.zd3n6ULhK', 'system', 'NUTRITIONIST', 'system');
 
 -- ---------------------------------------------------------------------
 -- Patient profiles (3 filas)
@@ -182,7 +183,6 @@ INSERT INTO patient_profile (
 
 INSERT INTO nutrition_plans (id, name, description, status, target_goal, daily_calories, protein_grams, carb_grams, fat_grams, start_date, end_date, patient_profile_id, created_at, updated_at, created_by, updated_by) VALUES
       (nextval('nutrition_plan_seq'),'Lirium Muscle Gain Plan', 'High protein plan aimed at clean muscle mass gain', 'ACTIVE', 'MUSCLE_GAIN', 2800, 180, 320, 80, CURRENT_DATE - INTERVAL '10 days', NULL, 1, NOW(), NOW(), 'system', 'system'),
-      (nextval('nutrition_plan_seq'),'Initial Caloric Deficit Plan', 'Draft plan for pre-season macro adjustments', 'DRAFT', 'WEIGHT_LOSS', 1900, 150, 180, 60, NULL, NULL, 1, NOW(), NOW(), 'system', 'system'),
       (nextval('nutrition_plan_seq'),'Maintenance Plan 2025', 'Previous closed plan replaced by current active plan', 'INACTIVE', 'WEIGHT_MAINTENANCE', 2200, 140, 240, 70, CURRENT_DATE - INTERVAL '90 days', CURRENT_DATE - INTERVAL '10 days', 1, NOW(), NOW(), 'system', 'system');
 
 -- ---------------------------------------------------------------------
@@ -209,7 +209,6 @@ INSERT INTO daily_plans (id, day_of_week, nutrition_plan_id) VALUES
                                                                  (nextval('daily_plan_seq'), 'FRIDAY', 1),    -- ID generado: 5
                                                                  (nextval('daily_plan_seq'), 'SATURDAY', 1),  -- ID generado: 6
                                                                  (nextval('daily_plan_seq'), 'SUNDAY', 1),    -- ID generado: 7
-                                                                 (nextval('daily_plan_seq'), 'MONDAY', 2);    -- ID generado: 8
 
 -- ---------------------------------------------------------------------
 -- Plan meals
