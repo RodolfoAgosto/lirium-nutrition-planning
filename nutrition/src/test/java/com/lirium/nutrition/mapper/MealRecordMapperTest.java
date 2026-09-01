@@ -14,12 +14,15 @@ import com.lirium.nutrition.model.enums.MeasureUnit;
 import com.lirium.nutrition.model.enums.Role;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 class MealRecordMapperTest {
+
+  private static final ZoneId ARGENTINA_ZONE = ZoneId.of("America/Argentina/Buenos_Aires");
 
   @Test
   void shouldMapEntityToResponse() {
@@ -28,9 +31,14 @@ class MealRecordMapperTest {
 
     PatientProfile patient = new PatientProfile(user);
 
-    DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now());
+    DailyRecord dailyRecord =
+            DailyRecord.of(patient, LocalDate.now(ARGENTINA_ZONE));
 
-    MealRecord meal = MealRecord.of(MealType.LUNCH, LocalDateTime.now().minusHours(1), dailyRecord);
+    MealRecord meal =
+            MealRecord.of(
+                    MealType.LUNCH,
+                    LocalDateTime.now(ARGENTINA_ZONE).minusHours(1),
+                    dailyRecord);
 
     Food rice = Food.of("Rice", 360, 7, 80, 1, FoodCategory.CARB, Set.of(MealType.LUNCH));
 
@@ -63,10 +71,14 @@ class MealRecordMapperTest {
 
     PatientProfile patient = new PatientProfile(user);
 
-    DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now());
+    DailyRecord dailyRecord =
+            DailyRecord.of(patient, LocalDate.now(ARGENTINA_ZONE));
 
     MealRecord meal =
-        MealRecord.of(MealType.BREAKFAST, LocalDateTime.now().minusHours(2), dailyRecord);
+            MealRecord.of(
+                    MealType.BREAKFAST,
+                    LocalDateTime.now(ARGENTINA_ZONE).minusHours(2),
+                    dailyRecord);
 
     MealRecordSummaryDTO dto = MealRecordMapper.toSummary(meal);
 
@@ -85,7 +97,7 @@ class MealRecordMapperTest {
     MealRecordCreateRequestDTO dto =
         new MealRecordCreateRequestDTO(
             "LUNCH",
-            LocalDateTime.now().minusHours(1),
+            LocalDateTime.now(ARGENTINA_ZONE).minusHours(1),
             "Good meal",
             List.of(new FoodPortionCreateDTO(1L, 150.0, MeasureUnit.GRAM)));
 
@@ -93,7 +105,7 @@ class MealRecordMapperTest {
 
     PatientProfile patient = new PatientProfile(user);
 
-    DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now());
+    DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now(ARGENTINA_ZONE));
 
     MealRecord meal = MealRecordMapper.toEntity(dto, List.of(rice), dailyRecord);
 

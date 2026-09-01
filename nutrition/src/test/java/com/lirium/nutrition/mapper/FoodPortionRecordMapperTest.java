@@ -10,10 +10,13 @@ import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.model.enums.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class FoodPortionRecordMapperTest {
+
+  private static final ZoneId ARGENTINA_ZONE = ZoneId.of("America/Argentina/Buenos_Aires");
 
   @Test
   void shouldMapEntityToResponse() {
@@ -24,9 +27,9 @@ class FoodPortionRecordMapperTest {
 
     PatientProfile patient = new PatientProfile(user);
 
-    DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now());
+    DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now(ARGENTINA_ZONE));
 
-    MealRecord meal = MealRecord.of(MealType.LUNCH, LocalDateTime.now(), dailyRecord);
+    MealRecord meal = MealRecord.of(MealType.LUNCH, LocalDate.now(ARGENTINA_ZONE).atTime(12, 0), dailyRecord);
 
     FoodPortionRecord portion = FoodPortionRecord.of(meal, food, 100.0, MeasureUnit.GRAM);
 
@@ -51,9 +54,9 @@ class FoodPortionRecordMapperTest {
 
     PatientProfile patient = new PatientProfile(user);
 
-    DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now());
+    DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now(ARGENTINA_ZONE));
 
-    MealRecord meal = MealRecord.of(MealType.LUNCH, LocalDateTime.now(), dailyRecord);
+    MealRecord meal = MealRecord.of(MealType.LUNCH, LocalDate.now(ARGENTINA_ZONE).atTime(12, 0), dailyRecord);
 
     FoodPortionRecord portion = FoodPortionRecord.of(meal, food, 150.0, MeasureUnit.GRAM);
 
@@ -74,9 +77,9 @@ class FoodPortionRecordMapperTest {
 
     PatientProfile patient = new PatientProfile(user);
 
-    DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now());
+    DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now(ARGENTINA_ZONE));
 
-    MealRecord meal = MealRecord.of(MealType.LUNCH, LocalDateTime.now(), dailyRecord);
+    MealRecord meal = MealRecord.of(MealType.LUNCH, LocalDate.now(ARGENTINA_ZONE).atTime(12, 0), dailyRecord);
 
     FoodPortionRecordCreateRequestDTO dto =
         new FoodPortionRecordCreateRequestDTO(1L, 2L, 80.0, MeasureUnit.GRAM);
