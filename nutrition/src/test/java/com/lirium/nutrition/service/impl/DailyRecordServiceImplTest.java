@@ -842,7 +842,7 @@ class DailyRecordServiceImplTest {
     when(patientProfileRepository.existsById(1L)).thenReturn(true);
     when(nutritionPlanService.findActivePlan(1L)).thenReturn(Optional.of(plan));
     when(dailyRecordRepository.findByPatient_IdAndDateBetween(1L, START, END))
-            .thenReturn(List.of(record));
+        .thenReturn(List.of(record));
 
     NutritionComparisonReportDTO result = service.getNutritionComparison(1L, START, END);
 
