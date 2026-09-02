@@ -101,13 +101,12 @@ public class DemoDataGenerator implements CommandLineRunner {
     LocalDate activationDate = LocalDate.now(clock).minusDays(60);
     mariaPlan.activate(activationDate);
     nutritionPlanService.activatePlan(planId);
+    nutritionPlanRepository.save(mariaPlan);
 
     CompleteNutritionPlanRequestDTO completeNutritionPlanRequestDTO =
         new CompleteNutritionPlanRequestDTO(
             "Phase 1: Weight Maintenance",
             "Patient maintained a stable body weight with good adherence to a balanced nutrition plan and adequate nutritional intake.");
     nutritionPlanService.complete(planId, completeNutritionPlanRequestDTO);
-
-    nutritionPlanRepository.save(mariaPlan);
   }
 }
