@@ -833,22 +833,20 @@ class DailyRecordServiceImplTest {
   }
 
   @Test
-  void shouldCapAdherenceAt100Percent() {
+  void shouldReturnZeroAdherenceWhenCaloriesAreFarAboveTarget() {
 
     NutritionPlan plan = createPlan(2000, 150, 200, 70);
 
     DailyRecord record = createRecordWith5000Calories();
 
     when(patientProfileRepository.existsById(1L)).thenReturn(true);
-
     when(nutritionPlanService.findActivePlan(1L)).thenReturn(Optional.of(plan));
-
     when(dailyRecordRepository.findByPatient_IdAndDateBetween(1L, START, END))
-        .thenReturn(List.of(record));
+            .thenReturn(List.of(record));
 
     NutritionComparisonReportDTO result = service.getNutritionComparison(1L, START, END);
 
-    assertEquals(100.0, result.days().get(0).adherencePercentage());
+    assertEquals(0.0, result.days().get(0).adherencePercentage());
   }
 
   @Test

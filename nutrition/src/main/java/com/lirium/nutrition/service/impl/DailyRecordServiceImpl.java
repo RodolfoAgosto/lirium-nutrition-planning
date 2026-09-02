@@ -355,7 +355,7 @@ public class DailyRecordServiceImpl implements DailyRecordService {
     if (targetCalories <= 0) {
       return 0.0;
     }
-
-    return Math.min(100.0, consumedCalories * 100.0 / targetCalories);
+    double ratio = consumedCalories * 100.0 / targetCalories;
+    return Math.max(0.0, 100.0 - Math.abs(100.0 - ratio));
   }
 }
