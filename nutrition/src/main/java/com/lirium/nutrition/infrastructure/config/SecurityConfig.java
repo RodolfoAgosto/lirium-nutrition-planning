@@ -26,7 +26,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @RequiredArgsConstructor
 @EnableMethodSecurity
-public class  SecurityConfig {
+public class SecurityConfig {
 
   private static final String ROLE_ADMIN = "ADMIN";
   private static final String ROLE_NUTRITIONIST = "NUTRITIONIST";
@@ -59,7 +59,7 @@ public class  SecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/api/users")
                     .permitAll()
                     .requestMatchers(
-                            "/", "/images/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
+                        "/", "/images/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
                     .permitAll()
 
                     // Specific GET permissions (Allows PATIENT access before blocking write
