@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -16,8 +17,12 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
+  @Value("${app.frontend-url:}")
+  private String frontendUrl;
+
   private final UserRepository userRepository;
   private final JwtService jwtService;
+  private final OAuth2AuthorizationCodeService authorizationCodeService;
 
   @Override
   public void onAuthenticationSuccess(
@@ -47,24 +52,37 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                   return userRepository.save(newUser);
                 });
 
-    // Generar JWT propio
-    String token = jwtService.generateToken(user);
+    if (frontendUrl.isBlank()) {
+      String token = jwtService.generateToken(user);
+      writeDemoResponse(response, token);
+    } else {
+      redirectToFrontend(response, user);
+    }
+  }
 
-    // Redirigir al frontend con el token
-    // El frontend lo lee de la URL y lo guarda en localStorage
-    // String redirectUrl = "http://localhost:3000/oauth2/callback?token=" + token;
-    // response.sendRedirect(redirectUrl);
+  private void redirectToFrontend(HttpServletResponse response, User user) throws IOException {
+    String code = authorizationCodeService.generateCode(user);
+    String redirectUrl = frontendUrl + "/oauth2/callback?code=" + code;
+    response.sendRedirect(redirectUrl);
+  }
+
+  private void writeDemoResponse(HttpServletResponse response, String token) throws IOException {
     String html =
         """
-              <html><body style="font-family:sans-serif;max-width:600px;margin:40px auto">
-                <h2> Login exitoso con Google</h2>
-                <p>Copiá este token y pegalo en el botón <b>Authorize</b> de Swagger:</p>
-                <textarea style="width:100%;height:100px">__TOKEN__</textarea>
-              </body></html>
-              """
-            .replace("__TOKEN__", token);
+            <!DOCTYPE html>
+            <html>
+            <head><title>Login Successful</title></head>
+            <body style="font-family:sans-serif;max-width:600px;margin:40px auto;padding:20px;">
+              <h2> Login exitoso con Google</h2>
+              <p>Copiá este token JWT para probar los endpoints protegidos en Swagger:</p>
+              <textarea style="width:100%%;height:120px;font-family:monospace;padding:10px;">%s</textarea>
+            </body>
+            </html>
+            """
+            .formatted(token);
 
-    response.setContentType("text/html");
+    response.setContentType("text/html;charset=UTF-8");
     response.getWriter().write(html);
+    response.getWriter().flush();
   }
 }

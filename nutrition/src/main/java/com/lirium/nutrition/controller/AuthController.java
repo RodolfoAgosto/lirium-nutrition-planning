@@ -1,6 +1,7 @@
 package com.lirium.nutrition.controller;
 
 import com.lirium.nutrition.dto.request.LoginRequestDTO;
+import com.lirium.nutrition.dto.request.OAuth2ExchangeRequestDTO;
 import com.lirium.nutrition.dto.request.RefreshRequestDTO;
 import com.lirium.nutrition.dto.response.AuthResponseDTO;
 import com.lirium.nutrition.infrastructure.security.AuthService;
@@ -86,5 +87,34 @@ public class AuthController {
   @PostMapping("/refresh")
   public ResponseEntity<AuthResponseDTO> refresh(@Valid @RequestBody RefreshRequestDTO request) {
     return ResponseEntity.ok(authService.refresh(request.refreshToken()));
+  }
+
+  @Operation(
+      operationId = "exchangeOAuth2Code",
+      summary = "Exchange OAuth2 authorization code",
+      description =
+          "Exchanges a valid, short-lived, one-time OAuth2 authorization code for JWT access and refresh tokens.")
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Authorization code successfully exchanged for JWT tokens.",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = AuthResponseDTO.class))),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid request structure or missing code.",
+            content = @Content),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Authorization code is invalid, expired, or already used.",
+            content = @Content)
+      })
+  @PostMapping("/oauth2/exchange")
+  public ResponseEntity<AuthResponseDTO> exchangeOAuth2Code(
+      @Valid @RequestBody OAuth2ExchangeRequestDTO request) {
+    return ResponseEntity.ok(authService.exchangeOAuth2Code(request.code()));
   }
 }

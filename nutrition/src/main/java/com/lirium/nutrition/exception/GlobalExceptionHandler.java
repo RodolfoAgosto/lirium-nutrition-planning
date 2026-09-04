@@ -494,4 +494,21 @@ public class GlobalExceptionHandler {
 
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
   }
+
+  @ExceptionHandler(UnauthorizedException.class)
+  public ResponseEntity<ApiError> handleUnauthorized(
+      UnauthorizedException ex, HttpServletRequest request) {
+
+    log.warn("Unauthorized request path={} message={}", request.getRequestURI(), ex.getMessage());
+
+    ApiError error =
+        new ApiError(
+            HttpStatus.UNAUTHORIZED.value(),
+            "Unauthorized",
+            ex.getMessage(),
+            request.getRequestURI(),
+            LocalDateTime.now(ARGENTINA_ZONE));
+
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+  }
 }
