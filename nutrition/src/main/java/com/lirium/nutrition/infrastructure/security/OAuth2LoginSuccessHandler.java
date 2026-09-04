@@ -56,13 +56,13 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     // response.sendRedirect(redirectUrl);
     String html =
         """
-    <html><body style="font-family:sans-serif;max-width:600px;margin:40px auto">
-      <h2>✅ Login exitoso con Google</h2>
-      <p>Copiá este token y pegalo en el botón <b>Authorize</b> de Swagger:</p>
-      <textarea style="width:100%;height:100px">%s</textarea>
-    </body></html>
-    """
-            .formatted(token);
+              <html><body style="font-family:sans-serif;max-width:600px;margin:40px auto">
+                <h2>✅ Login exitoso con Google</h2>
+                <p>Copiá este token y pegalo en el botón <b>Authorize</b> de Swagger:</p>
+                <textarea style="width:100%;height:100px">__TOKEN__</textarea>
+              </body></html>
+              """
+            .replace("__TOKEN__", token);
 
     response.setContentType("text/html");
     response.getWriter().write(html);

@@ -10,6 +10,8 @@ import com.lirium.nutrition.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +28,9 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 
 @ExtendWith(MockitoExtension.class)
 class OAuth2LoginSuccessHandlerTest {
+
+  private final StringWriter responseWriter = new StringWriter();
+  private final PrintWriter printWriter = new PrintWriter(responseWriter);
 
   @Mock private UserRepository userRepository;
 
@@ -63,10 +68,14 @@ class OAuth2LoginSuccessHandlerTest {
     when(authentication.getPrincipal()).thenReturn(oAuth2User);
   }
 
+  private void mockResponseWriter() throws IOException {
+    when(response.getWriter()).thenReturn(printWriter);
+  }
+
   // ==================== TESTS ====================
 
   @Test
-  void shouldRedirectWithTokenWhenUserExists() throws IOException {
+  void shouldReturnHtmlWithTokenWhenUserExists() throws IOException {
     // Arrange
     OAuth2User oAuth2User = createOAuth2User(EMAIL, FIRST_NAME, LAST_NAME);
     User existingUser = createUser(EMAIL, FIRST_NAME, LAST_NAME);
@@ -74,13 +83,16 @@ class OAuth2LoginSuccessHandlerTest {
     mockAuthenticationPrincipal(oAuth2User);
     when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(existingUser));
     when(jwtService.generateToken(existingUser)).thenReturn(TOKEN);
+    mockResponseWriter();
 
     // Act
     handler.onAuthenticationSuccess(request, response, authentication);
 
     // Assert
-    String expectedRedirect = "http://localhost:3000/oauth2/callback?token=" + TOKEN;
-    verify(response).sendRedirect(expectedRedirect);
+    verify(response).setContentType("text/html");
+    assertTrue(responseWriter.toString().contains(TOKEN));
+
+    assertTrue(responseWriter.toString().contains(TOKEN));
     verify(userRepository, never()).save(any(User.class));
     verify(jwtService).generateToken(existingUser);
   }
@@ -95,6 +107,7 @@ class OAuth2LoginSuccessHandlerTest {
     when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
     when(userRepository.save(any(User.class))).thenReturn(newUser);
     when(jwtService.generateToken(newUser)).thenReturn(TOKEN);
+    mockResponseWriter();
 
     // Act
     handler.onAuthenticationSuccess(request, response, authentication);
@@ -104,13 +117,17 @@ class OAuth2LoginSuccessHandlerTest {
     verify(userRepository).save(userCaptor.capture());
 
     User savedUser = userCaptor.getValue();
+
     assertEquals(EMAIL, savedUser.getEmail());
     assertEquals(FIRST_NAME, savedUser.getFirstName());
     assertEquals(LAST_NAME, savedUser.getLastName());
     assertEquals("", savedUser.getPassword());
     assertEquals(Role.PATIENT, savedUser.getRole());
 
-    verify(response).sendRedirect("http://localhost:3000/oauth2/callback?token=" + TOKEN);
+    verify(response).setContentType("text/html");
+    assertTrue(responseWriter.toString().contains(TOKEN));
+
+    assertTrue(responseWriter.toString().contains(TOKEN));
   }
 
   @Test
@@ -123,6 +140,7 @@ class OAuth2LoginSuccessHandlerTest {
     when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
     when(userRepository.save(any(User.class))).thenReturn(newUser);
     when(jwtService.generateToken(newUser)).thenReturn(TOKEN);
+    mockResponseWriter();
 
     // Act
     handler.onAuthenticationSuccess(request, response, authentication);
@@ -133,6 +151,10 @@ class OAuth2LoginSuccessHandlerTest {
 
     assertNull(userCaptor.getValue().getFirstName());
     assertEquals(LAST_NAME, userCaptor.getValue().getLastName());
+
+    verify(response).setContentType("text/html");
+    assertTrue(responseWriter.toString().contains(TOKEN));
+    assertTrue(responseWriter.toString().contains(TOKEN));
   }
 
   @Test
@@ -145,6 +167,7 @@ class OAuth2LoginSuccessHandlerTest {
     when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
     when(userRepository.save(any(User.class))).thenReturn(newUser);
     when(jwtService.generateToken(newUser)).thenReturn(TOKEN);
+    mockResponseWriter();
 
     // Act
     handler.onAuthenticationSuccess(request, response, authentication);
@@ -155,6 +178,10 @@ class OAuth2LoginSuccessHandlerTest {
 
     assertEquals(FIRST_NAME, userCaptor.getValue().getFirstName());
     assertNull(userCaptor.getValue().getLastName());
+
+    verify(response).setContentType("text/html");
+    assertTrue(responseWriter.toString().contains(TOKEN));
+    assertTrue(responseWriter.toString().contains(TOKEN));
   }
 
   @Test
@@ -167,6 +194,7 @@ class OAuth2LoginSuccessHandlerTest {
     when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
     when(userRepository.save(any(User.class))).thenReturn(newUser);
     when(jwtService.generateToken(newUser)).thenReturn(TOKEN);
+    mockResponseWriter();
 
     // Act
     handler.onAuthenticationSuccess(request, response, authentication);
@@ -177,6 +205,10 @@ class OAuth2LoginSuccessHandlerTest {
 
     assertNull(userCaptor.getValue().getFirstName());
     assertNull(userCaptor.getValue().getLastName());
+
+    verify(response).setContentType("text/html");
+    assertTrue(responseWriter.toString().contains(TOKEN));
+    assertTrue(responseWriter.toString().contains(TOKEN));
   }
 
   @Test
@@ -188,14 +220,20 @@ class OAuth2LoginSuccessHandlerTest {
     mockAuthenticationPrincipal(oAuth2User);
     when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(existingUser));
     when(jwtService.generateToken(existingUser)).thenReturn(TOKEN);
+    mockResponseWriter();
 
     // Act
     handler.onAuthenticationSuccess(request, response, authentication);
 
     // Assert
     verify(userRepository, never()).save(any(User.class));
+
     assertEquals("OldName", existingUser.getFirstName());
     assertEquals("OldLastName", existingUser.getLastName());
+
+    verify(response).setContentType("text/html");
+    assertTrue(responseWriter.toString().contains(TOKEN));
+    assertTrue(responseWriter.toString().contains(TOKEN));
   }
 
   @Test
@@ -207,6 +245,7 @@ class OAuth2LoginSuccessHandlerTest {
     mockAuthenticationPrincipal(oAuth2User);
     when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(existingUser));
     when(jwtService.generateToken(existingUser)).thenReturn(TOKEN);
+    mockResponseWriter();
 
     // Act
     handler.onAuthenticationSuccess(request, response, authentication);
@@ -225,34 +264,13 @@ class OAuth2LoginSuccessHandlerTest {
     when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
     when(userRepository.save(any(User.class))).thenReturn(newUser);
     when(jwtService.generateToken(newUser)).thenReturn(TOKEN);
+    mockResponseWriter();
 
     // Act
     handler.onAuthenticationSuccess(request, response, authentication);
 
     // Assert
     verify(jwtService).generateToken(newUser);
-  }
-
-  @Test
-  void shouldRedirectToCorrectUrl_WithTokenInQueryParam() throws IOException {
-    // Arrange
-    OAuth2User oAuth2User = createOAuth2User(EMAIL, FIRST_NAME, LAST_NAME);
-    User existingUser = createUser(EMAIL, FIRST_NAME, LAST_NAME);
-
-    mockAuthenticationPrincipal(oAuth2User);
-    when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(existingUser));
-    when(jwtService.generateToken(existingUser)).thenReturn(TOKEN);
-
-    // Act
-    handler.onAuthenticationSuccess(request, response, authentication);
-
-    // Assert
-    ArgumentCaptor<String> redirectCaptor = ArgumentCaptor.forClass(String.class);
-    verify(response).sendRedirect(redirectCaptor.capture());
-
-    String redirectUrl = redirectCaptor.getValue();
-    assertTrue(redirectUrl.startsWith("http://localhost:3000/oauth2/callback?token="));
-    assertTrue(redirectUrl.contains(TOKEN));
   }
 
   @Test
@@ -271,7 +289,7 @@ class OAuth2LoginSuccessHandlerTest {
         RuntimeException.class,
         () -> handler.onAuthenticationSuccess(request, response, authentication));
 
-    verify(response, never()).sendRedirect(anyString());
+    verify(response, never()).getWriter();
   }
 
   @Test
@@ -289,23 +307,6 @@ class OAuth2LoginSuccessHandlerTest {
         () -> handler.onAuthenticationSuccess(request, response, authentication));
 
     verify(jwtService, never()).generateToken(any());
-    verify(response, never()).sendRedirect(anyString());
-  }
-
-  @Test
-  void shouldThrowIOExceptionWhenRedirectFails() throws IOException {
-    // Arrange
-    OAuth2User oAuth2User = createOAuth2User(EMAIL, FIRST_NAME, LAST_NAME);
-    User existingUser = createUser(EMAIL, FIRST_NAME, LAST_NAME);
-
-    mockAuthenticationPrincipal(oAuth2User);
-    when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(existingUser));
-    when(jwtService.generateToken(existingUser)).thenReturn(TOKEN);
-    doThrow(new IOException("Redirect failed")).when(response).sendRedirect(anyString());
-
-    // Act & Assert
-    assertThrows(
-        IOException.class,
-        () -> handler.onAuthenticationSuccess(request, response, authentication));
+    verify(response, never()).getWriter();
   }
 }
