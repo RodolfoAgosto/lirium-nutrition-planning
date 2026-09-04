@@ -52,7 +52,19 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     // Redirigir al frontend con el token
     // El frontend lo lee de la URL y lo guarda en localStorage
-    String redirectUrl = "http://localhost:3000/oauth2/callback?token=" + token;
-    response.sendRedirect(redirectUrl);
+    // String redirectUrl = "http://localhost:3000/oauth2/callback?token=" + token;
+    // response.sendRedirect(redirectUrl);
+    String html =
+        """
+    <html><body style="font-family:sans-serif;max-width:600px;margin:40px auto">
+      <h2>✅ Login exitoso con Google</h2>
+      <p>Copiá este token y pegalo en el botón <b>Authorize</b> de Swagger:</p>
+      <textarea style="width:100%;height:100px">%s</textarea>
+    </body></html>
+    """
+            .formatted(token);
+
+    response.setContentType("text/html");
+    response.getWriter().write(html);
   }
 }
