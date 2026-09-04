@@ -1,7 +1,6 @@
 package com.lirium.nutrition.infrastructure.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.*;
 
 import com.lirium.nutrition.controller.AbstractIntegrationTest;
@@ -9,6 +8,8 @@ import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.model.enums.Role;
 import com.lirium.nutrition.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -27,8 +28,10 @@ class OAuth2LoginSuccessHandlerIT extends AbstractIntegrationTest {
 
   @Autowired private UserRepository userRepository;
 
+  @Autowired private JwtService jwtService;
+
   @Test
-  void shouldCreateUserAndRedirectWhenOAuthUserIsNew() throws Exception {
+  void shouldCreateUserAndReturnHtmlWhenOAuthUserIsNew() throws Exception {
 
     OAuth2User oAuth2User =
         new DefaultOAuth2User(
@@ -45,19 +48,23 @@ class OAuth2LoginSuccessHandlerIT extends AbstractIntegrationTest {
 
     HttpServletResponse response = mock(HttpServletResponse.class);
 
+    StringWriter responseWriter = new StringWriter();
+    PrintWriter printWriter = new PrintWriter(responseWriter);
+    when(response.getWriter()).thenReturn(printWriter);
+
     handler.onAuthenticationSuccess(null, response, authentication);
 
     User user = userRepository.findByEmail("google@test.com").orElseThrow();
 
     assertThat(user.getEmail()).isEqualTo("google@test.com");
-
     assertThat(user.getFirstName()).isEqualTo("John");
-
     assertThat(user.getLastName()).isEqualTo("Doe");
-
     assertThat(user.getRole()).isEqualTo(Role.PATIENT);
 
-    verify(response).sendRedirect(startsWith("http://localhost:3000/oauth2/callback?token="));
+    verify(response).setContentType("text/html");
+
+    assertThat(responseWriter.toString()).contains("Login exitoso con Google");
+    assertThat(responseWriter.toString()).contains("Copiá este token");
   }
 
   @Test
@@ -82,14 +89,21 @@ class OAuth2LoginSuccessHandlerIT extends AbstractIntegrationTest {
 
     HttpServletResponse response = mock(HttpServletResponse.class);
 
+    StringWriter responseWriter = new StringWriter();
+    PrintWriter printWriter = new PrintWriter(responseWriter);
+    when(response.getWriter()).thenReturn(printWriter);
+
     handler.onAuthenticationSuccess(null, response, authentication);
 
     List<User> users = userRepository.findAll();
 
     assertThat(users).hasSize(1);
-
     assertThat(users.get(0).getFirstName()).isEqualTo("Existing");
+    assertThat(users.get(0).getLastName()).isEqualTo("User");
 
-    verify(response).sendRedirect(startsWith("http://localhost:3000/oauth2/callback?token="));
+    verify(response).setContentType("text/html");
+
+    assertThat(responseWriter.toString()).contains("Login exitoso con Google");
+    assertThat(responseWriter.toString()).contains("Copiá este token");
   }
 }
