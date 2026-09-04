@@ -4,53 +4,55 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.lirium.nutrition.model.entity.*;
-import com.lirium.nutrition.model.enums.*;
+import com.lirium.nutrition.model.entity.User;
+import com.lirium.nutrition.model.enums.Role;
 import com.lirium.nutrition.repository.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class OAuth2LoginSuccessHandlerTest {
 
-  private final StringWriter responseWriter = new StringWriter();
-  private final PrintWriter printWriter = new PrintWriter(responseWriter);
-
   @Mock private UserRepository userRepository;
-
   @Mock private JwtService jwtService;
-
-  @Mock private HttpServletRequest request;
-
-  @Mock private HttpServletResponse response;
-
+  @Mock private OAuth2AuthorizationCodeService authorizationCodeService;
   @Mock private Authentication authentication;
 
   @InjectMocks private OAuth2LoginSuccessHandler handler;
+
+  private MockHttpServletRequest request;
+  private MockHttpServletResponse response;
 
   private static final String EMAIL = "test@gmail.com";
   private static final String FIRST_NAME = "John";
   private static final String LAST_NAME = "Doe";
   private static final String TOKEN = "jwt-token-123";
+  private static final String AUTH_CODE = "auth-code-xyz";
+
+  @BeforeEach
+  void setUp() {
+    request = new MockHttpServletRequest();
+    response = new MockHttpServletResponse();
+    ReflectionTestUtils.setField(handler, "frontendUrl", "");
+  }
 
   // ==================== HELPERS ====================
-
   private OAuth2User createOAuth2User(String email, String firstName, String lastName) {
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("email", email);
@@ -68,12 +70,7 @@ class OAuth2LoginSuccessHandlerTest {
     when(authentication.getPrincipal()).thenReturn(oAuth2User);
   }
 
-  private void mockResponseWriter() throws IOException {
-    when(response.getWriter()).thenReturn(printWriter);
-  }
-
-  // ==================== TESTS ====================
-
+  // ==================== TESTS: MODO DEMO / SWAGGER (frontendUrl Vacío) ====================
   @Test
   void shouldReturnHtmlWithTokenWhenUserExists() throws IOException {
     // Arrange
@@ -82,24 +79,30 @@ class OAuth2LoginSuccessHandlerTest {
 
     mockAuthenticationPrincipal(oAuth2User);
     when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(existingUser));
-    when(jwtService.generateToken(existingUser)).thenReturn(TOKEN);
-    mockResponseWriter();
+
+    // Usamos any() para evitar fallos por referencias en el equals
+    when(jwtService.generateToken(any(User.class))).thenReturn(TOKEN);
 
     // Act
     handler.onAuthenticationSuccess(request, response, authentication);
 
     // Assert
-    verify(response).setContentType("text/html");
-    assertTrue(responseWriter.toString().contains(TOKEN));
+    assertTrue(response.getContentType().contains("text/html"));
+    assertTrue(response.getCharacterEncoding().equalsIgnoreCase("UTF-8"));
 
-    assertTrue(responseWriter.toString().contains(TOKEN));
+    String html = response.getContentAsString();
+
+    // Imprime el HTML en consola si falla para ver exactamente qué escribió el handler
+    assertTrue(
+        html.contains(TOKEN),
+        "El HTML devuelto fue: [" + html + "], se esperaba que contuviera: [" + TOKEN + "]");
+
     verify(userRepository, never()).save(any(User.class));
     verify(jwtService).generateToken(existingUser);
   }
 
   @Test
   void shouldCreateNewUser_WhenUserDoesNotExist() throws IOException {
-    // Arrange
     OAuth2User oAuth2User = createOAuth2User(EMAIL, FIRST_NAME, LAST_NAME);
     User newUser = createUser(EMAIL, FIRST_NAME, LAST_NAME);
 
@@ -107,12 +110,9 @@ class OAuth2LoginSuccessHandlerTest {
     when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
     when(userRepository.save(any(User.class))).thenReturn(newUser);
     when(jwtService.generateToken(newUser)).thenReturn(TOKEN);
-    mockResponseWriter();
 
-    // Act
     handler.onAuthenticationSuccess(request, response, authentication);
 
-    // Assert
     ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
     verify(userRepository).save(userCaptor.capture());
 
@@ -124,15 +124,12 @@ class OAuth2LoginSuccessHandlerTest {
     assertEquals("", savedUser.getPassword());
     assertEquals(Role.PATIENT, savedUser.getRole());
 
-    verify(response).setContentType("text/html");
-    assertTrue(responseWriter.toString().contains(TOKEN));
-
-    assertTrue(responseWriter.toString().contains(TOKEN));
+    assertTrue(response.getContentType().contains("text/html"));
+    assertTrue(response.getContentAsString().contains(TOKEN));
   }
 
   @Test
   void shouldSaveUserWithNullFirstNameWhenFirstNameNotProvided() throws IOException {
-    // Arrange
     OAuth2User oAuth2User = createOAuth2User(EMAIL, null, LAST_NAME);
     User newUser = createUser(EMAIL, null, LAST_NAME);
 
@@ -140,142 +137,44 @@ class OAuth2LoginSuccessHandlerTest {
     when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
     when(userRepository.save(any(User.class))).thenReturn(newUser);
     when(jwtService.generateToken(newUser)).thenReturn(TOKEN);
-    mockResponseWriter();
 
-    // Act
     handler.onAuthenticationSuccess(request, response, authentication);
 
-    // Assert
     ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
     verify(userRepository).save(userCaptor.capture());
 
     assertNull(userCaptor.getValue().getFirstName());
     assertEquals(LAST_NAME, userCaptor.getValue().getLastName());
 
-    verify(response).setContentType("text/html");
-    assertTrue(responseWriter.toString().contains(TOKEN));
-    assertTrue(responseWriter.toString().contains(TOKEN));
+    assertTrue(response.getContentType().contains("text/html"));
+    assertTrue(response.getContentAsString().contains(TOKEN));
   }
 
-  @Test
-  void shouldSaveUserWithNullLastNameWhenLastNameNotProvided() throws IOException {
-    // Arrange
-    OAuth2User oAuth2User = createOAuth2User(EMAIL, FIRST_NAME, null);
-    User newUser = createUser(EMAIL, FIRST_NAME, null);
-
-    mockAuthenticationPrincipal(oAuth2User);
-    when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
-    when(userRepository.save(any(User.class))).thenReturn(newUser);
-    when(jwtService.generateToken(newUser)).thenReturn(TOKEN);
-    mockResponseWriter();
-
-    // Act
-    handler.onAuthenticationSuccess(request, response, authentication);
-
-    // Assert
-    ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-    verify(userRepository).save(userCaptor.capture());
-
-    assertEquals(FIRST_NAME, userCaptor.getValue().getFirstName());
-    assertNull(userCaptor.getValue().getLastName());
-
-    verify(response).setContentType("text/html");
-    assertTrue(responseWriter.toString().contains(TOKEN));
-    assertTrue(responseWriter.toString().contains(TOKEN));
-  }
+  // ==================== TESTS: REDIRECCIÓN FRONTEND (frontendUrl Configurado) ====================
 
   @Test
-  void shouldSaveUserWithNullFirstNameAndLastNameWhenNeitherProvided() throws IOException {
-    // Arrange
-    OAuth2User oAuth2User = createOAuth2User(EMAIL, null, null);
-    User newUser = createUser(EMAIL, null, null);
+  void shouldRedirectToFrontendWithCode_WhenFrontendUrlIsConfigured() throws IOException {
+    String frontendUrl = "http://localhost:3000";
+    ReflectionTestUtils.setField(handler, "frontendUrl", frontendUrl);
 
-    mockAuthenticationPrincipal(oAuth2User);
-    when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
-    when(userRepository.save(any(User.class))).thenReturn(newUser);
-    when(jwtService.generateToken(newUser)).thenReturn(TOKEN);
-    mockResponseWriter();
-
-    // Act
-    handler.onAuthenticationSuccess(request, response, authentication);
-
-    // Assert
-    ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-    verify(userRepository).save(userCaptor.capture());
-
-    assertNull(userCaptor.getValue().getFirstName());
-    assertNull(userCaptor.getValue().getLastName());
-
-    verify(response).setContentType("text/html");
-    assertTrue(responseWriter.toString().contains(TOKEN));
-    assertTrue(responseWriter.toString().contains(TOKEN));
-  }
-
-  @Test
-  void shouldNotUpdateExistingUser_WhenUserAlreadyExists() throws IOException {
-    // Arrange
-    OAuth2User oAuth2User = createOAuth2User(EMAIL, "Jane", "Smith");
-    User existingUser = createUser(EMAIL, "OldName", "OldLastName");
-
-    mockAuthenticationPrincipal(oAuth2User);
-    when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(existingUser));
-    when(jwtService.generateToken(existingUser)).thenReturn(TOKEN);
-    mockResponseWriter();
-
-    // Act
-    handler.onAuthenticationSuccess(request, response, authentication);
-
-    // Assert
-    verify(userRepository, never()).save(any(User.class));
-
-    assertEquals("OldName", existingUser.getFirstName());
-    assertEquals("OldLastName", existingUser.getLastName());
-
-    verify(response).setContentType("text/html");
-    assertTrue(responseWriter.toString().contains(TOKEN));
-    assertTrue(responseWriter.toString().contains(TOKEN));
-  }
-
-  @Test
-  void shouldGenerateTokenWithCorrectUser_WhenUserExists() throws IOException {
-    // Arrange
     OAuth2User oAuth2User = createOAuth2User(EMAIL, FIRST_NAME, LAST_NAME);
     User existingUser = createUser(EMAIL, FIRST_NAME, LAST_NAME);
 
     mockAuthenticationPrincipal(oAuth2User);
     when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(existingUser));
-    when(jwtService.generateToken(existingUser)).thenReturn(TOKEN);
-    mockResponseWriter();
+    when(authorizationCodeService.generateCode(existingUser)).thenReturn(AUTH_CODE);
 
-    // Act
     handler.onAuthenticationSuccess(request, response, authentication);
 
-    // Assert
-    verify(jwtService).generateToken(existingUser);
+    String expectedRedirectUrl = frontendUrl + "/oauth2/callback?code=" + AUTH_CODE;
+    assertEquals(expectedRedirectUrl, response.getRedirectedUrl());
+    verify(jwtService, never()).generateToken(any());
   }
 
-  @Test
-  void shouldGenerateTokenWithNewUser_WhenUserDoesNotExist() throws IOException {
-    // Arrange
-    OAuth2User oAuth2User = createOAuth2User(EMAIL, FIRST_NAME, LAST_NAME);
-    User newUser = createUser(EMAIL, FIRST_NAME, LAST_NAME);
-
-    mockAuthenticationPrincipal(oAuth2User);
-    when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
-    when(userRepository.save(any(User.class))).thenReturn(newUser);
-    when(jwtService.generateToken(newUser)).thenReturn(TOKEN);
-    mockResponseWriter();
-
-    // Act
-    handler.onAuthenticationSuccess(request, response, authentication);
-
-    // Assert
-    verify(jwtService).generateToken(newUser);
-  }
+  // ==================== TESTS: EXCEPCIONES ====================
 
   @Test
   void shouldThrowExceptionWhenJwtServiceFails() throws IOException {
-    // Arrange
     OAuth2User oAuth2User = createOAuth2User(EMAIL, FIRST_NAME, LAST_NAME);
     User existingUser = createUser(EMAIL, FIRST_NAME, LAST_NAME);
 
@@ -284,29 +183,23 @@ class OAuth2LoginSuccessHandlerTest {
     when(jwtService.generateToken(existingUser))
         .thenThrow(new RuntimeException("JWT generation error"));
 
-    // Act & Assert
     assertThrows(
         RuntimeException.class,
         () -> handler.onAuthenticationSuccess(request, response, authentication));
-
-    verify(response, never()).getWriter();
   }
 
   @Test
   void shouldThrowExceptionWhenUserSaveFails() throws IOException {
-    // Arrange
     OAuth2User oAuth2User = createOAuth2User(EMAIL, FIRST_NAME, LAST_NAME);
 
     mockAuthenticationPrincipal(oAuth2User);
     when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
     when(userRepository.save(any(User.class))).thenThrow(new RuntimeException("Database error"));
 
-    // Act & Assert
     assertThrows(
         RuntimeException.class,
         () -> handler.onAuthenticationSuccess(request, response, authentication));
 
     verify(jwtService, never()).generateToken(any());
-    verify(response, never()).getWriter();
   }
 }

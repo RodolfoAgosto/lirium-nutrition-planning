@@ -61,7 +61,7 @@ class OAuth2LoginSuccessHandlerIT extends AbstractIntegrationTest {
     assertThat(user.getLastName()).isEqualTo("Doe");
     assertThat(user.getRole()).isEqualTo(Role.PATIENT);
 
-    verify(response).setContentType("text/html");
+    verify(response).setContentType("text/html;charset=UTF-8");
 
     assertThat(responseWriter.toString()).contains("Login exitoso con Google");
     assertThat(responseWriter.toString()).contains("Copiá este token");
@@ -101,7 +101,7 @@ class OAuth2LoginSuccessHandlerIT extends AbstractIntegrationTest {
     assertThat(users.get(0).getFirstName()).isEqualTo("Existing");
     assertThat(users.get(0).getLastName()).isEqualTo("User");
 
-    verify(response).setContentType("text/html");
+    verify(response).setContentType("text/html;charset=UTF-8");
 
     assertThat(responseWriter.toString()).contains("Login exitoso con Google");
     assertThat(responseWriter.toString()).contains("Copiá este token");
