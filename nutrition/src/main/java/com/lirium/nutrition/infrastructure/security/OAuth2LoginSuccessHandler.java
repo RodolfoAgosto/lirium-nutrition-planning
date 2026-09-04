@@ -57,7 +57,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     String html =
         """
               <html><body style="font-family:sans-serif;max-width:600px;margin:40px auto">
-                <h2>✅ Login exitoso con Google</h2>
+                <h2> Login exitoso con Google</h2>
                 <p>Copiá este token y pegalo en el botón <b>Authorize</b> de Swagger:</p>
                 <textarea style="width:100%;height:100px">__TOKEN__</textarea>
               </body></html>
