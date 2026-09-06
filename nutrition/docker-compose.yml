@@ -1,15 +1,29 @@
 services:
   lirium:
-    build: .
+    image: rodoagosto/lirium-nutrition-planning:latest
+    # Imagen publicada en Docker Hub -- sin build, listo para levantar.
+    # Para buildear localmente desde el código en vez de usar la imagen,
+    # comentá la línea de arriba y descomentá esta:
+    # build: .
     ports:
       - "8080:8080"
     environment:
-      DB_URL: ${DB_URL}
-      DB_USER_NAME: ${DB_USER_NAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      # -----------------------------------------------------------------
+      # Valores DEMO, no secretos. Se commitean a propósito para que
+      # `docker compose up` funcione sin configuración extra -- cero
+      # fricción para probar el proyecto local. En el deploy real
+      # (Render) estas mismas variables son secretos reales, gestionados
+      # por la plataforma, nunca commiteados al repo.
+      # -----------------------------------------------------------------
+      DB_URL: jdbc:postgresql://postgres:5432/lirium-demo
+      DB_USER_NAME: postgres
+      DB_PASSWORD: postgres-demo
+      JWT_SECRET: this-is-a-public-demo-jwt-secret-only-for-local-docker-compose-never-use-in-prod
+      # Google OAuth2 no se puede probar en este entorno -- credenciales
+      # reales de Google no se commitean nunca. El login OAuth2 real
+      # se prueba en la demo online (ver README).
+      GOOGLE_CLIENT_ID: fake-client-id-for-local-demo
+      GOOGLE_CLIENT_SECRET: fake-client-secret-for-local-demo
       SPRING_PROFILES_ACTIVE: docker
     depends_on:
       postgres:
@@ -18,9 +32,9 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER_NAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: lirium-demo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres-demo
     ports:
       - "5432:5432"
     volumes:
