@@ -167,7 +167,7 @@ INSERT INTO users (
       (DATE '1990-05-10', FALSE, TRUE, TIMESTAMP '2026-08-02 16:51:57.955872', 1, TIMESTAMP '2026-08-02 16:51:57.955872', '30111222', 'Ana', 'Lopez', 'ana@test.com', '$2a$10$Snpx9uY2JwrDKwV.619M4erTgRGe9MA7yMiMi0Q/rjz.zd3n6ULhK', 'system', 'PATIENT', 'system'),
       (DATE '1985-03-22', FALSE, TRUE, TIMESTAMP '2026-08-02 16:51:57.994523', 2, TIMESTAMP '2026-08-02 16:51:57.994523', '28999111', 'Juan', 'Perez', 'juan@test.com', '$2a$10$OZFFadt4tovt4X.D/BDh8OJSxCDMLUx0BAPVfqlqeJ/YKkAYKosri', 'system', 'PATIENT', 'system'),
       (DATE '2000-01-15', FALSE, TRUE, TIMESTAMP '2026-08-02 16:51:57.996521', 3, TIMESTAMP '2026-08-02 16:51:57.996521', '40123456', 'Maria', 'Gomez', 'maria@test.com', '$2a$10$vGVd3olBpCRbLOK2lzhPjO5LME4vVEaH8AYXIA/v9Dmv3QcOBQQOO', 'system', 'PATIENT', 'system'),
-      (NULL, FALSE, TRUE, TIMESTAMP '2026-08-02 16:51:57.999035', 4, TIMESTAMP '2026-08-02 16:51:57.999035', NULL, 'Admin', 'Lirium', 'admin@lirium.com', '$2a$10$8pn4Vs4dQEj714nquwNeku10ATxE89s34jiWpbFDVdRqaML/uj.tG', 'system', 'ADMIN', 'system'),
+      (NULL, FALSE, TRUE, TIMESTAMP '2026-08-02 16:51:57.999035', 4, TIMESTAMP '2026-08-02 16:51:57.999035', NULL, 'Admin', 'Lirium', 'admin@lirium.com', '$2a$10$IE36ISiFDvCrHp7Ich2n1OTDDUXm5jUwCxflsiczk75UY/3C6ox6S', 'system', 'ADMIN', 'system'),
       (DATE '1988-11-02', FALSE, TRUE, NOW(), 5, NOW(), '35555444', 'Ivana', 'Medina', 'ivana.medina@lirium.com', '$2a$10$Snpx9uY2JwrDKwV.619M4erTgRGe9MA7yMiMi0Q/rjz.zd3n6ULhK', 'system', 'NUTRITIONIST', 'system');
 
 -- ---------------------------------------------------------------------
