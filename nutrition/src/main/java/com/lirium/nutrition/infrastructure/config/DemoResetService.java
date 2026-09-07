@@ -35,6 +35,10 @@ public class DemoResetService {
       cron = "0 0 4 * * *",
       // cron = "0 */25 * * * *",
       zone = "America/Argentina/Tucuman")
+  public void scheduledResetDemoState() {
+    resetDemoState();
+  }
+
   public void resetDemoState() {
     jdbc.execute(
         """
