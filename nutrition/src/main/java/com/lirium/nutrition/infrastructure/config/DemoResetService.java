@@ -33,7 +33,7 @@ public class DemoResetService {
 
   @Scheduled(
       cron = "0 0 4 * * *",
-      //cron = "0 */25 * * * *",
+      // cron = "0 */25 * * * *",
       zone = "America/Argentina/Tucuman")
   public void resetDemoState() {
     jdbc.execute(
