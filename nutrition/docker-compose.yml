@@ -37,12 +37,17 @@ services:
       POSTGRES_PASSWORD: postgres-demo
     ports:
       - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # Volumen persistente deshabilitado intencionalmente:
+      # este Compose está pensado como entorno DEMO reproducible.
+      # PostgreSQL se inicializa desde cero al crear el contenedor.
+      # volumes:
+      #   - postgres_data:/var/lib/postgresql/data
     healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d lirium-demo"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-volumes:
-  postgres_data:
+# Volumen persistente no utilizado en el entorno DEMO.
+# volumes:
+#   postgres_data:
