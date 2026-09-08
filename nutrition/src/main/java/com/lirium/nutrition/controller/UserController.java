@@ -366,7 +366,7 @@ public class UserController {
             content = @Content)
       })
   @DeleteMapping("/{id}")
-  @PreAuthorize("hasAuthority('user.delete')")
+  @PreAuthorize("hasAnyRole('ADMIN') or hasAuthority('user.delete')")
   public ResponseEntity<Void> delete(@PathVariable Long id) {
 
     log.info("Disabling user id={}", id);

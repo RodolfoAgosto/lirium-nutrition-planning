@@ -35,6 +35,7 @@ public class DemoController {
     @ApiResponse(responseCode = "403", description = "User does not have ADMIN role")
   })
   @PreAuthorize("hasRole('ADMIN')")
+  @SecurityRequirement(name = "bearerAuth")
   @PostMapping("/reset")
   public ResponseEntity<Void> resetDemoData() {
 
