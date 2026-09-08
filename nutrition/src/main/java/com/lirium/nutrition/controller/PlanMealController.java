@@ -100,6 +100,7 @@ public class PlanMealController {
                     mediaType = "application/json",
                     schema = @Schema(implementation = PlanMealResponseDTO.class)))
       })
+  @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
   @PostMapping
   public ResponseEntity<PlanMealResponseDTO> create(
       @Valid @RequestBody PlanMealCreateRequestDTO dto) {
@@ -143,6 +144,7 @@ public class PlanMealController {
                     mediaType = "application/json",
                     schema = @Schema(implementation = PlanMealResponseDTO.class)))
       })
+  @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
   @PostMapping("/{mealId}/portions")
   @ResponseStatus(HttpStatus.CREATED)
   public ResponseEntity<PlanMealResponseDTO> addPortion(
@@ -168,6 +170,7 @@ public class PlanMealController {
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = PlanMealResponseDTO.class)))
       })
+  @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
   @DeleteMapping("/{mealId}/portions/{portionId}")
   public ResponseEntity<PlanMealResponseDTO> removePortion(
       @PathVariable @Positive Long mealId, @PathVariable @Positive Long portionId) {

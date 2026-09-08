@@ -146,6 +146,8 @@ public class UserController {
             description = "User not found with the provided ID.",
             content = @Content)
       })
+  @PreAuthorize(
+      "hasAnyRole('ADMIN', 'NUTRITIONIST') or @patientSecurity.isOwner(#id, authentication)")
   @GetMapping("/{id}")
   public ResponseEntity<UserResponseDTO> findById(@PathVariable Long id) {
     return ResponseEntity.ok(userService.findById(id));
@@ -178,6 +180,7 @@ public class UserController {
             description = "User not found with the provided email.",
             content = @Content)
       })
+  @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
   @GetMapping("/email")
   public ResponseEntity<UserResponseDTO> findByEmail(@RequestParam String email) {
     return ResponseEntity.ok(userService.findByEmail(email));
@@ -210,6 +213,7 @@ public class UserController {
                 "Forbidden. Lacks required permissions (requires ADMIN or NUTRITIONIST role).",
             content = @Content)
       })
+  @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
   @GetMapping
   public ResponseEntity<List<UserResponseDTO>> findAll() {
     return ResponseEntity.ok(userService.findAll());
@@ -242,6 +246,8 @@ public class UserController {
             description = "User not found with the provided ID.",
             content = @Content)
       })
+  @PreAuthorize(
+      "hasAnyRole('ADMIN', 'NUTRITIONIST') or @patientSecurity.isOwner(#id, authentication)")
   @PutMapping("/{id}")
   public ResponseEntity<UserResponseDTO> updateBasicInfo(
       @PathVariable Long id, @Valid @RequestBody UserUpdateRequestDTO request) {

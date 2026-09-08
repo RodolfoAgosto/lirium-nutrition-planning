@@ -116,6 +116,7 @@ public class NutritionPlanController {
             content = @Content)
       })
   @PatchMapping("/{id}/complete")
+  @PreAuthorize("hasAnyRole('NUTRITIONIST', 'ADMIN')")
   public ResponseEntity<NutritionPlanDetailDTO> complete(
       @PathVariable Long id, @Valid @RequestBody CompleteNutritionPlanRequestDTO request) {
 
@@ -177,6 +178,7 @@ public class NutritionPlanController {
             description = "Patient already has a plan in DRAFT status",
             content = @Content)
       })
+  @PreAuthorize("hasAnyRole('NUTRITIONIST', 'ADMIN')")
   @PostMapping("/generate-from-template/{patientId}/{templateId}")
   @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<NutritionPlanDetailDTO> generateFromTemplate(

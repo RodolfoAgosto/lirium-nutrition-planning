@@ -74,7 +74,7 @@ public class FoodController {
         description = "A food with the same unique attributes already exists")
   })
   @PostMapping
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasRole('ADMIN', 'NUTRITIONIST')")
   public ResponseEntity<FoodSummaryDTO> createFood(@Valid @RequestBody FoodCreateRequestDTO dto) {
 
     log.info("Creating food name={}", dto.name());
