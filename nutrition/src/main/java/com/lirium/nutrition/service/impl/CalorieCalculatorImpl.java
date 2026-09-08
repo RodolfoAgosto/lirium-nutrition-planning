@@ -5,6 +5,7 @@ import com.lirium.nutrition.model.enums.PhysiologicalCondition;
 import com.lirium.nutrition.model.enums.Sex;
 import com.lirium.nutrition.model.valueobject.Calories;
 import com.lirium.nutrition.service.CalorieCalculator;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.ZoneId;
@@ -14,6 +15,18 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class CalorieCalculatorImpl implements CalorieCalculator {
+
+  private static final ZoneId ARGENTINA_ZONE = ZoneId.of("America/Argentina/Buenos_Aires");
+
+  private final Clock clock;
+
+  public CalorieCalculatorImpl() {
+    this(Clock.system(ARGENTINA_ZONE));
+  }
+
+  CalorieCalculatorImpl(Clock clock) {
+    this.clock = clock;
+  }
 
   @Override
   public Calories calculate(PatientProfile patient) {

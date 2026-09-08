@@ -1,28 +1,43 @@
 package com.lirium.nutrition.service.impl;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.lirium.nutrition.model.entity.PatientProfile;
 import com.lirium.nutrition.model.entity.User;
-import com.lirium.nutrition.model.enums.*;
+import com.lirium.nutrition.model.enums.ActivityLevel;
+import com.lirium.nutrition.model.enums.GoalType;
+import com.lirium.nutrition.model.enums.PhysiologicalCondition;
+import com.lirium.nutrition.model.enums.Role;
+import com.lirium.nutrition.model.enums.Sex;
 import com.lirium.nutrition.model.valueobject.Calories;
 import com.lirium.nutrition.model.valueobject.Height;
 import com.lirium.nutrition.model.valueobject.Weight;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class CalorieCalculatorImplTest {
 
-  private final CalorieCalculatorImpl calculator = new CalorieCalculatorImpl();
+  private static final ZoneId ARGENTINA_ZONE = ZoneId.of("America/Argentina/Buenos_Aires");
+
+  private static final Instant FIXED_INSTANT = Instant.parse("2026-09-07T15:00:00Z");
+
+  private static final Clock FIXED_CLOCK = Clock.fixed(FIXED_INSTANT, ARGENTINA_ZONE);
+
+  private static final LocalDate FIXED_TODAY = LocalDate.now(FIXED_CLOCK);
+
+  private final CalorieCalculatorImpl calculator = new CalorieCalculatorImpl(FIXED_CLOCK);
 
   @Test
   void shouldCalculateCaloriesForMalePatient() {
 
     User user = new User("john@test.com", "hash", "John", "Doe", Role.PATIENT);
 
-    user.setBirthDate(LocalDate.now().minusYears(30));
+    user.setBirthDate(FIXED_TODAY.minusYears(30));
 
     PatientProfile patient = user.getPatientProfile();
 
@@ -36,8 +51,6 @@ class CalorieCalculatorImplTest {
         List.of(),
         GoalType.WEIGHT_MAINTENANCE);
 
-    CalorieCalculatorImpl calculator = new CalorieCalculatorImpl();
-
     Calories result = calculator.calculate(patient);
 
     assertEquals(2136, result.amount());
@@ -48,7 +61,7 @@ class CalorieCalculatorImplTest {
 
     User user = new User("jane@test.com", "hash", "Jane", "Doe", Role.PATIENT);
 
-    user.setBirthDate(LocalDate.now().minusYears(30));
+    user.setBirthDate(FIXED_TODAY.minusYears(30));
 
     PatientProfile patient = user.getPatientProfile();
 
@@ -61,8 +74,6 @@ class CalorieCalculatorImplTest {
         Set.of(),
         List.of(),
         GoalType.WEIGHT_MAINTENANCE);
-
-    CalorieCalculatorImpl calculator = new CalorieCalculatorImpl();
 
     Calories result = calculator.calculate(patient);
 
@@ -144,7 +155,7 @@ class CalorieCalculatorImplTest {
 
     User user = new User("test@test.com", "hash", "John", "Doe", Role.PATIENT);
 
-    user.setBirthDate(LocalDate.now().minusYears(30));
+    user.setBirthDate(FIXED_TODAY.minusYears(30));
 
     PatientProfile patient = user.getPatientProfile();
 
