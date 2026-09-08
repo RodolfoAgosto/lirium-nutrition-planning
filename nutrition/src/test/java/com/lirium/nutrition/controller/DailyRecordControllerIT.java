@@ -14,6 +14,7 @@ import com.lirium.nutrition.repository.NutritionPlanRepository;
 import com.lirium.nutrition.repository.PatientProfileRepository;
 import com.lirium.nutrition.testdata.DailyRecordTestDataFactory;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,7 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
   private Long mealRecordId;
   private Long portionId;
   private Long foodId;
+  private static final ZoneId ARGENTINA_ZONE = ZoneId.of("America/Argentina/Buenos_Aires");
 
   @Autowired private NutritionPlanRepository nutritionPlanRepository;
 
@@ -86,7 +88,7 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
     NutritionPlan plan =
         NutritionPlan.generate(GoalType.WEIGHT_MAINTENANCE, 2000, 150, 200, 60, patientProfile);
     plan.completeBasic("Plan Inicial", "Descripción de prueba");
-    plan.activate(LocalDate.now().minusMonths(1));
+    plan.activate(LocalDate.now(ARGENTINA_ZONE).minusMonths(1));
     nutritionPlanRepository.save(plan);
 
     adminToken = "Bearer " + jwtService.generateToken(admin);
@@ -94,7 +96,7 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
     patientToken = "Bearer " + jwtService.generateToken(patient);
 
     DailyRecord record =
-        dailyRecordTestDataFactory.createDailyRecord(patientProfile, LocalDate.now());
+        dailyRecordTestDataFactory.createDailyRecord(patientProfile, LocalDate.now(ARGENTINA_ZONE));
 
     dailyRecordId = record.getId();
 
@@ -206,7 +208,8 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
 
     User other = userRepository.findById(otherPatientId).orElseThrow();
 
-    DailyRecord otherRecord = DailyRecord.of(other.getPatientProfile(), LocalDate.now());
+    DailyRecord otherRecord =
+        DailyRecord.of(other.getPatientProfile(), LocalDate.now(ARGENTINA_ZONE));
 
     Long otherRecordId = dailyRecordRepository.save(otherRecord).getId();
 
@@ -308,8 +311,8 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
     mockMvc
         .perform(
             get("/api/daily-records/patient/" + patientId + "/adherence")
-                .param("from", LocalDate.now().minusDays(7).toString())
-                .param("to", LocalDate.now().toString())
+                .param("from", LocalDate.now(ARGENTINA_ZONE).minusDays(7).toString())
+                .param("to", LocalDate.now(ARGENTINA_ZONE).toString())
                 .header("Authorization", patientToken))
         .andExpect(status().isOk());
   }

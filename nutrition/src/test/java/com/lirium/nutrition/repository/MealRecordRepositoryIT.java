@@ -7,6 +7,7 @@ import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.model.enums.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,16 +23,19 @@ class MealRecordRepositoryIT {
 
   @Autowired private TestEntityManager em;
 
+  private static final ZoneId ARGENTINA_ZONE = ZoneId.of("America/Argentina/Buenos_Aires");
+
   @Test
   void shouldFindMealsByType() {
 
     PatientProfile patient = createPatient("patient1@test.com");
 
-    DailyRecord daily = createDailyRecord(patient, LocalDate.now());
+    DailyRecord daily = createDailyRecord(patient, LocalDate.now(ARGENTINA_ZONE));
 
-    MealRecord breakfast = createMeal(daily, MealType.BREAKFAST, LocalDateTime.now().minusHours(5));
+    MealRecord breakfast =
+        createMeal(daily, MealType.BREAKFAST, LocalDateTime.now(ARGENTINA_ZONE).minusHours(5));
 
-    createMeal(daily, MealType.LUNCH, LocalDateTime.now().minusHours(1));
+    createMeal(daily, MealType.LUNCH, LocalDateTime.now(ARGENTINA_ZONE).minusHours(1));
 
     em.flush();
     em.clear();

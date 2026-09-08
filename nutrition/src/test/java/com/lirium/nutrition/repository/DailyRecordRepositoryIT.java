@@ -11,6 +11,7 @@ import com.lirium.nutrition.model.enums.MealType;
 import com.lirium.nutrition.model.enums.Role;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,8 @@ import org.springframework.context.annotation.Import;
 @DataJpaTest
 @Import(JpaConfig.class)
 class DailyRecordRepositoryIT {
+
+  private static final ZoneId ARGENTINA_ZONE = ZoneId.of("America/Argentina/Buenos_Aires");
 
   @Autowired private DailyRecordRepository repository;
 
@@ -120,8 +123,8 @@ class DailyRecordRepositoryIT {
 
     DailyRecord record = createRecord(patient, LocalDate.of(2026, 6, 30));
 
-    createMeal(record, LocalDateTime.now().minusHours(2));
-    createMeal(record, LocalDateTime.now().minusHours(1));
+    createMeal(record, LocalDateTime.now(ARGENTINA_ZONE).minusHours(2));
+    createMeal(record, LocalDateTime.now(ARGENTINA_ZONE).minusHours(1));
 
     em.flush();
     em.clear();
