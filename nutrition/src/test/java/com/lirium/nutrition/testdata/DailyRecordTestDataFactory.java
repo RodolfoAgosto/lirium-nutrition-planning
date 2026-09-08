@@ -9,6 +9,7 @@ import com.lirium.nutrition.repository.FoodRepository;
 import com.lirium.nutrition.repository.NutritionPlanRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.EnumSet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DailyRecordTestDataFactory {
 
+  private static final ZoneId ARGENTINA_ZONE = ZoneId.of("America/Argentina/Buenos_Aires");
+
   private final DailyRecordRepository dailyRecordRepository;
   private final FoodRepository foodRepository;
   private final NutritionPlanTestDataFactory nutritionPlanTestDataFactory;
@@ -26,13 +29,15 @@ public class DailyRecordTestDataFactory {
   @Transactional
   public DailyRecord createTodayDailyRecord(PatientProfile patient) {
 
+    LocalDate today = LocalDate.now(ARGENTINA_ZONE);
+
     NutritionPlan plan = NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 150, 200, 70, patient);
 
-    plan.activate(LocalDate.now());
+    plan.activate(today);
 
     nutritionPlanRepository.save(plan);
 
-    DailyRecord dailyRecord = DailyRecord.of(patient, LocalDate.now());
+    DailyRecord dailyRecord = DailyRecord.of(patient, today);
 
     return dailyRecordRepository.save(dailyRecord);
   }
@@ -50,7 +55,7 @@ public class DailyRecordTestDataFactory {
   @Transactional
   public MealRecord createMealWithFood(DailyRecord dailyRecord) {
 
-    MealRecord meal = MealRecord.of(MealType.LUNCH, LocalDateTime.now().withHour(13), dailyRecord);
+    MealRecord meal = MealRecord.of(MealType.LUNCH, nowAtHour(13), dailyRecord);
 
     meal.addFoodPortion(chicken(), 150.0, MeasureUnit.GRAM);
 
@@ -64,8 +69,7 @@ public class DailyRecordTestDataFactory {
   @Transactional
   public MealRecord createEmptyMeal(DailyRecord dailyRecord) {
 
-    MealRecord meal =
-        MealRecord.of(MealType.BREAKFAST, LocalDateTime.now().withHour(8), dailyRecord);
+    MealRecord meal = MealRecord.of(MealType.BREAKFAST, nowAtHour(8), dailyRecord);
 
     dailyRecord.addMeal(meal);
 
@@ -88,17 +92,24 @@ public class DailyRecordTestDataFactory {
 
   private LocalDateTime defaultTime(MealType type) {
 
+    LocalDateTime now = LocalDateTime.now(ARGENTINA_ZONE);
+
     return switch (type) {
-      case BREAKFAST -> LocalDateTime.now().withHour(8).withMinute(0);
+      case BREAKFAST -> now.withHour(8).withMinute(0).withSecond(0).withNano(0);
 
-      case MID_MORNING -> LocalDateTime.now().withHour(10).withMinute(30);
+      case MID_MORNING -> now.withHour(10).withMinute(30).withSecond(0).withNano(0);
 
-      case LUNCH -> LocalDateTime.now().withHour(13).withMinute(0);
+      case LUNCH -> now.withHour(13).withMinute(0).withSecond(0).withNano(0);
 
-      case SNACK -> LocalDateTime.now().withHour(17).withMinute(0);
+      case SNACK -> now.withHour(17).withMinute(0).withSecond(0).withNano(0);
 
-      case DINNER -> LocalDateTime.now().withHour(20).withMinute(0);
+      case DINNER -> now.withHour(20).withMinute(0).withSecond(0).withNano(0);
     };
+  }
+
+  private LocalDateTime nowAtHour(int hour) {
+
+    return LocalDateTime.now(ARGENTINA_ZONE).withHour(hour).withMinute(0).withSecond(0).withNano(0);
   }
 
   private Food chicken() {
