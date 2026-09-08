@@ -53,9 +53,10 @@ public class DemoResetService {
   }
 
   public void seedDemoData() {
+    LocalDate demoDate = LocalDate.now(clock);
     seedAna();
-    seedJuan();
-    seedMaria();
+    seedJuan(demoDate);
+    seedMaria(demoDate);
   }
 
   private void seedAna() {
@@ -68,7 +69,7 @@ public class DemoResetService {
     nutritionPlanGenerator.generate(1L);
   }
 
-  private void seedJuan() {
+  private void seedJuan(LocalDate demoDate) {
 
     // Genero el plan
     Long planId = nutritionPlanGenerator.generate(2L).id();
@@ -77,8 +78,9 @@ public class DemoResetService {
             .findById(planId)
             .orElseThrow(() -> new ResourceNotFoundException("NutritionPlan", planId));
 
-    // Fuerzo la fecha de activacion a pasado
-    LocalDate activationDate = LocalDate.now(clock).minusDays(30);
+    // Activate through the business service to apply all activation rules.
+    // Then override the activation date to simulate historical demo data.
+    LocalDate activationDate = demoDate.minusDays(30);
     juanPlan.activate(activationDate);
     nutritionPlanService.activatePlan(planId);
     nutritionPlanRepository.save(juanPlan);
@@ -104,7 +106,7 @@ public class DemoResetService {
         firstMeal.id(), new FoodPortionAddRequestDTO(24L, 1.0, MeasureUnit.UNIT)); // Banana
   }
 
-  private void seedMaria() {
+  private void seedMaria(LocalDate demoDate) {
     // 'WEIGHT_MAINTENANCE', 'FEMALE'
     Long planId = nutritionPlanGenerator.generate(3L).id();
     NutritionPlan mariaPlan =
@@ -112,7 +114,7 @@ public class DemoResetService {
             .findById(planId)
             .orElseThrow(() -> new ResourceNotFoundException("NutritionPlan", planId));
 
-    LocalDate activationDate = LocalDate.now(clock).minusDays(60);
+    LocalDate activationDate = demoDate.minusDays(60);
     mariaPlan.activate(activationDate);
     nutritionPlanService.activatePlan(planId);
     nutritionPlanRepository.save(mariaPlan);
