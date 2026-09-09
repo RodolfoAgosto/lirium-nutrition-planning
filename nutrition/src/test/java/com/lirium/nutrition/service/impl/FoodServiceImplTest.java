@@ -8,7 +8,7 @@ import com.lirium.nutrition.dto.request.FoodUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.FoodResponseDTO;
 import com.lirium.nutrition.dto.response.FoodSummaryDTO;
 import com.lirium.nutrition.exception.DuplicateFoodException;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.FoodNotFoundException;
 import com.lirium.nutrition.model.entity.Food;
 import com.lirium.nutrition.model.enums.FoodCategory;
 import com.lirium.nutrition.model.enums.FoodTag;
@@ -219,8 +219,8 @@ class FoodServiceImplTest {
     when(foodRepository.findById(foodId)).thenReturn(Optional.empty());
 
     // When + Then
-    ResourceNotFoundException ex =
-        assertThrows(ResourceNotFoundException.class, () -> service.findById(foodId));
+    FoodNotFoundException ex =
+        assertThrows(FoodNotFoundException.class, () -> service.findById(foodId));
 
     assertTrue(ex.getMessage().contains("Food"));
 
@@ -234,7 +234,7 @@ class FoodServiceImplTest {
 
     when(foodRepository.findById(foodId)).thenReturn(Optional.empty());
 
-    assertThrows(ResourceNotFoundException.class, () -> service.findEntityById(foodId));
+    assertThrows(FoodNotFoundException.class, () -> service.findEntityById(foodId));
 
     verify(foodRepository).findById(foodId);
   }
