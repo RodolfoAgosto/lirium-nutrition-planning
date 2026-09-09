@@ -5,8 +5,8 @@ import com.lirium.nutrition.dto.request.FoodUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.FoodResponseDTO;
 import com.lirium.nutrition.dto.response.FoodSummaryDTO;
 import com.lirium.nutrition.exception.DuplicateFoodException;
+import com.lirium.nutrition.exception.FoodNotFoundException;
 import com.lirium.nutrition.exception.InvalidTagException;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.FoodMapper;
 import com.lirium.nutrition.model.entity.Food;
 import com.lirium.nutrition.model.enums.FoodTag;
@@ -140,13 +140,12 @@ public class FoodServiceImpl implements FoodService {
   }
 
   private Food getFoodOrThrow(Long id) {
-
     return foodRepository
         .findById(id)
         .orElseThrow(
             () -> {
               log.warn("Food not found id={}", id);
-              return new ResourceNotFoundException("Food", id);
+              return new FoodNotFoundException(id);
             });
   }
 
@@ -172,8 +171,8 @@ public class FoodServiceImpl implements FoodService {
         .findById(id)
         .orElseThrow(
             () -> {
-              log.warn("Food entity not found id={}", id);
-              return new ResourceNotFoundException("Food", id);
+              log.warn("Food not found id={}", id);
+              return new FoodNotFoundException(id);
             });
   }
 }

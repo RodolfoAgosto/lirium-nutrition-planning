@@ -1,0 +1,7 @@
+package com.lirium.nutrition.exception;
+
+public class FoodNotFoundException extends NotFoundException {
+  public FoodNotFoundException(Long id) {
+    super("Food", id);
+  }
+}
