@@ -9,6 +9,7 @@ import com.lirium.nutrition.model.enums.MeasureUnit;
 import com.lirium.nutrition.model.enums.Role;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,8 @@ class FoodPortionRecordRepositoryIT {
 
   @Autowired private TestEntityManager em;
 
+  private static final ZoneId ARGENTINA_ZONE = ZoneId.of("America/Argentina/Buenos_Aires");
+
   @Test
   void shouldFindByMeal() {
 
@@ -33,10 +36,10 @@ class FoodPortionRecordRepositoryIT {
 
     PatientProfile patient = user.getPatientProfile();
 
-    DailyRecord record = DailyRecord.of(patient, LocalDate.now());
+    DailyRecord record = DailyRecord.of(patient, LocalDate.now(ARGENTINA_ZONE));
     em.persist(record);
 
-    MealRecord meal = MealRecord.of(MealType.BREAKFAST, LocalDateTime.now(), record);
+    MealRecord meal = MealRecord.of(MealType.BREAKFAST, LocalDateTime.now(ARGENTINA_ZONE), record);
     em.persist(meal);
 
     Food food = Food.of("Rice", 130, 2, 28, 0, FoodCategory.CARB, Set.of(MealType.LUNCH));

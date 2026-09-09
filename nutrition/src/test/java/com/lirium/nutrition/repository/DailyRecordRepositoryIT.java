@@ -149,7 +149,7 @@ class DailyRecordRepositoryIT {
 
     DailyRecord record = createRecord(patient, LocalDate.of(2026, 6, 30));
 
-    MealRecord meal = createMeal(record, LocalDateTime.now().minusHours(1));
+    MealRecord meal = createMeal(record, LocalDateTime.now(ARGENTINA_ZONE).minusHours(1));
 
     em.flush();
 
