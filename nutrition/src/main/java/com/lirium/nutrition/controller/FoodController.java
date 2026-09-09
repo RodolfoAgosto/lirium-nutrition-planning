@@ -17,6 +17,10 @@ import jakarta.validation.constraints.Positive;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -130,5 +134,17 @@ public class FoodController {
     foodService.deleteById(id);
     log.info("Food deleted successfully id={}", id);
     return ResponseEntity.noContent().build();
+  }
+
+  @Operation(
+      operationId = "getAllFoods",
+      summary = "Get all foods",
+      description = "Returns a paginated list of active foods available in the nutrition catalog.")
+  @ApiResponses({@ApiResponse(responseCode = "200", description = "Foods retrieved successfully")})
+  @GetMapping("/paged")
+  @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST', 'PATIENT')")
+  public Page<FoodSummaryDTO> getAllFoods(
+      @ParameterObject @PageableDefault(size = 20, sort = "name") Pageable pageable) {
+    return foodService.findAll(pageable);
   }
 }

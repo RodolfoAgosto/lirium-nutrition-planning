@@ -6,12 +6,16 @@ import com.lirium.nutrition.dto.response.FoodResponseDTO;
 import com.lirium.nutrition.dto.response.FoodSummaryDTO;
 import com.lirium.nutrition.model.entity.Food;
 import java.util.Set;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface FoodService {
 
   Food findEntityById(Long id);
 
   Set<FoodSummaryDTO> findAll();
+
+  Page<FoodSummaryDTO> findAll(Pageable pageable);
 
   FoodResponseDTO findById(Long id);
 
