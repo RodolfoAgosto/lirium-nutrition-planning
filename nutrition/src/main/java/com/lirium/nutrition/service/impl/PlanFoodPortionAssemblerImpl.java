@@ -20,6 +20,9 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
   private final Map<MealType, List<SlotDistribution>> distributions;
   private final FoodRepository foodRepository;
 
+  private static final double DEFAULT_MIN_SERVING_GRAMS = 15.0;
+  private static final double DEFAULT_MAX_SERVING_GRAMS = 250.0;
+
   public PlanFoodPortionAssemblerImpl(FoodRepository foodRepository) {
     this.foodRepository = foodRepository;
     this.distributions = buildDistributions();
@@ -84,13 +87,17 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
       Carbs carbs,
       Protein protein) {
 
+    // Determine which foods are prohibited.
     Set<FoodTag> excludedTags = new HashSet<>(resolveExcludedTags(patient.getRestrictions()));
     excludedTags.addAll(additionalExcludedTags);
 
+    // Look for suitable foods for that meal.
     List<Food> availableFoods =
         new ArrayList<>(foodRepository.findSuitableFoods(planMeal.getType(), excludedTags));
     Collections.shuffle(availableFoods);
 
+    // It obtains the categories corresponding to the meal and, if it is mid-morning, selects a
+    // single category at random.
     List<SlotDistribution> slots =
         new ArrayList<>(distributions.getOrDefault(planMeal.getType(), Collections.emptyList()));
     if (planMeal.getType() == MealType.MID_MORNING && !slots.isEmpty()) {
@@ -98,46 +105,48 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
       slots = List.of(slots.get(0));
     }
 
+    // Remaining calories and macronutrients to cover as foods are added to the meal.
     double remCal = calories.amount();
     double remCarb = carbs.amount();
     double remFat = fat.amount();
     double remProt = protein.grams();
 
     for (SlotDistribution slot : slots) {
-      if (remCal <= 0 && remProt <= 0 && remCarb <= 0) {
+      if (remCal <= 0 && remProt <= 0 && remCarb <= 0 && remFat <= 0) {
         break;
       }
 
+      // Selects the first available food matching the current slot category.
       Optional<Food> foodOpt =
           availableFoods.stream().filter(f -> f.getCategory() == slot.category()).findFirst();
-
       if (foodOpt.isEmpty()) {
         log.warn("No food found for category={} in meal={}", slot.category(), planMeal.getType());
         continue;
       }
-
       Food food = foodOpt.get();
       availableFoods.remove(food);
 
-      // 1. Cálculo teórico inicial en gramos
+      // 1. Calculates the theoretical amount needed to cover the remaining macro target.
       double rawGrams = calculateGrams(food, remCal, remCarb, remFat, remProt);
       if (rawGrams <= 0) {
         continue;
       }
 
-      // 2. Acotamiento estricto respetando min/max de la entidad Food
+      // 2. Restricts the calculated amount to the food's configured serving limits.
       double boundedGrams = clampGramsToFoodLimits(food, rawGrams);
 
-      // 3. Conversión a la unidad final (redondeo a enteros para UNIT/GRAM)
+      // 3. Converts the amount to the food's configured unit (grams, milliliters, or units).
       double finalQuantity = convertToFinalUnit(food, boundedGrams);
       MeasureUnit finalUnit = food.getDefaultUnit();
 
-      // 4. Gramos equivalentes reales para el descuento exacto de macros
+      // 4. Converts the final quantity back to grams to calculate the food's actual macro
+      // contribution.
       double actualGrams =
           (finalUnit == MeasureUnit.UNIT)
               ? finalQuantity * getUnitWeightInGrams(food)
               : finalQuantity;
 
+      // 5. Creates the portion and adds it to the meal.
       PlanFoodPortion portion = PlanFoodPortion.of(planMeal, food, finalQuantity, finalUnit);
       planMeal.addFoodPortion(portion);
 
@@ -146,6 +155,16 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
       remCarb -= (food.getCarbsPer100g() * actualGrams) / 100.0;
       remFat -= (food.getFatPer100g() * actualGrams) / 100.0;
       remProt -= (food.getProteinPer100g() * actualGrams) / 100.0;
+
+      log.info(
+          "Meal={} Food={} grams={} | remaining: cal={} carb={} fat={} prot={}",
+          planMeal.getType(),
+          food.getName(),
+          actualGrams,
+          remCal,
+          remCarb,
+          remFat,
+          remProt);
     }
   }
 
@@ -153,7 +172,10 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
       Food food, double targetCal, double targetCarb, double targetFat, double targetProt) {
     FoodCategory category = food.getCategory();
 
-    // 1. Guardas por saturación de macros
+    // Skip categories whose primary macro target has already been reached.
+
+    // If I no longer need protein and I am trying to add a food whose primary function
+    // is to provide protein, I do not add that food.
     if (targetProt <= 0 && (category == FoodCategory.PROTEIN || category == FoodCategory.DAIRY)) {
       return 0.0;
     }
@@ -164,14 +186,13 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
       return 0.0;
     }
 
-    // 2. Control de proteína residual vegetal/láctea:
-    // Si la comida ya juntó casi toda la proteína necesaria con el pan/arroz/lácteos
-    // y faltan menos de 8g, no agregamos carne/pescado para evitar el exceso acumulado.
+    // Avoid adding a protein food when less than 8 g of protein remain,
+    // since the minimum serving could cause an unnecessary protein excess.
     if (category == FoodCategory.PROTEIN && targetProt < 8.0) {
       return 0.0;
     }
 
-    // 3. Cálculo proporcional por categoría
+    // Calculate the amount based on the macro that defines the food category.
     return switch (category) {
       case PROTEIN, DAIRY ->
           food.getProteinPer100g() > 0 ? (targetProt * 100.0) / food.getProteinPer100g() : 100.0;
@@ -192,9 +213,11 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
   }
 
   private double clampGramsToFoodLimits(Food food, double calculatedGrams) {
-    double minGrams = (food.getMinServingGrams() != null) ? food.getMinServingGrams() : 15.0;
+    double minGrams =
+        (food.getMinServingGrams() != null) ? food.getMinServingGrams() : DEFAULT_MIN_SERVING_GRAMS;
 
-    double maxGrams = (food.getMaxServingGrams() != null) ? food.getMaxServingGrams() : 250.0;
+    double maxGrams =
+        (food.getMaxServingGrams() != null) ? food.getMaxServingGrams() : DEFAULT_MAX_SERVING_GRAMS;
 
     return Math.min(Math.max(calculatedGrams, minGrams), maxGrams);
   }
@@ -218,9 +241,10 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
     if (food.getUnitWeight() != null && food.getUnitWeight() > 0) {
       return food.getUnitWeight();
     }
-    return 100.0; // Fallback predeterminado seguro
+    return 100.0; // If there is no valid weight per unit, 100 g per unit is assumed.
   }
 
+  // Combines all excluded tags from the patient's restrictions into a single set.
   private Set<FoodTag> resolveExcludedTags(Set<Restriction> restrictions) {
     return restrictions.stream()
         .flatMap(r -> r.getExcludedTags().stream())

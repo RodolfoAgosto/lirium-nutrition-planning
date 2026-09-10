@@ -158,6 +158,23 @@ INSERT INTO restrictions (id, created_at, updated_at, code, name, category, desc
                                                                                              (5, TIMESTAMP '2026-05-07 14:45:17.429902', TIMESTAMP '2026-05-07 14:45:17.429902', 'VEGETARIAN', 'Vegetarian', 'DIETARY', 'Avoid meat and fish');
 
 -- ---------------------------------------------------------------------
+-- Restrictions tags (8 filas)
+-- ---------------------------------------------------------------------
+INSERT INTO restriction_excluded_tags (restriction_id, food_tag) VALUES
+                                                                     -- Gluten Free
+                                                                     (1, 'GLUTEN'),
+                                                                     -- Lactose Free
+                                                                     (2, 'LACTOSE'),
+                                                                     -- Vegan
+                                                                     (4, 'MEAT'),
+                                                                     (4, 'FISH'),
+                                                                     (4, 'LACTOSE'),
+                                                                     (4, 'HONEY'),
+                                                                     -- Vegetarian
+                                                                     (5, 'MEAT'),
+                                                                     (5, 'FISH');
+
+-- ---------------------------------------------------------------------
 -- Users (4 filas)
 -- ---------------------------------------------------------------------
 INSERT INTO users (

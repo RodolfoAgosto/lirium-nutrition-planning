@@ -8,7 +8,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile("demo")
+@Profile("dev")
 @Order(10)
 @RequiredArgsConstructor
 public class DemoDataGenerator implements CommandLineRunner {
