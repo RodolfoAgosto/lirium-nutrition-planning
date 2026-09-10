@@ -1,6 +1,6 @@
 package com.lirium.nutrition.service;
 
-import com.lirium.nutrition.dto.request.RestrictionCatalogUpdateDTO;
+import com.lirium.nutrition.dto.request.RestrictionCatalogUpdateRequestDTO;
 import com.lirium.nutrition.dto.request.RestrictionCreateRequestDTO;
 import com.lirium.nutrition.dto.response.RestrictionResponseDTO;
 import com.lirium.nutrition.dto.response.RestrictionSummaryDTO;
@@ -14,7 +14,7 @@ public interface RestrictionService {
 
   RestrictionSummaryDTO create(RestrictionCreateRequestDTO dto);
 
-  RestrictionSummaryDTO update(Long id, RestrictionCatalogUpdateDTO dto);
+  RestrictionSummaryDTO update(Long id, RestrictionCatalogUpdateRequestDTO dto);
 
   void deleteById(Long id);
 }

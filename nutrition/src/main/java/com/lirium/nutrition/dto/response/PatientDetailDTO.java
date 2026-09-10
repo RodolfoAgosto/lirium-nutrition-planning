@@ -6,7 +6,7 @@ import com.lirium.nutrition.model.valueobject.Weight;
 import java.time.LocalDate;
 import java.util.Set;
 
-public record PatientDetailsDTO(
+public record PatientDetailDTO(
     Long patientId,
     String firstName,
     String lastName,

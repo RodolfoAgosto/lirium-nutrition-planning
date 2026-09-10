@@ -1,6 +1,6 @@
 package com.lirium.nutrition.controller;
 
-import com.lirium.nutrition.dto.request.RestrictionCatalogUpdateDTO;
+import com.lirium.nutrition.dto.request.RestrictionCatalogUpdateRequestDTO;
 import com.lirium.nutrition.dto.request.RestrictionCreateRequestDTO;
 import com.lirium.nutrition.dto.response.RestrictionResponseDTO;
 import com.lirium.nutrition.dto.response.RestrictionSummaryDTO;
@@ -139,7 +139,7 @@ public class RestrictionController {
           @NotNull(message = "ID is required")
           @Positive(message = "ID must be a positive number")
           Long id,
-      @Valid @RequestBody RestrictionCatalogUpdateDTO request) {
+      @Valid @RequestBody RestrictionCatalogUpdateRequestDTO request) {
 
     log.info("Updating restriction id={}", id);
     log.debug("Restriction update payload={}", request.toString());

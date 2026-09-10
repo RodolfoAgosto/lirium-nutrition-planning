@@ -9,7 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lirium.nutrition.dto.request.RestrictionCatalogUpdateDTO;
+import com.lirium.nutrition.dto.request.RestrictionCatalogUpdateRequestDTO;
 import com.lirium.nutrition.dto.request.RestrictionCreateRequestDTO;
 import com.lirium.nutrition.dto.response.RestrictionResponseDTO;
 import com.lirium.nutrition.dto.response.RestrictionSummaryDTO;
@@ -108,14 +108,14 @@ class RestrictionControllerTest {
   @Test
   void shouldUpdateRestriction() throws Exception {
 
-    RestrictionCatalogUpdateDTO request =
-        new RestrictionCatalogUpdateDTO(
+    RestrictionCatalogUpdateRequestDTO request =
+        new RestrictionCatalogUpdateRequestDTO(
             "GLUTEN", "Updated Gluten", "ALLERGY", RestrictionCategory.INTOLERANCES);
 
     RestrictionSummaryDTO response =
         new RestrictionSummaryDTO(1L, "GLUTEN", "Updated Gluten", RestrictionCategory.DIETARY);
 
-    when(restrictionService.update(eq(1L), any(RestrictionCatalogUpdateDTO.class)))
+    when(restrictionService.update(eq(1L), any(RestrictionCatalogUpdateRequestDTO.class)))
         .thenReturn(response);
 
     mockMvc
@@ -127,6 +127,6 @@ class RestrictionControllerTest {
         .andExpect(jsonPath("$.id").value(1))
         .andExpect(jsonPath("$.name").value("Updated Gluten"));
 
-    verify(restrictionService).update(eq(1L), any(RestrictionCatalogUpdateDTO.class));
+    verify(restrictionService).update(eq(1L), any(RestrictionCatalogUpdateRequestDTO.class));
   }
 }

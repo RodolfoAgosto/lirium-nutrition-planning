@@ -3,8 +3,8 @@ package com.lirium.nutrition.service.impl;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.lirium.nutrition.dto.request.CreatePatientRequestDTO;
-import com.lirium.nutrition.dto.request.CreateUserRequestDTO;
+import com.lirium.nutrition.dto.request.PatientCreateRequestDTO;
+import com.lirium.nutrition.dto.request.UserCreateRequestDTO;
 import com.lirium.nutrition.dto.request.UserUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.UserResponseDTO;
 import com.lirium.nutrition.exception.AccountDisabledException;
@@ -37,7 +37,7 @@ class UserServiceImplTest {
   void shouldRegisterUser() {
 
     // Given
-    CreateUserRequestDTO request = mock(CreateUserRequestDTO.class);
+    UserCreateRequestDTO request = mock(UserCreateRequestDTO.class);
     User user = mock(User.class);
     User savedUser = mock(User.class);
     UserResponseDTO response = mock(UserResponseDTO.class);
@@ -73,7 +73,7 @@ class UserServiceImplTest {
   void shouldThrowWhenRegisterUserWithExistingEmail() {
 
     // Given
-    CreateUserRequestDTO request = mock(CreateUserRequestDTO.class);
+    UserCreateRequestDTO request = mock(UserCreateRequestDTO.class);
 
     when(request.email()).thenReturn("test@test.com");
 
@@ -84,7 +84,7 @@ class UserServiceImplTest {
 
     verify(userRepository).existsByEmail("test@test.com");
 
-    verify(userMapper, never()).toEntity(any(CreateUserRequestDTO.class));
+    verify(userMapper, never()).toEntity(any(UserCreateRequestDTO.class));
 
     verify(userRepository, never()).save(any());
 
@@ -95,7 +95,7 @@ class UserServiceImplTest {
   void shouldRegisterPatient() {
 
     // Given
-    CreatePatientRequestDTO request = mock(CreatePatientRequestDTO.class);
+    PatientCreateRequestDTO request = mock(PatientCreateRequestDTO.class);
     User user = mock(User.class);
     User savedUser = mock(User.class);
     UserResponseDTO response = mock(UserResponseDTO.class);
@@ -128,7 +128,7 @@ class UserServiceImplTest {
   void shouldThrowWhenRegisterPatientWithExistingEmail() {
 
     // Given
-    CreatePatientRequestDTO request = mock(CreatePatientRequestDTO.class);
+    PatientCreateRequestDTO request = mock(PatientCreateRequestDTO.class);
 
     when(request.email()).thenReturn("patient@test.com");
 
@@ -139,7 +139,7 @@ class UserServiceImplTest {
 
     verify(userRepository).existsByEmail("patient@test.com");
 
-    verify(userMapper, never()).toEntity(any(CreatePatientRequestDTO.class));
+    verify(userMapper, never()).toEntity(any(PatientCreateRequestDTO.class));
 
     verify(userRepository, never()).save(any());
 

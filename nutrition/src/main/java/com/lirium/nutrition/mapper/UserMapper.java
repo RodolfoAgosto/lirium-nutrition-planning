@@ -21,14 +21,14 @@ public interface UserMapper {
   @Mapping(target = "emailValidated", ignore = true)
   @Mapping(target = "enabled", ignore = true)
   @Mapping(target = "patientProfile", ignore = true)
-  User toEntity(CreateUserRequestDTO dto);
+  User toEntity(UserCreateRequestDTO dto);
 
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "passwordHash", ignore = true)
   @Mapping(target = "emailValidated", ignore = true)
   @Mapping(target = "enabled", ignore = true)
   @Mapping(target = "patientProfile", ignore = true)
-  User toEntity(CreatePatientRequestDTO dto);
+  User toEntity(PatientCreateRequestDTO dto);
 
   // ---------- UPDATE DTO → ENTITY ----------
 

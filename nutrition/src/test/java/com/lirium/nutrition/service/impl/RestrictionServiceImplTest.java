@@ -3,7 +3,7 @@ package com.lirium.nutrition.service.impl;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.lirium.nutrition.dto.request.RestrictionCatalogUpdateDTO;
+import com.lirium.nutrition.dto.request.RestrictionCatalogUpdateRequestDTO;
 import com.lirium.nutrition.dto.request.RestrictionCreateRequestDTO;
 import com.lirium.nutrition.dto.response.RestrictionResponseDTO;
 import com.lirium.nutrition.dto.response.RestrictionSummaryDTO;
@@ -140,8 +140,8 @@ class RestrictionServiceImplTest {
             .category(RestrictionCategory.INTOLERANCES)
             .build();
 
-    RestrictionCatalogUpdateDTO request =
-        new RestrictionCatalogUpdateDTO(
+    RestrictionCatalogUpdateRequestDTO request =
+        new RestrictionCatalogUpdateRequestDTO(
             "LACTOSE",
             "Lactose Intolerance",
             "Avoid dairy products",
@@ -174,8 +174,8 @@ class RestrictionServiceImplTest {
     // Given
     Long id = 1L;
 
-    RestrictionCatalogUpdateDTO request =
-        new RestrictionCatalogUpdateDTO(
+    RestrictionCatalogUpdateRequestDTO request =
+        new RestrictionCatalogUpdateRequestDTO(
             "LACTOSE",
             "Lactose Intolerance",
             "Avoid dairy products",

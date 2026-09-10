@@ -1,6 +1,6 @@
 package com.lirium.nutrition.controller;
 
-import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequestDTO;
+import com.lirium.nutrition.dto.request.NutritionPlanCompleteRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
 import com.lirium.nutrition.service.NutritionPlanGenerator;
@@ -118,7 +118,7 @@ public class NutritionPlanController {
   @PatchMapping("/{id}/complete")
   @PreAuthorize("hasAnyRole('NUTRITIONIST', 'ADMIN')")
   public ResponseEntity<NutritionPlanDetailDTO> complete(
-      @PathVariable Long id, @Valid @RequestBody CompleteNutritionPlanRequestDTO request) {
+      @PathVariable Long id, @Valid @RequestBody NutritionPlanCompleteRequestDTO request) {
 
     log.info("Completing nutrition plan id={}", id);
     log.debug("Complete plan payload={}", request.toString());

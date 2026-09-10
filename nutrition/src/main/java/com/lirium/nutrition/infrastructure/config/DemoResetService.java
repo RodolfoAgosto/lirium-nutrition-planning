@@ -1,6 +1,6 @@
 package com.lirium.nutrition.infrastructure.config;
 
-import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequestDTO;
+import com.lirium.nutrition.dto.request.NutritionPlanCompleteRequestDTO;
 import com.lirium.nutrition.dto.request.FoodPortionAddRequestDTO;
 import com.lirium.nutrition.exception.NutritionPlanNotFoundException;
 import com.lirium.nutrition.model.entity.NutritionPlan;
@@ -125,10 +125,10 @@ public class DemoResetService {
     mariaPlan.update(null, null, activationDate, null, null, null, null, null, null);
     nutritionPlanRepository.save(mariaPlan);
 
-    CompleteNutritionPlanRequestDTO completeNutritionPlanRequestDTO =
-        new CompleteNutritionPlanRequestDTO(
+    NutritionPlanCompleteRequestDTO nutritionPlanCompleteRequestDTO =
+        new NutritionPlanCompleteRequestDTO(
             "Phase 1: Weight Maintenance",
             "Patient maintained a stable body weight with good adherence to a balanced nutrition plan and adequate nutritional intake.");
-    nutritionPlanService.complete(planId, completeNutritionPlanRequestDTO);
+    nutritionPlanService.complete(planId, nutritionPlanCompleteRequestDTO);
   }
 }

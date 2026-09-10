@@ -4,7 +4,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequestDTO;
+import com.lirium.nutrition.dto.request.NutritionPlanCompleteRequestDTO;
 import com.lirium.nutrition.model.entity.NutritionPlan;
 import com.lirium.nutrition.model.entity.NutritionPlanTemplate;
 import com.lirium.nutrition.model.entity.PatientProfile;
@@ -272,8 +272,8 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
                 .content("{\"startDate\": \"2026-08-01\"}"))
         .andExpect(status().isNoContent()); // <-- Corregido de isOk() a isNoContent()
 
-    CompleteNutritionPlanRequestDTO dto =
-        new CompleteNutritionPlanRequestDTO(
+    NutritionPlanCompleteRequestDTO dto =
+        new NutritionPlanCompleteRequestDTO(
             "Weight Loss Plan", "Plan completed from integration test");
 
     mockMvc
@@ -298,8 +298,8 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNoContent());
 
-    CompleteNutritionPlanRequestDTO dto =
-        new CompleteNutritionPlanRequestDTO(
+    NutritionPlanCompleteRequestDTO dto =
+        new NutritionPlanCompleteRequestDTO(
             "Weight Loss Plan", "Plan completed from integration test");
 
     mockMvc
@@ -317,8 +317,8 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
   @DisplayName("PATIENT no puede completar un NutritionPlan")
   void shouldReturnForbiddenWhenPatientCompletesNutritionPlan() throws Exception {
 
-    CompleteNutritionPlanRequestDTO dto =
-        new CompleteNutritionPlanRequestDTO(
+    NutritionPlanCompleteRequestDTO dto =
+        new NutritionPlanCompleteRequestDTO(
             "Weight Loss Plan", "Plan completed from integration test");
 
     mockMvc
@@ -334,8 +334,8 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
   @DisplayName("Complete NutritionPlan inexistente devuelve 404")
   void shouldReturnNotFoundWhenCompletingNonExistingNutritionPlan() throws Exception {
 
-    CompleteNutritionPlanRequestDTO dto =
-        new CompleteNutritionPlanRequestDTO(
+    NutritionPlanCompleteRequestDTO dto =
+        new NutritionPlanCompleteRequestDTO(
             "Weight Loss Plan", "Plan completed from integration test");
 
     mockMvc

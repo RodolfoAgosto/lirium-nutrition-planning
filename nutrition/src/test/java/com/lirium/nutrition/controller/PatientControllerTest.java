@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lirium.nutrition.dto.request.PatientUpdateRequestDTO;
-import com.lirium.nutrition.dto.response.PatientDetailsDTO;
+import com.lirium.nutrition.dto.response.PatientDetailDTO;
 import com.lirium.nutrition.dto.response.PatientSummaryDTO;
 import com.lirium.nutrition.infrastructure.security.JwtService;
 import com.lirium.nutrition.infrastructure.security.UserDetailsServiceImpl;
@@ -72,8 +72,8 @@ class PatientControllerTest {
     Height height = mock(Height.class);
     Weight weight = mock(Weight.class);
 
-    PatientDetailsDTO response =
-        new PatientDetailsDTO(
+    PatientDetailDTO response =
+        new PatientDetailDTO(
             1L,
             "Juan",
             "Perez",
@@ -128,8 +128,8 @@ class PatientControllerTest {
     Height height = mock(Height.class);
     Weight weight = mock(Weight.class);
 
-    PatientDetailsDTO response =
-        new PatientDetailsDTO(
+    PatientDetailDTO response =
+        new PatientDetailDTO(
             1L,
             "Juan Updated",
             "Perez",

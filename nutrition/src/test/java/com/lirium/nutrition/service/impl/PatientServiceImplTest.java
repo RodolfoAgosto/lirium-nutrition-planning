@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.lirium.nutrition.dto.request.PatientUpdateRequestDTO;
-import com.lirium.nutrition.dto.request.RestrictionUpdateDTO;
-import com.lirium.nutrition.dto.response.PatientDetailsDTO;
+import com.lirium.nutrition.dto.request.RestrictionUpdateRequestDTO;
+import com.lirium.nutrition.dto.response.PatientDetailDTO;
 import com.lirium.nutrition.dto.response.PatientSummaryDTO;
 import com.lirium.nutrition.dto.response.RestrictionSummaryDTO;
 import com.lirium.nutrition.exception.PatientProfileNotFoundException;
@@ -96,7 +96,7 @@ class PatientServiceImplTest {
     when(restrictionMapper.toSummaryDTO(restriction)).thenReturn(restrictionDto);
 
     // When
-    PatientDetailsDTO result = patientService.getPatientDetail(1L);
+    PatientDetailDTO result = patientService.getPatientDetail(1L);
 
     // Then
     assertAll(
@@ -236,7 +236,7 @@ class PatientServiceImplTest {
             ActivityLevel.MODERATE,
             GoalType.WEIGHT_MAINTENANCE,
             "notes",
-            Set.of(new RestrictionUpdateDTO("GLUTEN"), new RestrictionUpdateDTO("LACTOSE")),
+            Set.of(new RestrictionUpdateRequestDTO("GLUTEN"), new RestrictionUpdateRequestDTO("LACTOSE")),
             List.of());
 
     // When + Then
@@ -266,7 +266,7 @@ class PatientServiceImplTest {
     when(restrictionMapper.toDTOSet(any())).thenReturn(Set.of(dto));
 
     // When
-    PatientDetailsDTO result = patientService.updatePatient(1L, generateUpdateRequest());
+    PatientDetailDTO result = patientService.updatePatient(1L, generateUpdateRequest());
 
     // Then
     assertAll(
@@ -326,7 +326,7 @@ class PatientServiceImplTest {
         ActivityLevel.MODERATE,
         GoalType.WEIGHT_MAINTENANCE,
         "updated notes",
-        Set.of(new RestrictionUpdateDTO("GLUTEN")),
+        Set.of(new RestrictionUpdateRequestDTO("GLUTEN")),
         List.of());
   }
 }

@@ -6,8 +6,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.lirium.nutrition.dto.request.CreatePatientRequestDTO;
-import com.lirium.nutrition.dto.request.CreateUserRequestDTO;
+import com.lirium.nutrition.dto.request.PatientCreateRequestDTO;
+import com.lirium.nutrition.dto.request.UserCreateRequestDTO;
 import com.lirium.nutrition.dto.request.UserUpdateRequestDTO;
 import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.model.enums.Role;
@@ -90,8 +90,8 @@ class UserControllerIT extends AbstractIntegrationTest {
   @DisplayName("Debe registrar un usuario")
   void shouldRegisterUser() throws Exception {
 
-    CreateUserRequestDTO request =
-        new CreateUserRequestDTO(
+    UserCreateRequestDTO request =
+        new UserCreateRequestDTO(
             "newuser@test.com", "12345678", "Juan", "Perez", LocalDate.of(1990, 1, 1), "40111222");
 
     mockMvc
@@ -113,8 +113,8 @@ class UserControllerIT extends AbstractIntegrationTest {
   @DisplayName("No debe registrar un usuario con email repetido")
   void shouldReturnConflictWhenEmailAlreadyExists() throws Exception {
 
-    CreateUserRequestDTO request =
-        new CreateUserRequestDTO(
+    UserCreateRequestDTO request =
+        new UserCreateRequestDTO(
             admin.getEmail(), "12345678", "Juan", "Perez", LocalDate.of(1990, 1, 1), "40111222");
 
     mockMvc
@@ -129,8 +129,8 @@ class UserControllerIT extends AbstractIntegrationTest {
   @DisplayName("Debe retornar BadRequest cuando el request es inválido")
   void shouldReturnBadRequestWhenRegisterRequestIsInvalid() throws Exception {
 
-    CreateUserRequestDTO request =
-        new CreateUserRequestDTO("", "123", "", "", LocalDate.now().plusDays(1), "abc");
+    UserCreateRequestDTO request =
+        new UserCreateRequestDTO("", "123", "", "", LocalDate.now().plusDays(1), "abc");
 
     mockMvc
         .perform(
@@ -144,8 +144,8 @@ class UserControllerIT extends AbstractIntegrationTest {
   @DisplayName("ADMIN puede registrar un paciente")
   void shouldRegisterPatientWhenAdminRequests() throws Exception {
 
-    CreatePatientRequestDTO request =
-        new CreatePatientRequestDTO(
+    PatientCreateRequestDTO request =
+        new PatientCreateRequestDTO(
             "patient2@test.com", "Pedro", "Gomez", LocalDate.of(1995, 5, 10), "40555111");
 
     mockMvc
@@ -162,8 +162,8 @@ class UserControllerIT extends AbstractIntegrationTest {
   @DisplayName("PATIENT no puede registrar pacientes")
   void shouldReturnForbiddenWhenPatientRegistersPatient() throws Exception {
 
-    CreatePatientRequestDTO request =
-        new CreatePatientRequestDTO(
+    PatientCreateRequestDTO request =
+        new PatientCreateRequestDTO(
             "patient2@test.com", "Pedro", "Gomez", LocalDate.of(1995, 5, 10), "40555111");
 
     mockMvc
@@ -179,8 +179,8 @@ class UserControllerIT extends AbstractIntegrationTest {
   @DisplayName("No debe registrar un paciente con email repetido")
   void shouldReturnConflictWhenPatientEmailAlreadyExists() throws Exception {
 
-    CreatePatientRequestDTO request =
-        new CreatePatientRequestDTO(
+    PatientCreateRequestDTO request =
+        new PatientCreateRequestDTO(
             patient.getEmail(), "Pedro", "Gomez", LocalDate.of(1995, 5, 10), "40555111");
 
     mockMvc

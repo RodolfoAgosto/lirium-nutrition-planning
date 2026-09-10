@@ -40,7 +40,7 @@ public class PatientServiceImpl implements PatientService {
   }
 
   @Override
-  public PatientDetailsDTO getPatientDetail(Long patientProfileId) {
+  public PatientDetailDTO getPatientDetail(Long patientProfileId) {
 
     log.info("Fetching patient detail patientId={}", patientProfileId);
 
@@ -65,7 +65,7 @@ public class PatientServiceImpl implements PatientService {
 
     log.info("Patient detail fetched successfully patientId={}", patientProfileId);
 
-    return new PatientDetailsDTO(
+    return new PatientDetailDTO(
         profile.getId(),
         user.getFirstName(),
         user.getLastName(),
@@ -86,7 +86,7 @@ public class PatientServiceImpl implements PatientService {
 
   @Override
   @Transactional
-  public PatientDetailsDTO updatePatient(Long patientId, PatientUpdateRequestDTO request) {
+  public PatientDetailDTO updatePatient(Long patientId, PatientUpdateRequestDTO request) {
 
     Objects.requireNonNull(request, "PatientUpdateRequestDTO must not be null");
 
@@ -140,7 +140,7 @@ public class PatientServiceImpl implements PatientService {
 
     log.info("Patient updated successfully patientId={}", patientId);
 
-    return new PatientDetailsDTO(
+    return new PatientDetailDTO(
         user.getId(),
         user.getFirstName(),
         user.getLastName(),
@@ -158,10 +158,10 @@ public class PatientServiceImpl implements PatientService {
         profile.getPhysiologicalConditions());
   }
 
-  private Set<Restriction> resolveRestrictions(Set<RestrictionUpdateDTO> dtos) {
+  private Set<Restriction> resolveRestrictions(Set<RestrictionUpdateRequestDTO> dtos) {
     if (dtos == null || dtos.isEmpty()) return Set.of();
 
-    Set<String> codes = dtos.stream().map(RestrictionUpdateDTO::code).collect(Collectors.toSet());
+    Set<String> codes = dtos.stream().map(RestrictionUpdateRequestDTO::code).collect(Collectors.toSet());
 
     Set<Restriction> restrictions = restrictionRepository.findByCodes(codes);
 

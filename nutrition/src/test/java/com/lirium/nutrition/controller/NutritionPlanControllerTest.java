@@ -6,7 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequestDTO;
+import com.lirium.nutrition.dto.request.NutritionPlanCompleteRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
 import com.lirium.nutrition.infrastructure.security.JwtService;
@@ -59,13 +59,13 @@ class NutritionPlanControllerTest {
   @WithMockUser(roles = "ADMIN")
   void shouldCompleteNutritionPlan() throws Exception {
 
-    CompleteNutritionPlanRequestDTO request =
-        new CompleteNutritionPlanRequestDTO(
+    NutritionPlanCompleteRequestDTO request =
+        new NutritionPlanCompleteRequestDTO(
             "Cierre de Plan Trimestral", "Paciente alcanzó el objetivo de pérdida de peso");
 
     NutritionPlanDetailDTO response = mock(NutritionPlanDetailDTO.class);
 
-    when(nutritionPlanService.complete(eq(1L), any(CompleteNutritionPlanRequestDTO.class)))
+    when(nutritionPlanService.complete(eq(1L), any(NutritionPlanCompleteRequestDTO.class)))
         .thenReturn(response);
 
     mockMvc
@@ -75,7 +75,7 @@ class NutritionPlanControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isOk());
 
-    verify(nutritionPlanService).complete(eq(1L), any(CompleteNutritionPlanRequestDTO.class));
+    verify(nutritionPlanService).complete(eq(1L), any(NutritionPlanCompleteRequestDTO.class));
   }
 
   @Test

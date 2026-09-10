@@ -42,6 +42,6 @@ public record PatientUpdateRequestDTO(
     @Schema(example = "MODERATE") ActivityLevel activityLevel,
     @Schema(example = "WEIGHT_LOSS") GoalType goal,
     @Schema(example = "Paciente con intolerancia al gluten.") String medicalNotes,
-    @Schema(example = "[{\"code\": \"GLUTEN_FREE\"}]") Set<RestrictionUpdateDTO> restrictions,
+    @Schema(example = "[{\"code\": \"GLUTEN_FREE\"}]") Set<RestrictionUpdateRequestDTO> restrictions,
     @ArraySchema(schema = @Schema(example = "PREGNANCY"))
         List<PhysiologicalCondition> physiologicalConditions) {}

@@ -3,7 +3,7 @@ package com.lirium.nutrition.service.impl;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequestDTO;
+import com.lirium.nutrition.dto.request.NutritionPlanCompleteRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
 import com.lirium.nutrition.exception.NutritionPlanNotFoundException;
@@ -60,8 +60,8 @@ class NutritionPlanServiceImplTest {
 
     plan.activate(today.minusDays(1));
 
-    CompleteNutritionPlanRequestDTO request =
-        new CompleteNutritionPlanRequestDTO("Volume", "Muscle-building plan");
+    NutritionPlanCompleteRequestDTO request =
+        new NutritionPlanCompleteRequestDTO("Volume", "Muscle-building plan");
 
     when(repository.findById(planId)).thenReturn(Optional.of(plan));
 
@@ -81,8 +81,8 @@ class NutritionPlanServiceImplTest {
     // Given
     Long planId = 1L;
 
-    CompleteNutritionPlanRequestDTO request =
-        new CompleteNutritionPlanRequestDTO("Volume", "Muscle-building plan");
+    NutritionPlanCompleteRequestDTO request =
+        new NutritionPlanCompleteRequestDTO("Volume", "Muscle-building plan");
 
     when(repository.findById(planId)).thenReturn(Optional.empty());
 

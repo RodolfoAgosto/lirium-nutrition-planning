@@ -12,7 +12,7 @@ import java.time.LocalDate;
  * The password is not required at this stage because the
  * patient will set it later through an invitation or activation flow.
  */
-public record CreatePatientRequestDTO(
+public record PatientCreateRequestDTO(
     @NotBlank(message = "Email is required") @Email(message = "Invalid email format") String email,
     @NotBlank(message = "First name is required") @Size(max = 50) String firstName,
     @NotBlank(message = "Last name is required") @Size(max = 50) String lastName,

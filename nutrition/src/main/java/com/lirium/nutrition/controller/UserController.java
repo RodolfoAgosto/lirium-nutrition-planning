@@ -1,7 +1,7 @@
 package com.lirium.nutrition.controller;
 
-import com.lirium.nutrition.dto.request.CreatePatientRequestDTO;
-import com.lirium.nutrition.dto.request.CreateUserRequestDTO;
+import com.lirium.nutrition.dto.request.PatientCreateRequestDTO;
+import com.lirium.nutrition.dto.request.UserCreateRequestDTO;
 import com.lirium.nutrition.dto.request.UserUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.UserResponseDTO;
 import com.lirium.nutrition.exception.ApiError;
@@ -70,7 +70,7 @@ public class UserController {
       })
   @PostMapping
   public ResponseEntity<UserResponseDTO> registerUser(
-      @Valid @RequestBody CreateUserRequestDTO request) {
+      @Valid @RequestBody UserCreateRequestDTO request) {
 
     log.info("Registering new user");
     log.debug("User register payload={}", request.toString());
@@ -114,7 +114,7 @@ public class UserController {
       })
   @PostMapping("/patient")
   public ResponseEntity<UserResponseDTO> registerPatient(
-      @Valid @RequestBody CreatePatientRequestDTO request) {
+      @Valid @RequestBody PatientCreateRequestDTO request) {
 
     log.info("Registering new patient user");
     log.debug("Patient register payload={}", request.toString());

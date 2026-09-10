@@ -8,8 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lirium.nutrition.dto.request.CreatePatientRequestDTO;
-import com.lirium.nutrition.dto.request.CreateUserRequestDTO;
+import com.lirium.nutrition.dto.request.PatientCreateRequestDTO;
+import com.lirium.nutrition.dto.request.UserCreateRequestDTO;
 import com.lirium.nutrition.dto.request.UserUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.UserResponseDTO;
 import com.lirium.nutrition.infrastructure.security.JwtService;
@@ -43,8 +43,8 @@ class UserControllerTest {
   @Test
   void shouldRegisterUserSuccessfully() throws Exception {
 
-    CreateUserRequestDTO request =
-        new CreateUserRequestDTO(
+    UserCreateRequestDTO request =
+        new UserCreateRequestDTO(
             "test@mail.com", "password123", "John", "Doe", LocalDate.of(2000, 1, 1), "12345678");
 
     UserResponseDTO responseDTO =
@@ -69,8 +69,8 @@ class UserControllerTest {
   @Test
   void shouldRegisterPatientSuccessfully() throws Exception {
 
-    CreatePatientRequestDTO request =
-        new CreatePatientRequestDTO(
+    PatientCreateRequestDTO request =
+        new PatientCreateRequestDTO(
             "patient@mail.com", "John", "Doe", LocalDate.of(2000, 1, 1), "12345678");
 
     UserResponseDTO response =
@@ -84,7 +84,7 @@ class UserControllerTest {
             false,
             true);
 
-    when(userService.registerPatient(any(CreatePatientRequestDTO.class))).thenReturn(response);
+    when(userService.registerPatient(any(PatientCreateRequestDTO.class))).thenReturn(response);
 
     mockMvc
         .perform(
@@ -94,7 +94,7 @@ class UserControllerTest {
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.email").value("patient@mail.com"));
 
-    verify(userService).registerPatient(any(CreatePatientRequestDTO.class));
+    verify(userService).registerPatient(any(PatientCreateRequestDTO.class));
   }
 
   // findById
@@ -204,8 +204,8 @@ class UserControllerTest {
   @Test
   void shouldReturnBadRequestWhenEmailIsInvalid() throws Exception {
 
-    CreateUserRequestDTO request =
-        new CreateUserRequestDTO(
+    UserCreateRequestDTO request =
+        new UserCreateRequestDTO(
             "invalid-email", "password123", "John", "Doe", LocalDate.of(2000, 1, 1), "12345678");
 
     mockMvc
@@ -219,8 +219,8 @@ class UserControllerTest {
   @Test
   void shouldReturnBadRequestWhenPasswordTooShort() throws Exception {
 
-    CreateUserRequestDTO request =
-        new CreateUserRequestDTO(
+    UserCreateRequestDTO request =
+        new UserCreateRequestDTO(
             "test@mail.com", "123", "John", "Doe", LocalDate.of(2000, 1, 1), "12345678");
 
     mockMvc
@@ -234,8 +234,8 @@ class UserControllerTest {
   @Test
   void shouldReturnBadRequestWhenDniInvalid() throws Exception {
 
-    CreateUserRequestDTO request =
-        new CreateUserRequestDTO(
+    UserCreateRequestDTO request =
+        new UserCreateRequestDTO(
             "test@mail.com", "password123", "John", "Doe", LocalDate.of(2000, 1, 1), "ABC123");
 
     mockMvc
@@ -249,8 +249,8 @@ class UserControllerTest {
   @Test
   void shouldReturnBadRequestWhenBirthDateInFuture() throws Exception {
 
-    CreateUserRequestDTO request =
-        new CreateUserRequestDTO(
+    UserCreateRequestDTO request =
+        new UserCreateRequestDTO(
             "test@mail.com", "password123", "John", "Doe", LocalDate.now().plusDays(1), "12345678");
 
     mockMvc
@@ -264,8 +264,8 @@ class UserControllerTest {
   @Test
   void shouldReturnBadRequestWhenEmailBlank() throws Exception {
 
-    CreateUserRequestDTO request =
-        new CreateUserRequestDTO(
+    UserCreateRequestDTO request =
+        new UserCreateRequestDTO(
             "", "password123", "John", "Doe", LocalDate.of(2000, 1, 1), "12345678");
 
     mockMvc

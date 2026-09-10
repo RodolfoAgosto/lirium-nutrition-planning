@@ -21,10 +21,10 @@ public interface RestrictionMapper {
 
   // === UPDATE ===
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-  void updateEntityFromDTO(RestrictionUpdateDTO dto, @MappingTarget Restriction entity);
+  void updateEntityFromDTO(RestrictionUpdateRequestDTO dto, @MappingTarget Restriction entity);
 
   // === Set<DTO> - Set<ENTITY>
-  Set<Restriction> toEntitySet(Set<RestrictionUpdateDTO> dtoSet);
+  Set<Restriction> toEntitySet(Set<RestrictionUpdateRequestDTO> dtoSet);
 
   Set<RestrictionSummaryDTO> toDTOSet(Set<Restriction> restrictions);
 }

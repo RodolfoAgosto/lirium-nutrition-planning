@@ -1,7 +1,7 @@
 package com.lirium.nutrition.controller;
 
 import com.lirium.nutrition.dto.request.PatientUpdateRequestDTO;
-import com.lirium.nutrition.dto.response.PatientDetailsDTO;
+import com.lirium.nutrition.dto.response.PatientDetailDTO;
 import com.lirium.nutrition.dto.response.PatientSummaryDTO;
 import com.lirium.nutrition.service.PatientService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -83,12 +83,12 @@ public class PatientController {
             content =
                 @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = PatientDetailsDTO.class)))
+                    schema = @Schema(implementation = PatientDetailDTO.class)))
       })
   @GetMapping("/{id}")
   @PreAuthorize(
       "hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#id, authentication)")
-  public ResponseEntity<PatientDetailsDTO> getPatient(@PathVariable Long id) {
+  public ResponseEntity<PatientDetailDTO> getPatient(@PathVariable Long id) {
     return ResponseEntity.ok(patientService.getPatientDetail(id));
   }
 
@@ -105,18 +105,18 @@ public class PatientController {
             content =
                 @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = PatientDetailsDTO.class)))
+                    schema = @Schema(implementation = PatientDetailDTO.class)))
       })
   @PutMapping("/{id}")
   @PreAuthorize(
       "hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#id, authentication)")
-  public ResponseEntity<PatientDetailsDTO> updateProfile(
+  public ResponseEntity<PatientDetailDTO> updateProfile(
       @PathVariable("id") @Positive(message = "The ID must be a positive integer.") Long id,
       @Valid @RequestBody PatientUpdateRequestDTO requestDTO) {
 
     log.info("Updating patient profile id={}", id);
     log.debug("Patient update payload={}", requestDTO.toString());
-    PatientDetailsDTO response = patientService.updatePatient(id, requestDTO);
+    PatientDetailDTO response = patientService.updatePatient(id, requestDTO);
     log.info("Patient profile updated successfully id={}", id);
     return ResponseEntity.ok(response);
   }

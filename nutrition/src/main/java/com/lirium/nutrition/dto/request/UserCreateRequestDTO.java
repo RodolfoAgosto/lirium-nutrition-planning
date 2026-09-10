@@ -7,7 +7,7 @@ import java.time.LocalDate;
  * DTO used when a patient registers themselves.
  * Only email and password are strictly required for account creation.
  */
-public record CreateUserRequestDTO(
+public record UserCreateRequestDTO(
     @NotBlank(message = "Email is required") @Email(message = "Invalid email format") String email,
     @NotBlank(message = "Password is required")
         @Size(min = 8, max = 100, message = "Password must have between 8 and 100 characters")

@@ -6,9 +6,9 @@ import java.util.List;
 
 public interface UserService {
 
-  UserResponseDTO registerUser(CreateUserRequestDTO userCreate);
+  UserResponseDTO registerUser(UserCreateRequestDTO userCreate);
 
-  UserResponseDTO registerPatient(CreatePatientRequestDTO userCreate);
+  UserResponseDTO registerPatient(PatientCreateRequestDTO userCreate);
 
   UserResponseDTO findById(Long id);
 

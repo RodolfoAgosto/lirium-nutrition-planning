@@ -1,6 +1,6 @@
 package com.lirium.nutrition.service;
 
-import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequestDTO;
+import com.lirium.nutrition.dto.request.NutritionPlanCompleteRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
 import com.lirium.nutrition.model.entity.NutritionPlan;
@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface NutritionPlanService {
 
-  NutritionPlanDetailDTO complete(Long id, CompleteNutritionPlanRequestDTO request);
+  NutritionPlanDetailDTO complete(Long id, NutritionPlanCompleteRequestDTO request);
 
   NutritionPlanDetailDTO activatePlan(Long planId);
 

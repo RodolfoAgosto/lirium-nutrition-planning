@@ -1,6 +1,6 @@
 package com.lirium.nutrition.service.impl;
 
-import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequestDTO;
+import com.lirium.nutrition.dto.request.NutritionPlanCompleteRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
 import com.lirium.nutrition.exception.NutritionPlanNotFoundException;
@@ -27,7 +27,7 @@ public class NutritionPlanServiceImpl implements NutritionPlanService {
   private final Clock clock;
 
   @Transactional
-  public NutritionPlanDetailDTO complete(Long id, CompleteNutritionPlanRequestDTO request) {
+  public NutritionPlanDetailDTO complete(Long id, NutritionPlanCompleteRequestDTO request) {
 
     NutritionPlan plan =
         repository.findById(id).orElseThrow(() -> new NutritionPlanNotFoundException(id));

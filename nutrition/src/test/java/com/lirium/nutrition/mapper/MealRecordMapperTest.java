@@ -2,7 +2,7 @@ package com.lirium.nutrition.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.lirium.nutrition.dto.request.FoodPortionCreateDTO;
+import com.lirium.nutrition.dto.request.FoodPortionCreateRequestDTO;
 import com.lirium.nutrition.dto.request.MealRecordCreateRequestDTO;
 import com.lirium.nutrition.dto.response.FoodPortionRecordResponseDTO;
 import com.lirium.nutrition.dto.response.MealRecordResponseDTO;
@@ -92,7 +92,7 @@ class MealRecordMapperTest {
             "LUNCH",
             LocalDateTime.now(ARGENTINA_ZONE).minusHours(1),
             "Good meal",
-            List.of(new FoodPortionCreateDTO(1L, 150.0, MeasureUnit.GRAM)));
+            List.of(new FoodPortionCreateRequestDTO(1L, 150.0, MeasureUnit.GRAM)));
 
     User user = new User("user@test.com", "123456", "Juan", "Perez", Role.PATIENT);
 

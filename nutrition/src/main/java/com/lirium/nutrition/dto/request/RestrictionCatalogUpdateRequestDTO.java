@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Schema(description = "Request payload for updating an existing restriction")
-public record RestrictionCatalogUpdateDTO(
+public record RestrictionCatalogUpdateRequestDTO(
     @Schema(description = "Unique code for the restriction", example = "CELIAC")
         @NotBlank(message = "Code is required")
         @Size(min = 2, max = 50, message = "Code must be between 2 and 50 characters")

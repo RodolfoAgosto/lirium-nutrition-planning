@@ -10,4 +10,4 @@ public record MealRecordCreateRequestDTO(
         String type,
     @NotNull LocalDateTime eatenAt,
     @Size(max = 500) String notes,
-    List<FoodPortionCreateDTO> foods) {}
+    List<FoodPortionCreateRequestDTO> foods) {}

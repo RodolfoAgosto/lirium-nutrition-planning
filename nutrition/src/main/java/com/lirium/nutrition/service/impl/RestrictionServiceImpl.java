@@ -1,6 +1,6 @@
 package com.lirium.nutrition.service.impl;
 
-import com.lirium.nutrition.dto.request.RestrictionCatalogUpdateDTO;
+import com.lirium.nutrition.dto.request.RestrictionCatalogUpdateRequestDTO;
 import com.lirium.nutrition.dto.request.RestrictionCreateRequestDTO;
 import com.lirium.nutrition.dto.response.RestrictionResponseDTO;
 import com.lirium.nutrition.dto.response.RestrictionSummaryDTO;
@@ -69,7 +69,7 @@ public class RestrictionServiceImpl implements RestrictionService {
 
   @Override
   @Transactional
-  public RestrictionSummaryDTO update(Long id, RestrictionCatalogUpdateDTO dto) {
+  public RestrictionSummaryDTO update(Long id, RestrictionCatalogUpdateRequestDTO dto) {
 
     log.info("Updating restriction id={}", id);
 

@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 @Schema(
     description =
         "Payload to complete an active nutrition plan and record its clinical closing summary")
-public record CompleteNutritionPlanRequestDTO(
+public record NutritionPlanCompleteRequestDTO(
     @Schema(
             description =
                 "Title or label to identify this completed milestone in the patient's medical history.",

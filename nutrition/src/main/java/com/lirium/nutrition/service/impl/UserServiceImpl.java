@@ -1,7 +1,7 @@
 package com.lirium.nutrition.service.impl;
 
-import com.lirium.nutrition.dto.request.CreatePatientRequestDTO;
-import com.lirium.nutrition.dto.request.CreateUserRequestDTO;
+import com.lirium.nutrition.dto.request.PatientCreateRequestDTO;
+import com.lirium.nutrition.dto.request.UserCreateRequestDTO;
 import com.lirium.nutrition.dto.request.UserUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.UserResponseDTO;
 import com.lirium.nutrition.exception.*;
@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
 
   @Override
   @Transactional
-  public UserResponseDTO registerUser(CreateUserRequestDTO request) {
+  public UserResponseDTO registerUser(UserCreateRequestDTO request) {
 
     log.info("Registering user email={}", request.email());
 
@@ -68,7 +68,7 @@ public class UserServiceImpl implements UserService {
 
   @Override
   @Transactional
-  public UserResponseDTO registerPatient(CreatePatientRequestDTO request) {
+  public UserResponseDTO registerPatient(PatientCreateRequestDTO request) {
 
     log.info("Registering patient email={}", request.email());
 

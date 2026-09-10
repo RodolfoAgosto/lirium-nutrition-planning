@@ -1,6 +1,6 @@
 package com.lirium.nutrition.mapper;
 
-import com.lirium.nutrition.dto.request.FoodPortionCreateDTO;
+import com.lirium.nutrition.dto.request.FoodPortionCreateRequestDTO;
 import com.lirium.nutrition.dto.request.MealRecordCreateRequestDTO;
 import com.lirium.nutrition.dto.response.FoodPortionRecordResponseDTO;
 import com.lirium.nutrition.dto.response.MealRecordResponseDTO;
@@ -56,7 +56,7 @@ public class MealRecordMapper {
     if (dto.foods() != null && !dto.foods().isEmpty()) {
       Map<Long, Food> foodMap = foodsFromDB.stream().collect(Collectors.toMap(Food::getId, f -> f));
 
-      for (FoodPortionCreateDTO portionDTO : dto.foods()) {
+      for (FoodPortionCreateRequestDTO portionDTO : dto.foods()) {
         Food food = foodMap.get(portionDTO.foodId());
         if (food == null) {
           throw new IllegalArgumentException("Food not found for ID: " + portionDTO.foodId());
