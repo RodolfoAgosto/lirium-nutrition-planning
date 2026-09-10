@@ -5,7 +5,6 @@ import com.lirium.nutrition.dto.request.RestrictionCreateRequestDTO;
 import com.lirium.nutrition.dto.response.RestrictionResponseDTO;
 import com.lirium.nutrition.dto.response.RestrictionSummaryDTO;
 import com.lirium.nutrition.exception.InvalidEnumValueException;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.exception.RestrictionAlreadyExistsException;
 import com.lirium.nutrition.exception.RestrictionNotFoundException;
 import com.lirium.nutrition.mapper.RestrictionMapper;
@@ -101,9 +100,7 @@ public class RestrictionServiceImpl implements RestrictionService {
   public void deleteById(Long id) {
 
     Restriction restriction =
-        restrictionRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Restriction", id));
+        restrictionRepository.findById(id).orElseThrow(() -> new RestrictionNotFoundException(id));
 
     restrictionRepository.delete(restriction);
   }
@@ -111,7 +108,7 @@ public class RestrictionServiceImpl implements RestrictionService {
   private Restriction getRestrictionOrThrow(Long id) {
     return restrictionRepository
         .findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Restriction", id));
+        .orElseThrow(() -> new RestrictionNotFoundException(id));
   }
 
   private RestrictionCategory parseCategory(String category) {

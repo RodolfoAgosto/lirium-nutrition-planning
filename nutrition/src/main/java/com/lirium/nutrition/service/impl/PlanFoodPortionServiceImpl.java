@@ -3,7 +3,9 @@ package com.lirium.nutrition.service.impl;
 import com.lirium.nutrition.dto.request.PlanFoodPortionCreateRequestDTO;
 import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateFoodRequestDTO;
 import com.lirium.nutrition.dto.response.*;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.FoodNotFoundException;
+import com.lirium.nutrition.exception.PlanFoodPortionNotFoundException;
+import com.lirium.nutrition.exception.PlanMealNotFoundException;
 import com.lirium.nutrition.mapper.PlanFoodPortionMapper;
 import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.model.enums.PlanStatus;
@@ -37,9 +39,7 @@ public class PlanFoodPortionServiceImpl implements PlanFoodPortionService {
   public PlanFoodPortionResponseDTO getById(Long id) {
 
     PlanFoodPortion portion =
-        repository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("PlanFoodPortion", id));
+        repository.findById(id).orElseThrow(() -> new PlanFoodPortionNotFoundException(id));
 
     return PlanFoodPortionMapper.toResponse(portion);
   }
@@ -52,7 +52,7 @@ public class PlanFoodPortionServiceImpl implements PlanFoodPortionService {
         .orElseThrow(
             () -> {
               log.warn("PlanFoodPortion entity not found id={}", id);
-              return new ResourceNotFoundException("Food", id);
+              return new PlanFoodPortionNotFoundException(id);
             });
   }
 
@@ -67,7 +67,7 @@ public class PlanFoodPortionServiceImpl implements PlanFoodPortionService {
             .orElseThrow(
                 () -> {
                   log.warn("PlanMeal not found id={}", dto.mealId());
-                  return new ResourceNotFoundException("PlanMeal", dto.mealId());
+                  return new PlanMealNotFoundException(dto.mealId());
                 });
 
     Food food =
@@ -76,7 +76,7 @@ public class PlanFoodPortionServiceImpl implements PlanFoodPortionService {
             .orElseThrow(
                 () -> {
                   log.warn("Food not found id={}", dto.foodId());
-                  return new ResourceNotFoundException("Food", dto.foodId());
+                  return new FoodNotFoundException(dto.foodId());
                 });
 
     PlanFoodPortion portion = PlanFoodPortionMapper.toEntity(dto, meal, food);
@@ -109,7 +109,7 @@ public class PlanFoodPortionServiceImpl implements PlanFoodPortionService {
             .orElseThrow(
                 () -> {
                   log.warn("Portion not found id={}", id);
-                  return new ResourceNotFoundException("PlanFoodPortion", id);
+                  return new PlanFoodPortionNotFoundException(id);
                 });
 
     if (portion.getMeal().getDailyPlan().getNutritionPlan().getStatus() != PlanStatus.DRAFT) {
@@ -130,7 +130,7 @@ public class PlanFoodPortionServiceImpl implements PlanFoodPortionService {
               .orElseThrow(
                   () -> {
                     log.warn("Food not found id={}", (portion.getFood().getId()));
-                    return new ResourceNotFoundException("Food", (portion.getFood().getId()));
+                    return new FoodNotFoundException((portion.getFood().getId()));
                   });
 
       if (newFood.getCategory() != portion.getFood().getCategory()) {

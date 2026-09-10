@@ -1,7 +1,7 @@
 package com.lirium.nutrition.service.impl;
 
 import com.lirium.nutrition.dto.response.PatientProfileResponseDTO;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.PatientProfileNotFoundException;
 import com.lirium.nutrition.mapper.PatientProfileMapper;
 import com.lirium.nutrition.model.entity.PatientProfile;
 import com.lirium.nutrition.repository.PatientProfileRepository;
@@ -22,7 +22,10 @@ public class PatientProfileServiceImpl implements PatientProfileService {
 
     return patientProfileRepository
         .findByUserIdFetchUser(userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Patient profile not found", userId));
+        .orElseThrow(
+            () ->
+                new PatientProfileNotFoundException(
+                    "Patient profile not found with userId: " + userId));
   }
 
   @Override
@@ -38,6 +41,6 @@ public class PatientProfileServiceImpl implements PatientProfileService {
   public PatientProfile findById(Long patientId) {
     return patientProfileRepository
         .findById(patientId)
-        .orElseThrow(() -> new ResourceNotFoundException("PatientProfile", patientId));
+        .orElseThrow(() -> new PatientProfileNotFoundException(patientId));
   }
 }

@@ -5,7 +5,7 @@ import com.lirium.nutrition.dto.request.NutritionPlanTemplateUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanTemplateResponseDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanTemplateSummaryDTO;
 import com.lirium.nutrition.exception.DuplicateTemplateException;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.NutritionPlanTemplateNotFoundException;
 import com.lirium.nutrition.mapper.NutritionPlanTemplateMapper;
 import com.lirium.nutrition.model.entity.NutritionPlanTemplate;
 import com.lirium.nutrition.repository.NutritionPlanTemplateRepository;
@@ -109,6 +109,8 @@ public class NutritionPlanTemplateServiceImpl implements NutritionPlanTemplateSe
   }
 
   private NutritionPlanTemplate getOrThrow(Long id) {
-    return repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Template", id));
+    return repository
+        .findById(id)
+        .orElseThrow(() -> new NutritionPlanTemplateNotFoundException(id));
   }
 }

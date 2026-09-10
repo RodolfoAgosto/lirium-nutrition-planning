@@ -11,7 +11,8 @@ import com.lirium.nutrition.dto.response.AdherenceReportDTO;
 import com.lirium.nutrition.dto.response.DailyRecordResponseDTO;
 import com.lirium.nutrition.dto.response.MealRecordResponseDTO;
 import com.lirium.nutrition.dto.response.NutritionComparisonReportDTO;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.DailyRecordNotFoundException;
+import com.lirium.nutrition.exception.MealRecordNotFoundException;
 import com.lirium.nutrition.infrastructure.security.JwtService;
 import com.lirium.nutrition.infrastructure.security.UserDetailsServiceImpl;
 import com.lirium.nutrition.model.enums.MealType;
@@ -102,8 +103,7 @@ class DailyRecordControllerTest {
   @WithMockUser
   void shouldReturnNotFoundWhenDailyRecordDoesNotExist() throws Exception {
 
-    when(dailyRecordService.getById(999L))
-        .thenThrow(new ResourceNotFoundException("Daily record not found", 999L));
+    when(dailyRecordService.getById(999L)).thenThrow(new DailyRecordNotFoundException(999L));
 
     mvc.perform(get("/api/daily-records/999").accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isNotFound());
@@ -175,7 +175,7 @@ class DailyRecordControllerTest {
     MealRecordUpdateRequestDTO request = new MealRecordUpdateRequestDTO("Updated notes");
 
     when(dailyRecordService.updateMeal(eq(999L), any(MealRecordUpdateRequestDTO.class)))
-        .thenThrow(new ResourceNotFoundException("Meal record not found", 999L));
+        .thenThrow(new MealRecordNotFoundException(999L));
 
     mvc.perform(
             patch("/api/daily-records/meals/999")
@@ -238,7 +238,7 @@ class DailyRecordControllerTest {
     FoodPortionAddRequestDTO request = new FoodPortionAddRequestDTO(10L, 2.0, MeasureUnit.GRAM);
 
     when(dailyRecordService.addPortion(eq(999L), any(FoodPortionAddRequestDTO.class)))
-        .thenThrow(new ResourceNotFoundException("Meal record not found", 999L));
+        .thenThrow(new MealRecordNotFoundException(999L));
 
     mvc.perform(
             post("/api/daily-records/meals/999/portions")
@@ -293,7 +293,7 @@ class DailyRecordControllerTest {
     Long mealRecordId = 10L;
     Long portionId = 999L;
 
-    doThrow(new ResourceNotFoundException("Portion not found", 999L))
+    doThrow(new MealRecordNotFoundException(999L))
         .when(dailyRecordService)
         .removePortion(dailyRecordId, mealRecordId, portionId);
 

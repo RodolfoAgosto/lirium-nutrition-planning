@@ -6,7 +6,7 @@ import static org.mockito.Mockito.*;
 import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.NutritionPlanNotFoundException;
 import com.lirium.nutrition.model.entity.NutritionPlan;
 import com.lirium.nutrition.model.entity.PatientProfile;
 import com.lirium.nutrition.model.entity.Restriction;
@@ -175,7 +175,7 @@ class NutritionPlanServiceImplTest {
     when(repository.findById(planId)).thenReturn(Optional.empty());
 
     // When + Then
-    assertThrows(ResourceNotFoundException.class, () -> service.activatePlan(planId));
+    assertThrows(NutritionPlanNotFoundException.class, () -> service.activatePlan(planId));
 
     verify(repository).findById(planId);
 
@@ -193,8 +193,8 @@ class NutritionPlanServiceImplTest {
     when(repository.findById(planId)).thenReturn(Optional.empty());
 
     // When + Then
-    ResourceNotFoundException ex =
-        assertThrows(ResourceNotFoundException.class, () -> service.findById(planId));
+    NutritionPlanNotFoundException ex =
+        assertThrows(NutritionPlanNotFoundException.class, () -> service.findById(planId));
 
     assertTrue(ex.getMessage().contains("NutritionPlan"));
     assertTrue(ex.getMessage().contains(planId.toString()));

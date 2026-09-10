@@ -7,7 +7,6 @@ import com.lirium.nutrition.dto.request.RestrictionCatalogUpdateDTO;
 import com.lirium.nutrition.dto.request.RestrictionCreateRequestDTO;
 import com.lirium.nutrition.dto.response.RestrictionResponseDTO;
 import com.lirium.nutrition.dto.response.RestrictionSummaryDTO;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.exception.RestrictionNotFoundException;
 import com.lirium.nutrition.mapper.RestrictionMapper;
 import com.lirium.nutrition.model.entity.Restriction;
@@ -91,8 +90,8 @@ class RestrictionServiceImplTest {
     when(restrictionRepository.findById(id)).thenReturn(Optional.empty());
 
     // When + Then
-    ResourceNotFoundException ex =
-        assertThrows(ResourceNotFoundException.class, () -> restrictionService.findById(id));
+    RestrictionNotFoundException ex =
+        assertThrows(RestrictionNotFoundException.class, () -> restrictionService.findById(id));
 
     // Assert del mensaje (importante para negocio)
     assertTrue(ex.getMessage().contains("Restriction"));
@@ -205,8 +204,8 @@ class RestrictionServiceImplTest {
     when(restrictionRepository.findById(id)).thenReturn(Optional.empty());
 
     // When + Then
-    ResourceNotFoundException ex =
-        assertThrows(ResourceNotFoundException.class, () -> restrictionService.deleteById(id));
+    RestrictionNotFoundException ex =
+        assertThrows(RestrictionNotFoundException.class, () -> restrictionService.deleteById(id));
 
     assertTrue(ex.getMessage().contains("Restriction"));
 

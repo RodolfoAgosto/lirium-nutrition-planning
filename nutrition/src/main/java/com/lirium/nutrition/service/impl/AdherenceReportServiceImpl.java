@@ -2,7 +2,7 @@ package com.lirium.nutrition.service.impl;
 
 import com.lirium.nutrition.dto.response.AdherenceReportDTO;
 import com.lirium.nutrition.dto.response.DailyAdherenceDTO;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.PatientProfileNotFoundException;
 import com.lirium.nutrition.model.entity.DailyRecord;
 import com.lirium.nutrition.model.entity.NutritionPlan;
 import com.lirium.nutrition.model.enums.MealType;
@@ -36,7 +36,7 @@ public class AdherenceReportServiceImpl implements AdherenceReportService {
     }
 
     if (!patientProfileRepository.existsById(patientId)) {
-      throw new ResourceNotFoundException("Patient", patientId);
+      throw new PatientProfileNotFoundException(patientId);
     }
 
     LocalDate earliestStartDate =

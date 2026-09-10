@@ -85,10 +85,11 @@ class GlobalExceptionHandlerTest {
   }
 
   @Test
-  void shouldHandleResourceNotFound() {
+  void shouldHandleNotFound() {
 
-    ResponseEntity<ApiError> response =
-        handler.handleNotFound(new ResourceNotFoundException("missing", 1L), request());
+    NotFoundException exception = new NotFoundException("Resource not found") {};
+
+    ResponseEntity<ApiError> response = handler.handleNotFound(exception, request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
   }

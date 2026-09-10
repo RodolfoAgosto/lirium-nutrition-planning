@@ -6,7 +6,7 @@ import com.lirium.nutrition.dto.response.DailyNutritionComparisonDTO;
 import com.lirium.nutrition.dto.response.DailyRecordResponseDTO;
 import com.lirium.nutrition.dto.response.MealRecordResponseDTO;
 import com.lirium.nutrition.dto.response.NutritionComparisonReportDTO;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.*;
 import com.lirium.nutrition.mapper.DailyRecordMapper;
 import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.model.enums.MealType;
@@ -120,14 +120,14 @@ public class DailyRecordServiceImpl implements DailyRecordService {
     return dailyRecordRepository
         .findById(id)
         .map(DailyRecordMapper::toResponse)
-        .orElseThrow(() -> new ResourceNotFoundException("DailyRecord", id));
+        .orElseThrow(() -> new DailyRecordNotFoundException(id));
   }
 
   @Override
   public List<DailyRecordResponseDTO> getByPatient(Long patientId) {
 
     if (!patientProfileRepository.existsById(patientId)) {
-      throw new ResourceNotFoundException("Patient", patientId);
+      throw new PatientProfileNotFoundException(patientId);
     }
 
     return dailyRecordRepository.findByPatient_IdOrderByDateDesc(patientId).stream()
@@ -141,13 +141,13 @@ public class DailyRecordServiceImpl implements DailyRecordService {
     DailyRecord dailyRecord =
         dailyRecordRepository
             .findByMealRecordId(mealRecordId)
-            .orElseThrow(() -> new ResourceNotFoundException("DailyRecord for meal", mealRecordId));
+            .orElseThrow(() -> new DailyRecordNotFoundException(mealRecordId));
 
     MealRecord meal =
         dailyRecord.getMeals().stream()
             .filter(m -> m.getId().equals(mealRecordId))
             .findFirst()
-            .orElseThrow(() -> new ResourceNotFoundException(MEAL_RECORD, mealRecordId));
+            .orElseThrow(() -> new MealRecordNotFoundException(mealRecordId));
 
     if (request.notes() != null) {
       meal.markAsOverridden(request.notes());
@@ -166,13 +166,16 @@ public class DailyRecordServiceImpl implements DailyRecordService {
     DailyRecord dailyRecord =
         dailyRecordRepository
             .findByMealRecordId(mealRecordId)
-            .orElseThrow(() -> new ResourceNotFoundException("DailyRecord for meal", mealRecordId));
+            .orElseThrow(
+                () ->
+                    new DailyRecordNotFoundException(
+                        "DailyRecord not found for meal" + mealRecordId));
 
     MealRecord meal =
         dailyRecord.getMeals().stream()
             .filter(m -> m.getId().equals(mealRecordId))
             .findFirst()
-            .orElseThrow(() -> new ResourceNotFoundException(MEAL_RECORD, mealRecordId));
+            .orElseThrow(() -> new MealRecordNotFoundException(mealRecordId));
 
     Food food = foodService.findEntityById(request.foodId());
 
@@ -188,7 +191,7 @@ public class DailyRecordServiceImpl implements DailyRecordService {
     DailyRecord dailyRecord =
         dailyRecordRepository
             .findById(dailyRecordId)
-            .orElseThrow(() -> new ResourceNotFoundException("DailyRecord", dailyRecordId));
+            .orElseThrow(() -> new DailyRecordNotFoundException(dailyRecordId));
 
     NutritionPlan activePlan =
         nutritionPlanService
@@ -208,13 +211,13 @@ public class DailyRecordServiceImpl implements DailyRecordService {
         dailyRecord.getMeals().stream()
             .filter(m -> m.getId().equals(mealRecordId))
             .findFirst()
-            .orElseThrow(() -> new ResourceNotFoundException(MEAL_RECORD, mealRecordId));
+            .orElseThrow(() -> new MealRecordNotFoundException(mealRecordId));
 
     FoodPortionRecord portion =
         meal.getFoodPortions().stream()
             .filter(p -> p.getId().equals(portionId))
             .findFirst()
-            .orElseThrow(() -> new ResourceNotFoundException("FoodPortionRecord", portionId));
+            .orElseThrow(() -> new FoodPortionRecordNotFoundException(portionId));
 
     meal.markAsOverridden();
     meal.removeFoodPortion(portion);
@@ -233,8 +236,8 @@ public class DailyRecordServiceImpl implements DailyRecordService {
             .findActivePlan(patientId)
             .orElseThrow(
                 () ->
-                    new ResourceNotFoundException(
-                        "Active nutrition plan not found for patient with id:", patientId));
+                    new NutritionPlanNotFoundException(
+                        "Active nutrition plan not found for patient with id:" + patientId));
 
     LocalDate effectiveFrom = getEffectiveFrom(activePlan, from);
 
@@ -288,7 +291,7 @@ public class DailyRecordServiceImpl implements DailyRecordService {
 
   private void validatePatientExists(Long patientId) {
     if (!patientProfileRepository.existsById(patientId)) {
-      throw new ResourceNotFoundException("Patient", patientId);
+      throw new PatientProfileNotFoundException(patientId);
     }
   }
 

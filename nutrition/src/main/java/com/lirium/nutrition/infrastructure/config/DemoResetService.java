@@ -2,7 +2,7 @@ package com.lirium.nutrition.infrastructure.config;
 
 import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequestDTO;
 import com.lirium.nutrition.dto.request.FoodPortionAddRequestDTO;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.NutritionPlanNotFoundException;
 import com.lirium.nutrition.model.entity.NutritionPlan;
 import com.lirium.nutrition.model.enums.MeasureUnit;
 import com.lirium.nutrition.repository.NutritionPlanRepository;
@@ -82,7 +82,7 @@ public class DemoResetService {
     NutritionPlan juanPlan =
         nutritionPlanRepository
             .findById(planId)
-            .orElseThrow(() -> new ResourceNotFoundException("NutritionPlan", planId));
+            .orElseThrow(() -> new NutritionPlanNotFoundException(planId));
 
     juanPlan.update(null, null, activationDate, null, null, null, null, null, null);
     nutritionPlanRepository.save(juanPlan);
@@ -120,7 +120,7 @@ public class DemoResetService {
     NutritionPlan mariaPlan =
         nutritionPlanRepository
             .findById(planId)
-            .orElseThrow(() -> new ResourceNotFoundException("NutritionPlan", planId));
+            .orElseThrow(() -> new NutritionPlanNotFoundException(planId));
 
     mariaPlan.update(null, null, activationDate, null, null, null, null, null, null);
     nutritionPlanRepository.save(mariaPlan);

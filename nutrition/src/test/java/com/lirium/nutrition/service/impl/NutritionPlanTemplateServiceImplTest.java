@@ -8,7 +8,7 @@ import com.lirium.nutrition.dto.request.NutritionPlanTemplateUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanTemplateResponseDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanTemplateSummaryDTO;
 import com.lirium.nutrition.exception.DuplicateTemplateException;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.NutritionPlanTemplateNotFoundException;
 import com.lirium.nutrition.model.entity.NutritionPlanTemplate;
 import com.lirium.nutrition.model.enums.GoalType;
 import com.lirium.nutrition.repository.NutritionPlanTemplateRepository;
@@ -231,7 +231,7 @@ class NutritionPlanTemplateServiceImplTest {
     when(repository.findById(1L)).thenReturn(Optional.empty());
 
     // When + Then
-    assertThrows(ResourceNotFoundException.class, () -> service.delete(1L));
+    assertThrows(NutritionPlanTemplateNotFoundException.class, () -> service.delete(1L));
 
     verify(repository).findById(1L);
     verify(repository, never()).delete(any());
@@ -269,7 +269,7 @@ class NutritionPlanTemplateServiceImplTest {
     when(repository.findById(1L)).thenReturn(Optional.empty());
 
     // When + Then
-    assertThrows(ResourceNotFoundException.class, () -> service.getById(1L));
+    assertThrows(NutritionPlanTemplateNotFoundException.class, () -> service.getById(1L));
 
     verify(repository).findById(1L);
   }

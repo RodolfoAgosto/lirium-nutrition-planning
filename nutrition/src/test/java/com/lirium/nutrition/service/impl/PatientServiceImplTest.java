@@ -8,7 +8,8 @@ import com.lirium.nutrition.dto.request.RestrictionUpdateDTO;
 import com.lirium.nutrition.dto.response.PatientDetailsDTO;
 import com.lirium.nutrition.dto.response.PatientSummaryDTO;
 import com.lirium.nutrition.dto.response.RestrictionSummaryDTO;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.PatientProfileNotFoundException;
+import com.lirium.nutrition.exception.RestrictionNotFoundException;
 import com.lirium.nutrition.mapper.RestrictionMapper;
 import com.lirium.nutrition.model.entity.PatientProfile;
 import com.lirium.nutrition.model.entity.Restriction;
@@ -70,10 +71,12 @@ class PatientServiceImplTest {
     when(patientProfileRepository.findById(id)).thenReturn(Optional.empty());
 
     // When + Then
-    ResourceNotFoundException ex =
-        assertThrows(ResourceNotFoundException.class, () -> patientService.getPatientDetail(id));
+    PatientProfileNotFoundException ex =
+        assertThrows(
+            PatientProfileNotFoundException.class, () -> patientService.getPatientDetail(id));
 
-    assertTrue(ex.getMessage().contains("Patient not found"));
+    System.out.println(ex.getMessage());
+    assertTrue(ex.getMessage().contains("PatientProfile not found with id: 21"));
 
     verify(patientProfileRepository).findById(id);
   }
@@ -237,9 +240,9 @@ class PatientServiceImplTest {
             List.of());
 
     // When + Then
-    ResourceNotFoundException ex =
+    RestrictionNotFoundException ex =
         assertThrows(
-            ResourceNotFoundException.class, () -> patientService.updatePatient(1L, request));
+            RestrictionNotFoundException.class, () -> patientService.updatePatient(1L, request));
 
     assertTrue(ex.getMessage().contains("Restrictions not found"));
   }

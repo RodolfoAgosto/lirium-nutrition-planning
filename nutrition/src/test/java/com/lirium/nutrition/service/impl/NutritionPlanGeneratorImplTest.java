@@ -7,8 +7,9 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
+import com.lirium.nutrition.exception.NutritionPlanTemplateNotFoundException;
+import com.lirium.nutrition.exception.PatientProfileNotFoundException;
 import com.lirium.nutrition.exception.PlanConflictException;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.model.entity.NutritionPlan;
 import com.lirium.nutrition.model.entity.NutritionPlanTemplate;
 import com.lirium.nutrition.model.entity.PatientProfile;
@@ -62,7 +63,8 @@ class NutritionPlanGeneratorImplTest {
     when(repository.findById(patientId)).thenReturn(Optional.empty());
 
     // When - Then
-    assertThrows(ResourceNotFoundException.class, () -> nutritionPlanGenerator.generate(patientId));
+    assertThrows(
+        PatientProfileNotFoundException.class, () -> nutritionPlanGenerator.generate(patientId));
 
     verify(repository).findById(patientId);
 
@@ -156,7 +158,7 @@ class NutritionPlanGeneratorImplTest {
 
     // When - Then
     assertThrows(
-        ResourceNotFoundException.class,
+        PatientProfileNotFoundException.class,
         () -> nutritionPlanGenerator.generateFromTemplate(patientId, templateId));
 
     verify(repository).findById(patientId);
@@ -255,7 +257,7 @@ class NutritionPlanGeneratorImplTest {
 
     // When / Then
     assertThrows(
-        ResourceNotFoundException.class,
+        NutritionPlanTemplateNotFoundException.class,
         () -> nutritionPlanGenerator.generateFromTemplate(patientId, templateId));
 
     verify(templateRepository).findById(templateId);
