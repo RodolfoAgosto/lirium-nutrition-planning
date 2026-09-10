@@ -161,7 +161,8 @@ public class PatientServiceImpl implements PatientService {
   private Set<Restriction> resolveRestrictions(Set<RestrictionUpdateRequestDTO> dtos) {
     if (dtos == null || dtos.isEmpty()) return Set.of();
 
-    Set<String> codes = dtos.stream().map(RestrictionUpdateRequestDTO::code).collect(Collectors.toSet());
+    Set<String> codes =
+        dtos.stream().map(RestrictionUpdateRequestDTO::code).collect(Collectors.toSet());
 
     Set<Restriction> restrictions = restrictionRepository.findByCodes(codes);
 

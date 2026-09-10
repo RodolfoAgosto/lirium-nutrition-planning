@@ -236,7 +236,9 @@ class PatientServiceImplTest {
             ActivityLevel.MODERATE,
             GoalType.WEIGHT_MAINTENANCE,
             "notes",
-            Set.of(new RestrictionUpdateRequestDTO("GLUTEN"), new RestrictionUpdateRequestDTO("LACTOSE")),
+            Set.of(
+                new RestrictionUpdateRequestDTO("GLUTEN"),
+                new RestrictionUpdateRequestDTO("LACTOSE")),
             List.of());
 
     // When + Then

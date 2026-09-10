@@ -1,7 +1,7 @@
 package com.lirium.nutrition.infrastructure.config;
 
-import com.lirium.nutrition.dto.request.NutritionPlanCompleteRequestDTO;
 import com.lirium.nutrition.dto.request.FoodPortionAddRequestDTO;
+import com.lirium.nutrition.dto.request.NutritionPlanCompleteRequestDTO;
 import com.lirium.nutrition.exception.NutritionPlanNotFoundException;
 import com.lirium.nutrition.model.entity.NutritionPlan;
 import com.lirium.nutrition.model.enums.MeasureUnit;
