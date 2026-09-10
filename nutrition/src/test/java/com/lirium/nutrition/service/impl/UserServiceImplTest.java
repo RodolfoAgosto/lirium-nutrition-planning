@@ -9,7 +9,7 @@ import com.lirium.nutrition.dto.request.UserUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.UserResponseDTO;
 import com.lirium.nutrition.exception.AccountDisabledException;
 import com.lirium.nutrition.exception.EmailAlreadyExistsException;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.UserNotFoundException;
 import com.lirium.nutrition.mapper.UserMapper;
 import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.repository.UserRepository;
@@ -174,7 +174,7 @@ class UserServiceImplTest {
     when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
     // When / Then
-    assertThrows(ResourceNotFoundException.class, () -> userService.findById(1L));
+    assertThrows(UserNotFoundException.class, () -> userService.findById(1L));
 
     verify(userRepository).findById(1L);
 
@@ -209,7 +209,7 @@ class UserServiceImplTest {
     when(userRepository.findByEmail("test@test.com")).thenReturn(Optional.empty());
 
     // When / Then
-    assertThrows(ResourceNotFoundException.class, () -> userService.findByEmail("test@test.com"));
+    assertThrows(UserNotFoundException.class, () -> userService.findByEmail("test@test.com"));
 
     verify(userRepository).findByEmail("test@test.com");
 
@@ -278,7 +278,7 @@ class UserServiceImplTest {
     when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
     // When / Then
-    assertThrows(ResourceNotFoundException.class, () -> userService.updateBasicInfo(1L, request));
+    assertThrows(UserNotFoundException.class, () -> userService.updateBasicInfo(1L, request));
 
     verify(userRepository).findById(1L);
 

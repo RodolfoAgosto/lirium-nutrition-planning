@@ -151,7 +151,7 @@ class PlanMealControllerIT extends AbstractIntegrationTest {
         .perform(get("/api/plan-meals/day/999999").header("Authorization", adminToken))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.status").value(404))
-        .andExpect(jsonPath("$.message").value("Daily plan  not found with id: 999999"));
+        .andExpect(jsonPath("$.message").value("DailyPlan not found with id: 999999"));
   }
 
   @Test

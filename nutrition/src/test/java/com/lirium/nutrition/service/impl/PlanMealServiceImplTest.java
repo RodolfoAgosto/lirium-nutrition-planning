@@ -10,8 +10,9 @@ import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateQuantityRequestDTO;
 import com.lirium.nutrition.dto.request.PlanMealCreateRequestDTO;
 import com.lirium.nutrition.dto.response.PlanMealResponseDTO;
 import com.lirium.nutrition.dto.response.PlanMealSummaryDTO;
+import com.lirium.nutrition.exception.DailyPlanNotFoundException;
 import com.lirium.nutrition.exception.DuplicateFoodException;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.PlanMealNotFoundException;
 import com.lirium.nutrition.exception.UnprocessableEntityException;
 import com.lirium.nutrition.mapper.PlanFoodPortionMapper;
 import com.lirium.nutrition.mapper.PlanMealMapper;
@@ -57,7 +58,7 @@ class PlanMealServiceImplTest {
     given(dailyPlanRepository.findById(dailyPlanId)).willReturn(Optional.empty());
 
     // When / Then
-    assertThrows(ResourceNotFoundException.class, () -> service.create(dto));
+    assertThrows(DailyPlanNotFoundException.class, () -> service.create(dto));
 
     verify(repository, never()).save(any());
   }
@@ -160,7 +161,7 @@ class PlanMealServiceImplTest {
     when(repository.findById(id)).thenReturn(Optional.empty());
 
     // When & Then
-    assertThrows(ResourceNotFoundException.class, () -> service.delete(id));
+    assertThrows(PlanMealNotFoundException.class, () -> service.delete(id));
     verify(repository, never()).delete(any());
   }
 
@@ -219,7 +220,7 @@ class PlanMealServiceImplTest {
 
     FoodPortionAddRequestDTO dto = new FoodPortionAddRequestDTO(10L, 100.0, MeasureUnit.GRAM);
 
-    assertThrows(ResourceNotFoundException.class, () -> service.addPortion(1L, dto));
+    assertThrows(PlanMealNotFoundException.class, () -> service.addPortion(1L, dto));
   }
 
   @Test
@@ -319,7 +320,7 @@ class PlanMealServiceImplTest {
     given(repository.findById(1L)).willReturn(Optional.empty());
 
     assertThrows(
-        ResourceNotFoundException.class,
+        PlanMealNotFoundException.class,
         () -> service.updateQuantity(1L, 1L, new PlanFoodPortionUpdateQuantityRequestDTO(100.0)));
   }
 

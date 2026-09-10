@@ -9,7 +9,7 @@ import com.lirium.nutrition.dto.request.MealRecordUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.DailyNutritionComparisonDTO;
 import com.lirium.nutrition.dto.response.DailyRecordResponseDTO;
 import com.lirium.nutrition.dto.response.NutritionComparisonReportDTO;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.*;
 import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.model.enums.*;
 import com.lirium.nutrition.model.valueobject.*;
@@ -412,8 +412,8 @@ class DailyRecordServiceImplTest {
     when(dailyRecordRepository.findById(id)).thenReturn(Optional.empty());
 
     // When + Then
-    ResourceNotFoundException ex =
-        assertThrows(ResourceNotFoundException.class, () -> service.getById(id));
+    DailyRecordNotFoundException ex =
+        assertThrows(DailyRecordNotFoundException.class, () -> service.getById(id));
 
     assertTrue(ex.getMessage().contains("DailyRecord"));
     assertTrue(ex.getMessage().contains(id.toString()));
@@ -636,7 +636,7 @@ class DailyRecordServiceImplTest {
     when(dailyRecordRepository.findByMealRecordId(mealId)).thenReturn(Optional.of(dailyRecord));
 
     // When + Then
-    assertThrows(ResourceNotFoundException.class, () -> service.addPortion(mealId, request));
+    assertThrows(MealRecordNotFoundException.class, () -> service.addPortion(mealId, request));
 
     verify(foodService, never()).findEntityById(anyLong());
     verify(dailyRecordRepository, never()).save(any());
@@ -704,7 +704,7 @@ class DailyRecordServiceImplTest {
 
     // When + Then
     assertThrows(
-        ResourceNotFoundException.class,
+        MealRecordNotFoundException.class,
         () -> service.removePortion(dailyRecordId, mealId, portionId));
 
     verify(dailyRecordRepository, never()).save(any());
@@ -737,7 +737,7 @@ class DailyRecordServiceImplTest {
 
     // When + Then
     assertThrows(
-        ResourceNotFoundException.class,
+        FoodPortionRecordNotFoundException.class,
         () -> service.removePortion(dailyRecordId, mealId, portionId));
 
     verify(dailyRecordRepository, never()).save(any());
@@ -756,7 +756,7 @@ class DailyRecordServiceImplTest {
 
     // Asertar la excepción correcta
     assertThrows(
-        ResourceNotFoundException.class,
+        NutritionPlanNotFoundException.class,
         () -> service.getNutritionComparison(patientId, START, END));
 
     verify(dailyRecordRepository, never()).findByPatient_IdAndDateBetween(anyLong(), any(), any());
@@ -858,7 +858,7 @@ class DailyRecordServiceImplTest {
 
     MealRecordUpdateRequestDTO request = new MealRecordUpdateRequestDTO("notes");
 
-    assertThrows(ResourceNotFoundException.class, () -> service.updateMeal(mealId, request));
+    assertThrows(DailyRecordNotFoundException.class, () -> service.updateMeal(mealId, request));
 
     verify(dailyRecordRepository).findByMealRecordId(mealId);
 
@@ -878,7 +878,7 @@ class DailyRecordServiceImplTest {
 
     MealRecordUpdateRequestDTO request = new MealRecordUpdateRequestDTO("notes");
 
-    assertThrows(ResourceNotFoundException.class, () -> service.updateMeal(mealId, request));
+    assertThrows(MealRecordNotFoundException.class, () -> service.updateMeal(mealId, request));
 
     verify(dailyRecordRepository, never()).save(any());
   }
@@ -892,7 +892,7 @@ class DailyRecordServiceImplTest {
 
     when(dailyRecordRepository.findByMealRecordId(mealId)).thenReturn(Optional.empty());
 
-    assertThrows(ResourceNotFoundException.class, () -> service.addPortion(mealId, request));
+    assertThrows(DailyRecordNotFoundException.class, () -> service.addPortion(mealId, request));
 
     verify(foodService, never()).findEntityById(anyLong());
 
@@ -1082,9 +1082,9 @@ class DailyRecordServiceImplTest {
     MealRecordUpdateRequestDTO request = new MealRecordUpdateRequestDTO("notes");
 
     // When + Then
-    ResourceNotFoundException ex =
+    MealRecordNotFoundException ex =
         assertThrows(
-            ResourceNotFoundException.class, () -> service.updateMeal(mealRecordId, request));
+            MealRecordNotFoundException.class, () -> service.updateMeal(mealRecordId, request));
 
     assertTrue(ex.getMessage().contains("MealRecord"));
 
@@ -1104,9 +1104,9 @@ class DailyRecordServiceImplTest {
     when(dailyRecordRepository.findById(dailyRecordId)).thenReturn(Optional.empty());
 
     // When + Then
-    ResourceNotFoundException ex =
+    DailyRecordNotFoundException ex =
         assertThrows(
-            ResourceNotFoundException.class,
+            DailyRecordNotFoundException.class,
             () -> service.removePortion(dailyRecordId, mealRecordId, portionId));
 
     assertTrue(ex.getMessage().contains("DailyRecord"));
@@ -1145,9 +1145,9 @@ class DailyRecordServiceImplTest {
     when(dailyRecordRepository.findById(dailyRecordId)).thenReturn(Optional.of(dailyRecord));
 
     // When + Then
-    ResourceNotFoundException ex =
+    MealRecordNotFoundException ex =
         assertThrows(
-            ResourceNotFoundException.class,
+            MealRecordNotFoundException.class,
             () -> service.removePortion(dailyRecordId, mealRecordId, portionId));
 
     assertTrue(ex.getMessage().contains("MealRecord"));
@@ -1191,9 +1191,9 @@ class DailyRecordServiceImplTest {
     when(dailyRecordRepository.findById(dailyRecordId)).thenReturn(Optional.of(dailyRecord));
 
     // When + Then
-    ResourceNotFoundException ex =
+    FoodPortionRecordNotFoundException ex =
         assertThrows(
-            ResourceNotFoundException.class,
+            FoodPortionRecordNotFoundException.class,
             () -> service.removePortion(dailyRecordId, mealRecordId, portionId));
 
     assertTrue(ex.getMessage().contains("FoodPortionRecord"));
@@ -1209,7 +1209,8 @@ class DailyRecordServiceImplTest {
     when(patientProfileRepository.existsById(1L)).thenReturn(false);
 
     assertThrows(
-        ResourceNotFoundException.class, () -> service.getNutritionComparison(1L, START, END));
+        PatientProfileNotFoundException.class,
+        () -> service.getNutritionComparison(1L, START, END));
 
     verify(patientProfileRepository).existsById(1L);
   }

@@ -2,7 +2,8 @@ package com.lirium.nutrition.service.impl;
 
 import com.lirium.nutrition.dto.request.*;
 import com.lirium.nutrition.dto.response.*;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.PatientProfileNotFoundException;
+import com.lirium.nutrition.exception.RestrictionNotFoundException;
 import com.lirium.nutrition.mapper.RestrictionMapper;
 import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.model.enums.PhysiologicalCondition;
@@ -49,7 +50,7 @@ public class PatientServiceImpl implements PatientService {
             .orElseThrow(
                 () -> {
                   log.warn("Patient not found id={}", patientProfileId);
-                  return new ResourceNotFoundException("Patient not found", patientProfileId);
+                  return new PatientProfileNotFoundException(patientProfileId);
                 });
 
     User user = profile.getUser();
@@ -168,7 +169,7 @@ public class PatientServiceImpl implements PatientService {
       Set<String> foundCodes =
           restrictions.stream().map(Restriction::getCode).collect(Collectors.toSet());
       codes.removeAll(foundCodes);
-      throw new ResourceNotFoundException("Restrictions not found", codes.toString());
+      throw new RestrictionNotFoundException("Restrictions not found" + codes.toString());
     }
 
     return restrictions;

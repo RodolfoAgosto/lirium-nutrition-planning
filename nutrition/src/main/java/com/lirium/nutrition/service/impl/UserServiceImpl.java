@@ -4,10 +4,7 @@ import com.lirium.nutrition.dto.request.CreatePatientRequestDTO;
 import com.lirium.nutrition.dto.request.CreateUserRequestDTO;
 import com.lirium.nutrition.dto.request.UserUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.UserResponseDTO;
-import com.lirium.nutrition.exception.AccountDisabledException;
-import com.lirium.nutrition.exception.DNIAlreadyExistsException;
-import com.lirium.nutrition.exception.EmailAlreadyExistsException;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.*;
 import com.lirium.nutrition.mapper.UserMapper;
 import com.lirium.nutrition.model.entity.PatientProfile;
 import com.lirium.nutrition.model.entity.User;
@@ -52,7 +49,7 @@ public class UserServiceImpl implements UserService {
 
     if (request.dni() != null && userRepository.existsByDni(request.dni())) {
       log.warn("User registration failed - DNI already exists: dni={}", request.dni());
-      throw new DNIAlreadyExistsException("User already exists with DNI: " + request.dni());
+      throw new DniAlreadyExistsException("User already exists with DNI: " + request.dni());
     }
 
     User user = userMapper.toEntity(request);
@@ -82,7 +79,7 @@ public class UserServiceImpl implements UserService {
 
     if (request.dni() != null && userRepository.existsByDni(request.dni())) {
       log.warn("User registration failed - DNI already exists: dni={}", request.dni());
-      throw new DNIAlreadyExistsException("User already exists with DNI: " + request.dni());
+      throw new DniAlreadyExistsException("User already exists with DNI: " + request.dni());
     }
 
     User user = userMapper.toEntity(request);
@@ -111,9 +108,7 @@ public class UserServiceImpl implements UserService {
   @Override
   public UserResponseDTO findByEmail(String email) {
     User user =
-        userRepository
-            .findByEmail(email)
-            .orElseThrow(() -> new ResourceNotFoundException("User", email));
+        userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
     return userMapper.toResponseDTO(user);
   }
 
@@ -186,6 +181,6 @@ public class UserServiceImpl implements UserService {
   }
 
   private User getUserOrThrow(Long id) {
-    return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
+    return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
   }
 }

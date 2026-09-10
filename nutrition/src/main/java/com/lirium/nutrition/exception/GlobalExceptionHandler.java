@@ -135,23 +135,6 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
   }
 
-  @ExceptionHandler(ResourceNotFoundException.class)
-  public ResponseEntity<ApiError> handleNotFound(
-      ResourceNotFoundException ex, HttpServletRequest request) {
-
-    log.warn("Resource not found path={} message={}", request.getRequestURI(), ex.getMessage());
-
-    ApiError error =
-        new ApiError(
-            HttpStatus.NOT_FOUND.value(),
-            "Resource Not Found",
-            ex.getMessage(),
-            request.getRequestURI(),
-            LocalDateTime.now(ARGENTINA_ZONE));
-
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-  }
-
   @ExceptionHandler(EmailAlreadyExistsException.class)
   public ResponseEntity<ApiError> handleEmailExists(
       EmailAlreadyExistsException ex, HttpServletRequest request) {
@@ -169,9 +152,9 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
   }
 
-  @ExceptionHandler(DNIAlreadyExistsException.class)
+  @ExceptionHandler(DniAlreadyExistsException.class)
   public ResponseEntity<ApiError> handleDNIExists(
-      DNIAlreadyExistsException ex, HttpServletRequest request) {
+      DniAlreadyExistsException ex, HttpServletRequest request) {
 
     log.warn("DNI already exists path={} message={}", request.getRequestURI(), ex.getMessage());
 
@@ -207,7 +190,7 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
   }
 
-  @ExceptionHandler({InvalidGoalException.class, InvalidMealStructureException.class})
+  @ExceptionHandler({InvalidGoalException.class})
   public ResponseEntity<ApiError> handleBadRequest(
       RuntimeException ex, HttpServletRequest request) {
 
@@ -366,7 +349,7 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
   }
 
-  @ExceptionHandler(UnprocessableEntityException.class)
+  @ExceptionHandler({UnprocessableEntityException.class, InvalidMealStructureException.class})
   public ResponseEntity<ApiError> handleUnprocessableEntity(
       UnprocessableEntityException ex, HttpServletRequest request) {
 
@@ -492,23 +475,6 @@ public class GlobalExceptionHandler {
             LocalDateTime.now(ARGENTINA_ZONE));
 
     return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
-  }
-
-  @ExceptionHandler(RestrictionNotFoundException.class)
-  public ResponseEntity<ApiError> handleRestrictionNotFound(
-      RestrictionNotFoundException ex, HttpServletRequest request) {
-
-    log.warn("Restriction not found path={} message={}", request.getRequestURI(), ex.getMessage());
-
-    ApiError error =
-        new ApiError(
-            HttpStatus.NOT_FOUND.value(),
-            "Resource Not Found",
-            ex.getMessage(),
-            request.getRequestURI(),
-            LocalDateTime.now(ARGENTINA_ZONE));
-
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
   }
 
   @ExceptionHandler(UnauthorizedException.class)

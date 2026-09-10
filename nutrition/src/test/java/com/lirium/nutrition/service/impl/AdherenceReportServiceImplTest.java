@@ -5,7 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.lirium.nutrition.dto.response.AdherenceReportDTO;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.PatientProfileNotFoundException;
 import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.model.enums.GoalType;
 import com.lirium.nutrition.model.enums.MealType;
@@ -189,7 +189,7 @@ class AdherenceReportServiceImplTest {
 
     // When & Then
     assertThrows(
-        ResourceNotFoundException.class, () -> service.getAdherence(patientId, START, END));
+        PatientProfileNotFoundException.class, () -> service.getAdherence(patientId, START, END));
   }
 
   @Test

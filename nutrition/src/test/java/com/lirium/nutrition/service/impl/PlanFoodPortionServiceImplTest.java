@@ -8,7 +8,9 @@ import static org.mockito.Mockito.*;
 import com.lirium.nutrition.dto.request.PlanFoodPortionCreateRequestDTO;
 import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateFoodRequestDTO;
 import com.lirium.nutrition.dto.response.PlanFoodPortionResponseDTO;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.FoodNotFoundException;
+import com.lirium.nutrition.exception.PlanFoodPortionNotFoundException;
+import com.lirium.nutrition.exception.PlanMealNotFoundException;
 import com.lirium.nutrition.mapper.PlanFoodPortionMapper;
 import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.model.enums.FoodCategory;
@@ -136,7 +138,7 @@ class PlanFoodPortionServiceImplTest {
 
     var dto = createPlanFoodPortionCreateRequestDTO();
 
-    assertThrows(ResourceNotFoundException.class, () -> service.create(dto));
+    assertThrows(PlanMealNotFoundException.class, () -> service.create(dto));
   }
 
   @Test
@@ -150,7 +152,7 @@ class PlanFoodPortionServiceImplTest {
 
     var dto = createPlanFoodPortionCreateRequestDTO();
 
-    assertThrows(ResourceNotFoundException.class, () -> service.create(dto));
+    assertThrows(FoodNotFoundException.class, () -> service.create(dto));
   }
 
   @Test
@@ -167,7 +169,7 @@ class PlanFoodPortionServiceImplTest {
     when(repository.findById(1L)).thenReturn(Optional.empty());
 
     assertThrows(
-        ResourceNotFoundException.class,
+        PlanFoodPortionNotFoundException.class,
         () -> service.update(1L, new PlanFoodPortionUpdateFoodRequestDTO(null, null)));
   }
 
@@ -207,7 +209,7 @@ class PlanFoodPortionServiceImplTest {
 
     when(repository.findById(1L)).thenReturn(Optional.empty());
 
-    assertThrows(ResourceNotFoundException.class, () -> service.findEntityById(1L));
+    assertThrows(PlanFoodPortionNotFoundException.class, () -> service.findEntityById(1L));
 
     verify(repository).findById(1L);
   }
@@ -417,7 +419,7 @@ class PlanFoodPortionServiceImplTest {
     // When / Then
     assertThatThrownBy(
             () -> service.update(1L, new PlanFoodPortionUpdateFoodRequestDTO(null, null)))
-        .isInstanceOf(ResourceNotFoundException.class);
+        .isInstanceOf(FoodNotFoundException.class);
 
     verify(repository, never()).save(any());
     verify(portion, never()).changeFood(any());

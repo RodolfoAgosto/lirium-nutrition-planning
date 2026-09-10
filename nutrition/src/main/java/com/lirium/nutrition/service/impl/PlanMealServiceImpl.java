@@ -5,8 +5,7 @@ import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateQuantityRequestDTO;
 import com.lirium.nutrition.dto.request.PlanMealCreateRequestDTO;
 import com.lirium.nutrition.dto.response.PlanMealResponseDTO;
 import com.lirium.nutrition.dto.response.PlanMealSummaryDTO;
-import com.lirium.nutrition.exception.DuplicateFoodException;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.*;
 import com.lirium.nutrition.mapper.PlanFoodPortionMapper;
 import com.lirium.nutrition.mapper.PlanMealMapper;
 import com.lirium.nutrition.model.entity.*;
@@ -35,10 +34,7 @@ public class PlanMealServiceImpl implements PlanMealService {
   @Override
   public PlanMealResponseDTO getById(Long id) {
 
-    PlanMeal meal =
-        repository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Plan Meal not found", id));
+    PlanMeal meal = repository.findById(id).orElseThrow(() -> new PlanMealNotFoundException(id));
 
     return PlanMealMapper.toResponse(meal);
   }
@@ -48,7 +44,7 @@ public class PlanMealServiceImpl implements PlanMealService {
   public List<PlanMealSummaryDTO> getByPlanDay(Long planDayId) {
 
     if (!dailyPlanRepository.existsById(planDayId)) {
-      throw new ResourceNotFoundException("Daily plan ", planDayId);
+      throw new DailyPlanNotFoundException(planDayId);
     }
 
     return repository.findByDailyPlanId(planDayId).stream().map(PlanMealMapper::toSummary).toList();
@@ -65,7 +61,7 @@ public class PlanMealServiceImpl implements PlanMealService {
             .orElseThrow(
                 () -> {
                   log.warn("Daily plan not found id={}", dto.dailyPlanId());
-                  return new ResourceNotFoundException("Daily Plan", dto.dailyPlanId());
+                  return new DailyPlanNotFoundException(dto.dailyPlanId());
                 });
 
     log.debug("Plan meal payload dailyPlanId={} type={}", dto.dailyPlanId(), dto.type());
@@ -88,7 +84,7 @@ public class PlanMealServiceImpl implements PlanMealService {
   public void delete(Long id) {
 
     PlanMeal planMeal =
-        repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Plan meal ", id));
+        repository.findById(id).orElseThrow(() -> new PlanMealNotFoundException(id));
 
     NutritionPlan plan = planMeal.getDailyPlan().getNutritionPlan();
     plan.ensureEditable();
@@ -103,9 +99,7 @@ public class PlanMealServiceImpl implements PlanMealService {
   public PlanMealResponseDTO addPortion(Long mealId, FoodPortionAddRequestDTO dto) {
 
     PlanMeal planMeal =
-        repository
-            .findById(mealId)
-            .orElseThrow(() -> new ResourceNotFoundException(PLAN_MEAL, mealId));
+        repository.findById(mealId).orElseThrow(() -> new PlanMealNotFoundException(mealId));
 
     planMeal.getDailyPlan().getNutritionPlan().ensureEditable();
 
@@ -128,9 +122,7 @@ public class PlanMealServiceImpl implements PlanMealService {
   public PlanMealResponseDTO removePortion(Long mealId, Long portionId) {
 
     PlanMeal planMeal =
-        repository
-            .findById(mealId)
-            .orElseThrow(() -> new ResourceNotFoundException(PLAN_MEAL, mealId));
+        repository.findById(mealId).orElseThrow(() -> new PlanMealNotFoundException(mealId));
 
     planMeal.getDailyPlan().getNutritionPlan().ensureEditable();
 
@@ -158,14 +150,12 @@ public class PlanMealServiceImpl implements PlanMealService {
         mealId);
 
     PlanMeal meal =
-        repository
-            .findById(mealId)
-            .orElseThrow(() -> new ResourceNotFoundException(PLAN_MEAL, mealId));
+        repository.findById(mealId).orElseThrow(() -> new PlanMealNotFoundException(mealId));
 
     PlanFoodPortion portion =
         planFoodPortionRepository
             .findById(portionId)
-            .orElseThrow(() -> new ResourceNotFoundException("PlanFoodPortion", portionId));
+            .orElseThrow(() -> new PlanFoodPortionNotFoundException(portionId));
 
     if (!portion.getMeal().getId().equals(mealId)) {
       log.warn("Mismatch: portionId={} does not belong to mealId={}", portionId, mealId);

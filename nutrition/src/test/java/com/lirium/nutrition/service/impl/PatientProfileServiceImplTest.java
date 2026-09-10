@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.lirium.nutrition.dto.response.PatientProfileResponseDTO;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
+import com.lirium.nutrition.exception.PatientProfileNotFoundException;
 import com.lirium.nutrition.mapper.PatientProfileMapper;
 import com.lirium.nutrition.model.entity.PatientProfile;
 import com.lirium.nutrition.model.entity.User;
@@ -40,8 +40,9 @@ class PatientProfileServiceImplTest {
     when(patientProfileRepository.findByUserIdFetchUser(1L)).thenReturn(Optional.empty());
 
     // When + Then
-    ResourceNotFoundException ex =
-        assertThrows(ResourceNotFoundException.class, () -> patientProfileService.findByUserId(1L));
+    PatientProfileNotFoundException ex =
+        assertThrows(
+            PatientProfileNotFoundException.class, () -> patientProfileService.findByUserId(1L));
 
     assertTrue(ex.getMessage().contains("Patient profile not found"));
 

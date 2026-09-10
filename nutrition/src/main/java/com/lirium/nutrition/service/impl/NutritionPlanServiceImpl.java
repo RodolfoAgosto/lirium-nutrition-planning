@@ -3,8 +3,8 @@ package com.lirium.nutrition.service.impl;
 import com.lirium.nutrition.dto.request.CompleteNutritionPlanRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
+import com.lirium.nutrition.exception.NutritionPlanNotFoundException;
 import com.lirium.nutrition.exception.PlanConflictException;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.mapper.NutritionPlanMapper;
 import com.lirium.nutrition.model.entity.NutritionPlan;
 import com.lirium.nutrition.model.enums.PlanStatus;
@@ -30,9 +30,7 @@ public class NutritionPlanServiceImpl implements NutritionPlanService {
   public NutritionPlanDetailDTO complete(Long id, CompleteNutritionPlanRequestDTO request) {
 
     NutritionPlan plan =
-        repository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("NutritionPlan not found", id));
+        repository.findById(id).orElseThrow(() -> new NutritionPlanNotFoundException(id));
 
     if (plan.getStatus() != PlanStatus.ACTIVE) {
       throw new PlanConflictException(
@@ -59,9 +57,7 @@ public class NutritionPlanServiceImpl implements NutritionPlanService {
   public NutritionPlanDetailDTO activatePlan(Long planId) {
 
     NutritionPlan newPlan =
-        repository
-            .findById(planId)
-            .orElseThrow(() -> new ResourceNotFoundException("NutritionPlan", planId));
+        repository.findById(planId).orElseThrow(() -> new NutritionPlanNotFoundException(planId));
 
     Long patientId = newPlan.getPatientProfile().getId();
 
@@ -84,9 +80,7 @@ public class NutritionPlanServiceImpl implements NutritionPlanService {
   @Override
   public NutritionPlanDetailDTO findById(Long id) {
     NutritionPlan plan =
-        repository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("NutritionPlan", id));
+        repository.findById(id).orElseThrow(() -> new NutritionPlanNotFoundException(id));
     return NutritionPlanMapper.toDetail(plan);
   }
 

@@ -1,8 +1,9 @@
 package com.lirium.nutrition.service.impl;
 
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
+import com.lirium.nutrition.exception.NutritionPlanTemplateNotFoundException;
+import com.lirium.nutrition.exception.PatientProfileNotFoundException;
 import com.lirium.nutrition.exception.PlanConflictException;
-import com.lirium.nutrition.exception.ResourceNotFoundException;
 import com.lirium.nutrition.exception.UnprocessableEntityException;
 import com.lirium.nutrition.mapper.NutritionPlanMapper;
 import com.lirium.nutrition.model.entity.NutritionPlan;
@@ -47,7 +48,7 @@ public class NutritionPlanGeneratorImpl implements NutritionPlanGenerator {
             .orElseThrow(
                 () -> {
                   log.warn("Patient not found id={}", patientId);
-                  return new ResourceNotFoundException("Patient", patientId);
+                  return new PatientProfileNotFoundException(patientId);
                 });
 
     if (nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT)) {
@@ -101,7 +102,7 @@ public class NutritionPlanGeneratorImpl implements NutritionPlanGenerator {
             .orElseThrow(
                 () -> {
                   log.warn("Patient not found id={}", patientId);
-                  return new ResourceNotFoundException("Patient not found: ", patientId);
+                  return new PatientProfileNotFoundException(patientId);
                 });
 
     if (nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT)
@@ -117,7 +118,7 @@ public class NutritionPlanGeneratorImpl implements NutritionPlanGenerator {
             .orElseThrow(
                 () -> {
                   log.warn("Template not found id={}", templateId);
-                  return new ResourceNotFoundException("Template not found: ", templateId);
+                  return new NutritionPlanTemplateNotFoundException(templateId);
                 });
 
     if (patient.getWeight() == null
