@@ -1,15 +1,16 @@
 package com.lirium.nutrition.service.impl;
 
-import com.lirium.nutrition.model.entity.*;
-import com.lirium.nutrition.model.enums.*;
-import com.lirium.nutrition.model.valueobject.Calories;
-import com.lirium.nutrition.model.valueobject.Carbs;
-import com.lirium.nutrition.model.valueobject.Fat;
-import com.lirium.nutrition.model.valueobject.Protein;
+import com.lirium.nutrition.model.entity.Food;
+import com.lirium.nutrition.model.entity.PlanFoodPortion;
+import com.lirium.nutrition.model.entity.PlanMeal;
+import com.lirium.nutrition.model.enums.FoodCategory;
+import com.lirium.nutrition.model.enums.FoodTag;
+import com.lirium.nutrition.model.enums.MealType;
+import com.lirium.nutrition.model.enums.MeasureUnit;
+import com.lirium.nutrition.model.valueobject.*;
 import com.lirium.nutrition.repository.FoodRepository;
 import com.lirium.nutrition.service.PlanFoodPortionAssembler;
 import java.util.*;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -20,8 +21,13 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
   private final Map<MealType, List<SlotDistribution>> distributions;
   private final FoodRepository foodRepository;
 
-  private static final double DEFAULT_MIN_SERVING_GRAMS = 15.0;
-  private static final double DEFAULT_MAX_SERVING_GRAMS = 250.0;
+  private static final double DEFAULT_MIN_SERVING_GRAMS = 10.0;
+  private static final double DEFAULT_MAX_SERVING_GRAMS = 300.0;
+  private static final double ZERO_GRAMS = 0.0;
+  private static final double DEFAULT_MACRO_CALCULATION_GRAMS = 100.0;
+  private static final double DEFAULT_FAT_PORTION_GRAMS = 15.0;
+  private static final double DEFAULT_FRUIT_VEGETABLE_GRAMS = 150.0;
+  private static final double DEFAULT_BEVERAGE_GRAMS = 200.0;
 
   public PlanFoodPortionAssemblerImpl(FoodRepository foodRepository) {
     this.foodRepository = foodRepository;
@@ -31,195 +37,273 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
   private Map<MealType, List<SlotDistribution>> buildDistributions() {
     return Map.of(
         MealType.BREAKFAST,
-            List.of(
-                new SlotDistribution(FoodCategory.DAIRY),
-                new SlotDistribution(FoodCategory.CARB),
-                new SlotDistribution(FoodCategory.BEVERAGE)),
-        // ORDEN CLAVE: CARB y VEGETABLE antes que PROTEIN para absorber la proteína indirecta
-        // primero
+        List.of(
+            new SlotDistribution(FoodCategory.DAIRY),
+            new SlotDistribution(FoodCategory.CARB),
+            new SlotDistribution(FoodCategory.BEVERAGE)),
         MealType.LUNCH,
-            List.of(
-                new SlotDistribution(FoodCategory.CARB),
-                new SlotDistribution(FoodCategory.VEGETABLE),
-                new SlotDistribution(FoodCategory.PROTEIN),
-                new SlotDistribution(FoodCategory.SWEET),
-                new SlotDistribution(FoodCategory.FAT),
-                new SlotDistribution(FoodCategory.BEVERAGE)),
+        List.of(
+            new SlotDistribution(FoodCategory.PROTEIN),
+            new SlotDistribution(FoodCategory.CARB),
+            new SlotDistribution(FoodCategory.VEGETABLE),
+            new SlotDistribution(FoodCategory.FAT),
+            new SlotDistribution(FoodCategory.SWEET),
+            new SlotDistribution(FoodCategory.BEVERAGE)),
         MealType.MID_MORNING,
-            List.of(
-                new SlotDistribution(FoodCategory.DAIRY), new SlotDistribution(FoodCategory.FRUIT)),
+        List.of(new SlotDistribution(FoodCategory.DAIRY), new SlotDistribution(FoodCategory.FRUIT)),
         MealType.SNACK,
-            List.of(
-                new SlotDistribution(FoodCategory.DAIRY),
-                new SlotDistribution(FoodCategory.CARB),
-                new SlotDistribution(FoodCategory.BEVERAGE)),
-        // ORDEN CLAVE: CARB/VEGETABLE/FRUIT antes que PROTEIN
+        List.of(
+            new SlotDistribution(FoodCategory.DAIRY),
+            new SlotDistribution(FoodCategory.CARB),
+            new SlotDistribution(FoodCategory.BEVERAGE)),
         MealType.DINNER,
-            List.of(
-                new SlotDistribution(FoodCategory.CARB),
-                new SlotDistribution(FoodCategory.VEGETABLE),
-                new SlotDistribution(FoodCategory.FRUIT),
-                new SlotDistribution(FoodCategory.PROTEIN),
-                new SlotDistribution(FoodCategory.BEVERAGE),
-                new SlotDistribution(FoodCategory.FAT)));
+        List.of(
+            new SlotDistribution(FoodCategory.PROTEIN),
+            new SlotDistribution(FoodCategory.CARB),
+            new SlotDistribution(FoodCategory.VEGETABLE),
+            new SlotDistribution(FoodCategory.FRUIT),
+            new SlotDistribution(FoodCategory.FAT),
+            new SlotDistribution(FoodCategory.BEVERAGE)));
   }
 
   record SlotDistribution(FoodCategory category) {}
 
   @Override
-  public void assemble(
-      PlanMeal planMeal,
-      PatientProfile patient,
-      Calories calories,
-      Fat fat,
-      Carbs carbs,
-      Protein protein) {
-    assemble(planMeal, patient, Collections.emptySet(), calories, fat, carbs, protein);
+  public NutrientBudget assemble(
+      PlanMeal planMeal, NutrientBudget nutrientBudget, Set<Long> usedFoodIdsInDay) {
+    return assemble(planMeal, nutrientBudget, Collections.emptySet(), usedFoodIdsInDay);
   }
 
   @Override
-  public void assemble(
+  public NutrientBudget assemble(
       PlanMeal planMeal,
-      PatientProfile patient,
-      Set<FoodTag> additionalExcludedTags,
-      Calories calories,
-      Fat fat,
-      Carbs carbs,
-      Protein protein) {
+      NutrientBudget nutrientBudget,
+      Set<FoodTag> excludedTags,
+      Set<Long> usedFoodIdsInDay) {
 
-    // Determine which foods are prohibited.
-    Set<FoodTag> excludedTags = new HashSet<>(resolveExcludedTags(patient.getRestrictions()));
-    excludedTags.addAll(additionalExcludedTags);
+    double caloriesConsumed = 0.0;
+    double carbsConsumed = 0.0;
+    double fatsConsumed = 0.0;
+    double proteinConsumed = 0.0;
 
-    // Look for suitable foods for that meal.
     List<Food> availableFoods =
         new ArrayList<>(foodRepository.findSuitableFoods(planMeal.getType(), excludedTags));
     Collections.shuffle(availableFoods);
 
-    // It obtains the categories corresponding to the meal and, if it is mid-morning, selects a
-    // single category at random.
     List<SlotDistribution> slots =
         new ArrayList<>(distributions.getOrDefault(planMeal.getType(), Collections.emptyList()));
-    if (planMeal.getType() == MealType.MID_MORNING && !slots.isEmpty()) {
-      Collections.shuffle(slots);
-      slots = List.of(slots.get(0));
-    }
 
-    // Remaining calories and macronutrients to cover as foods are added to the meal.
-    double remCal = calories.amount();
-    double remCarb = carbs.amount();
-    double remFat = fat.amount();
-    double remProt = protein.grams();
+    double remCal = nutrientBudget.calories().amount();
+    double remCarb = nutrientBudget.carbs().amount();
+    double remFat = nutrientBudget.fat().amount();
+    double remProt = nutrientBudget.protein().grams();
+
+    int totalSlots = slots.size();
+    int currentSlotIndex = 0;
 
     for (SlotDistribution slot : slots) {
-      if (remCal <= 0 && remProt <= 0 && remCarb <= 0 && remFat <= 0) {
+      currentSlotIndex++;
+      int remainingSlotsInMeal = (totalSlots - currentSlotIndex) + 1;
+
+      if (remCal <= 10.0 && remProt <= 2.0) {
         break;
       }
 
-      // Selects the first available food matching the current slot category.
       Optional<Food> foodOpt =
-          availableFoods.stream().filter(f -> f.getCategory() == slot.category()).findFirst();
+          availableFoods.stream()
+              .filter(f -> f.getCategory() == slot.category())
+              .filter(f -> !usedFoodIdsInDay.contains(f.getId()))
+              .findFirst();
+
+      if (foodOpt.isEmpty()) {
+        foodOpt =
+            availableFoods.stream().filter(f -> f.getCategory() == slot.category()).findFirst();
+      }
+
       if (foodOpt.isEmpty()) {
         log.warn("No food found for category={} in meal={}", slot.category(), planMeal.getType());
         continue;
       }
+
       Food food = foodOpt.get();
       availableFoods.remove(food);
 
-      // 1. Calculates the theoretical amount needed to cover the remaining macro target.
-      double rawGrams = calculateGrams(food, remCal, remCarb, remFat, remProt);
+      // Presupuesto target para este slot en particular (evita que el primer carb consuma el 100%
+      // del budget de la comida)
+      double targetCalForSlot = remCal / remainingSlotsInMeal;
+      double targetCarbForSlot = remCarb / remainingSlotsInMeal;
+      double targetProtForSlot = remProt / remainingSlotsInMeal;
+      double targetFatForSlot = remFat / remainingSlotsInMeal;
+
+      // 1. Calcular gramos teóricos requeridos
+      double rawGrams =
+          calculateGrams(
+              food,
+              remCal,
+              remCarb,
+              remFat,
+              remProt,
+              targetCalForSlot,
+              targetCarbForSlot,
+              targetProtForSlot,
+              targetFatForSlot);
       if (rawGrams <= 0) {
         continue;
       }
 
-      // 2. Restricts the calculated amount to the food's configured serving limits.
-      double boundedGrams = clampGramsToFoodLimits(food, rawGrams);
+      // 2. Acotar según límites de porción del alimento y calorías restantes
+      double boundedGrams = clampGramsToFoodLimits(food, rawGrams, remCal);
+      if (boundedGrams <= 0) {
+        continue;
+      }
 
-      // 3. Converts the amount to the food's configured unit (grams, milliliters, or units).
+      // 3. Convertir a unidades finales (Gramos, Mililitros, Unidades fraccionables)
       double finalQuantity = convertToFinalUnit(food, boundedGrams);
       MeasureUnit finalUnit = food.getDefaultUnit();
 
-      // 4. Converts the final quantity back to grams to calculate the food's actual macro
-      // contribution.
-      double actualGrams =
-          (finalUnit == MeasureUnit.UNIT)
-              ? finalQuantity * getUnitWeightInGrams(food)
-              : finalQuantity;
+      // 4. Calcular los gramos reales representados por la cantidad redondeada
+      double actualGrams = calculateActualGrams(food, finalQuantity, finalUnit);
 
-      // 5. Creates the portion and adds it to the meal.
+      // 5. Calcular macronutrientes aportados por la porción real
+      double addedCal = (food.getCaloriesPer100g() * actualGrams) / 100.0;
+      double addedCarb = (food.getCarbsPer100g() * actualGrams) / 100.0;
+      double addedFat = (food.getFatPer100g() * actualGrams) / 100.0;
+      double addedProt = (food.getProteinPer100g() * actualGrams) / 100.0;
+
+      // GUARD CLAUSE FLEXIBLE: Permite pequeños excesos en el macro secundario si el principal es
+      // necesario
+      double maxAllowedCal = remCal + 50.0; // Margen de tolerancia para cerrar plato
+      if (addedCal > maxAllowedCal && food.getCategory() != FoodCategory.VEGETABLE) {
+        log.warn(
+            "Skipping {} in {} because addedCal ({}) exceeds remaining cal limit ({})",
+            food.getName(),
+            planMeal.getType(),
+            addedCal,
+            maxAllowedCal);
+        continue;
+      }
+
+      // 6. Crear la porción en la comida
       PlanFoodPortion portion = PlanFoodPortion.of(planMeal, food, finalQuantity, finalUnit);
       planMeal.addFoodPortion(portion);
 
-      // 5. Descuento de macros acumulados
-      remCal -= (food.getCaloriesPer100g() * actualGrams) / 100.0;
-      remCarb -= (food.getCarbsPer100g() * actualGrams) / 100.0;
-      remFat -= (food.getFatPer100g() * actualGrams) / 100.0;
-      remProt -= (food.getProteinPer100g() * actualGrams) / 100.0;
+      usedFoodIdsInDay.add(food.getId());
+
+      // Deducción del presupuesto restante
+      remCal -= addedCal;
+      remCarb -= addedCarb;
+      remFat -= addedFat;
+      remProt -= addedProt;
+
+      // Acumulación consumida
+      caloriesConsumed += addedCal;
+      carbsConsumed += addedCarb;
+      fatsConsumed += addedFat;
+      proteinConsumed += addedProt;
 
       log.info(
-          "Meal={} Food={} grams={} | remaining: cal={} carb={} fat={} prot={}",
+          "Meal={} Food={} qty={} unit={} (g={}) | remaining: cal={} carb={} fat={} prot={}",
           planMeal.getType(),
           food.getName(),
+          finalQuantity,
+          finalUnit,
           actualGrams,
           remCal,
           remCarb,
           remFat,
           remProt);
     }
+
+    int finalCalories =
+        (int) Math.min(nutrientBudget.calories().amount(), Math.round(caloriesConsumed));
+    int finalCarbs = (int) Math.min(nutrientBudget.carbs().amount(), Math.round(carbsConsumed));
+    int finalFat = (int) Math.min(nutrientBudget.fat().amount(), Math.round(fatsConsumed));
+    int finalProtein =
+        (int) Math.min(nutrientBudget.protein().grams(), Math.round(proteinConsumed));
+
+    return new NutrientBudget(
+        new Calories(finalCalories),
+        new Carbs(finalCarbs),
+        new Fat(finalFat),
+        new Protein(finalProtein));
   }
 
   private double calculateGrams(
-      Food food, double targetCal, double targetCarb, double targetFat, double targetProt) {
+      Food food,
+      double remCal,
+      double remCarb,
+      double remFat,
+      double remProt,
+      double targetCalForSlot,
+      double targetCarbForSlot,
+      double targetProtForSlot,
+      double targetFatForSlot) {
+
     FoodCategory category = food.getCategory();
 
-    // Skip categories whose primary macro target has already been reached.
-
-    // If I no longer need protein and I am trying to add a food whose primary function
-    // is to provide protein, I do not add that food.
-    if (targetProt <= 0 && (category == FoodCategory.PROTEIN || category == FoodCategory.DAIRY)) {
-      return 0.0;
+    // Solo abortar si el macro principal de la categoría está completamente agotado
+    if (remProt <= 1.0 && (category == FoodCategory.PROTEIN || category == FoodCategory.DAIRY)) {
+      return ZERO_GRAMS;
     }
-    if (targetCarb <= 0 && (category == FoodCategory.CARB || category == FoodCategory.SWEET)) {
-      return 0.0;
+    if (remCarb <= 2.0 && (category == FoodCategory.CARB || category == FoodCategory.SWEET)) {
+      return ZERO_GRAMS;
     }
-    if (targetFat <= 0 && category == FoodCategory.FAT) {
-      return 0.0;
+    if (remFat <= 1.0 && category == FoodCategory.FAT) {
+      return ZERO_GRAMS;
     }
 
-    // Avoid adding a protein food when less than 8 g of protein remain,
-    // since the minimum serving could cause an unnecessary protein excess.
-    if (category == FoodCategory.PROTEIN && targetProt < 8.0) {
-      return 0.0;
-    }
+    double calculatedGrams =
+        switch (category) {
+          case PROTEIN, DAIRY ->
+              food.getProteinPer100g() > 0
+                  ? (remProt * 100.0) / food.getProteinPer100g()
+                  : DEFAULT_MACRO_CALCULATION_GRAMS;
 
-    // Calculate the amount based on the macro that defines the food category.
-    return switch (category) {
-      case PROTEIN, DAIRY ->
-          food.getProteinPer100g() > 0 ? (targetProt * 100.0) / food.getProteinPer100g() : 100.0;
+          case CARB, SWEET ->
+              food.getCarbsPer100g() > 0
+                  ? (remCarb * 100.0) / food.getCarbsPer100g()
+                  : DEFAULT_MACRO_CALCULATION_GRAMS;
 
-      case CARB, SWEET ->
-          food.getCarbsPer100g() > 0 ? (targetCarb * 100.0) / food.getCarbsPer100g() : 100.0;
+          case FAT ->
+              food.getFatPer100g() > 0
+                  ? (remFat * 100.0) / food.getFatPer100g()
+                  : DEFAULT_FAT_PORTION_GRAMS;
 
-      case FAT ->
-          food.getFatPer100g() > 0
-              ? (targetFat * 100.0) / food.getFatPer100g()
-              : 15.0; // Fallback base (ej: 1 cucharada de aceite / 15g frutos secos)
+          case VEGETABLE, FRUIT ->
+              food.getDefaultUnit() == MeasureUnit.UNIT
+                  ? getUnitWeightInGrams(food)
+                  : DEFAULT_FRUIT_VEGETABLE_GRAMS;
 
-      case VEGETABLE, FRUIT ->
-          food.getDefaultUnit() == MeasureUnit.UNIT ? getUnitWeightInGrams(food) : 150.0;
+          case BEVERAGE -> DEFAULT_BEVERAGE_GRAMS;
+        };
 
-      case BEVERAGE -> 200.0;
-    };
+    double maximumGrams = calculateMaximumGrams(food, remCal, remCarb, remFat, remProt);
+    return Math.min(calculatedGrams, maximumGrams);
   }
 
-  private double clampGramsToFoodLimits(Food food, double calculatedGrams) {
+  private double clampGramsToFoodLimits(Food food, double calculatedGrams, double remainingCal) {
     double minGrams =
         (food.getMinServingGrams() != null) ? food.getMinServingGrams() : DEFAULT_MIN_SERVING_GRAMS;
-
     double maxGrams =
         (food.getMaxServingGrams() != null) ? food.getMaxServingGrams() : DEFAULT_MAX_SERVING_GRAMS;
 
-    return Math.min(Math.max(calculatedGrams, minGrams), maxGrams);
+    // Si el mínimo de la porción excede severamente las calorías restantes de la comida, recortar a
+    // lo que alcance
+    if (food.getCaloriesPer100g() > 0) {
+      double maxGramsByCal = (remainingCal * 100.0) / food.getCaloriesPer100g();
+      maxGrams = Math.min(maxGrams, maxGramsByCal);
+    }
+
+    if (calculatedGrams < minGrams) {
+      // Si la cantidad calculada es menor al mínimo pero aún caben calorías, intentar asignar el
+      // mínimo
+      if (minGrams <= maxGrams) {
+        return minGrams;
+      }
+      return ZERO_GRAMS;
+    }
+
+    return Math.min(calculatedGrams, maxGrams);
   }
 
   private double convertToFinalUnit(Food food, double boundedGrams) {
@@ -227,27 +311,71 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
 
     return switch (unit) {
       case GRAM -> Math.round(boundedGrams);
-      case MILLILITER ->
-          Math.round(boundedGrams / (food.getDensity() != null ? food.getDensity() : 1.0));
+      case MILLILITER -> {
+        double density = getValidDensity(food);
+        yield Math.round(boundedGrams / density);
+      }
       case UNIT -> {
         double unitWeight = getUnitWeightInGrams(food);
         double exactUnits = boundedGrams / unitWeight;
-        yield Math.max(1.0, Math.round(exactUnits)); // Fuerza enteros (1, 2, 3 unidades)
+        // Permite medias unidades (0.5, 1.0, 1.5, etc.) para evitar redondear 0.4 a 1.0 enteros y
+        // exceder macros
+        double roundedHalfUnits = Math.round(exactUnits * 2.0) / 2.0;
+        yield Math.max(0.5, roundedHalfUnits);
       }
     };
+  }
+
+  private double calculateActualGrams(Food food, double finalQuantity, MeasureUnit unit) {
+    return switch (unit) {
+      case UNIT -> finalQuantity * getUnitWeightInGrams(food);
+      case MILLILITER -> finalQuantity * getValidDensity(food);
+      case GRAM -> finalQuantity;
+    };
+  }
+
+  private double getValidDensity(Food food) {
+    return (food.getDensity() != null && food.getDensity() > 0) ? food.getDensity() : 1.0;
   }
 
   private double getUnitWeightInGrams(Food food) {
     if (food.getUnitWeight() != null && food.getUnitWeight() > 0) {
       return food.getUnitWeight();
     }
-    return 100.0; // If there is no valid weight per unit, 100 g per unit is assumed.
+    return 100.0;
   }
 
-  // Combines all excluded tags from the patient's restrictions into a single set.
-  private Set<FoodTag> resolveExcludedTags(Set<Restriction> restrictions) {
-    return restrictions.stream()
-        .flatMap(r -> r.getExcludedTags().stream())
-        .collect(Collectors.toSet());
+  private double calculateMaximumGrams(
+      Food food,
+      double remainingCal,
+      double remainingCarb,
+      double remainingFat,
+      double remainingProt) {
+
+    double maxGrams = Double.MAX_VALUE;
+
+    if (food.getCaloriesPer100g() > 0 && remainingCal > 0) {
+      maxGrams = Math.min(maxGrams, (remainingCal * 100.0) / food.getCaloriesPer100g());
+    }
+
+    FoodCategory category = food.getCategory();
+    // Solo acotar por el macro principal de la categoría del alimento
+    if ((category == FoodCategory.CARB || category == FoodCategory.SWEET)
+        && food.getCarbsPer100g() > 0
+        && remainingCarb > 0) {
+      maxGrams = Math.min(maxGrams, (remainingCarb * 100.0) / food.getCarbsPer100g());
+    }
+
+    if ((category == FoodCategory.PROTEIN || category == FoodCategory.DAIRY)
+        && food.getProteinPer100g() > 0
+        && remainingProt > 0) {
+      maxGrams = Math.min(maxGrams, (remainingProt * 100.0) / food.getProteinPer100g());
+    }
+
+    if (category == FoodCategory.FAT && food.getFatPer100g() > 0 && remainingFat > 0) {
+      maxGrams = Math.min(maxGrams, (remainingFat * 100.0) / food.getFatPer100g());
+    }
+
+    return maxGrams;
   }
 }
