@@ -23,6 +23,18 @@ public record Fat(@Column(name = "fats") int amount) {
     return new Fat(result);
   }
 
+  public Fat subtract(Fat other) {
+    Objects.requireNonNull(other, "Fat to subtract cannot be null");
+
+    int result = Math.subtractExact(this.amount, other.amount);
+
+    if (result < MIN_GRAMS) {
+      throw new IllegalArgumentException("Resulting fat cannot be negative: " + result);
+    }
+
+    return new Fat(result);
+  }
+
   public double toCalories() {
     return amount * 9.0;
   }

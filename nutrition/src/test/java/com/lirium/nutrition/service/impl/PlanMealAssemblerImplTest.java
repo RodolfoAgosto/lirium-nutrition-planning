@@ -1,73 +1,121 @@
 package com.lirium.nutrition.service.impl;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.lirium.nutrition.model.entity.DailyPlan;
 import com.lirium.nutrition.model.entity.PatientProfile;
+import com.lirium.nutrition.model.entity.Restriction;
+import com.lirium.nutrition.model.enums.FoodTag;
 import com.lirium.nutrition.model.enums.MealType;
-import com.lirium.nutrition.model.valueobject.Calories;
-import com.lirium.nutrition.model.valueobject.MacroDistribution;
+import com.lirium.nutrition.model.valueobject.*;
 import com.lirium.nutrition.service.PlanFoodPortionAssembler;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class PlanMealAssemblerImplTest {
 
-  @Test
-  void shouldDelegateToMainAssembleMethod() {
+  @Mock private PlanFoodPortionAssembler planFoodPortionAssembler;
 
-    // Given
-    DailyPlan dailyPlan = mock(DailyPlan.class);
-    PatientProfile patient = mock(PatientProfile.class);
-    Calories calories = mock(Calories.class);
-    MacroDistribution macros = mock(MacroDistribution.class);
+  @InjectMocks private PlanMealAssemblerImpl planMealAssembler;
 
-    PlanFoodPortionAssembler assembler = mock(PlanFoodPortionAssembler.class);
+  private DailyPlan dailyPlan;
+  private PatientProfile patientProfile;
+  private Calories calories;
+  private MacroDistribution macros;
+  private NutrientBudget dummyConsumed;
+  private Set<Long> usedFoodIdsInDay;
 
-    PlanMealAssemblerImpl service = new PlanMealAssemblerImpl(assembler);
+  @BeforeEach
+  void setUp() {
+    dailyPlan = mock(DailyPlan.class);
+    patientProfile = mock(PatientProfile.class);
 
-    when(calories.amount()).thenReturn(1000);
-    when(macros.fatGrams()).thenReturn(100);
-    when(macros.carbGrams()).thenReturn(200);
-    when(macros.proteinGrams()).thenReturn(150);
+    when(patientProfile.getRestrictions()).thenReturn(Collections.emptySet());
 
-    // When
-    service.assemble(dailyPlan, patient, calories, macros);
+    calories = new Calories(2000);
+    macros = new MacroDistribution(200, 70, 150);
+    usedFoodIdsInDay = new HashSet<>();
 
-    // Then
-    verify(assembler, times(MealType.values().length))
-        .assemble(any(), eq(patient), eq(Collections.emptySet()), any(), any(), any(), any());
-
-    verify(dailyPlan, times(MealType.values().length)).addMeal(any());
+    dummyConsumed =
+        new NutrientBudget(new Calories(100), new Carbs(10), new Fat(5), new Protein(15));
   }
 
   @Test
-  void shouldAssembleMealsForAllMealTypes() {
-
+  @DisplayName("Debería ensamblar una comida por cada MealType del enum")
+  void shouldAssembleAllMealsInDay() {
     // Given
-    DailyPlan dailyPlan = mock(DailyPlan.class);
-    PatientProfile patient = mock(PatientProfile.class);
-    Calories calories = mock(Calories.class);
-    MacroDistribution macros = mock(MacroDistribution.class);
-
-    PlanFoodPortionAssembler assembler = mock(PlanFoodPortionAssembler.class);
-
-    PlanMealAssemblerImpl service = new PlanMealAssemblerImpl(assembler);
-
-    when(calories.amount()).thenReturn(1000);
-
-    when(macros.fatGrams()).thenReturn(100);
-    when(macros.carbGrams()).thenReturn(200);
-    when(macros.proteinGrams()).thenReturn(150);
+    when(planFoodPortionAssembler.assemble(any(), any(), any(), any())).thenReturn(dummyConsumed);
 
     // When
-    service.assemble(dailyPlan, patient, calories, macros, Collections.emptySet());
+    planMealAssembler.assemble(dailyPlan, patientProfile, calories, macros, usedFoodIdsInDay);
 
     // Then
-    verify(assembler, times(MealType.values().length))
-        .assemble(any(), eq(patient), eq(Collections.emptySet()), any(), any(), any(), any());
+    int totalMeals = MealType.values().length;
+    verify(planFoodPortionAssembler, times(totalMeals))
+        .assemble(any(), any(), eq(Collections.emptySet()), eq(usedFoodIdsInDay));
+    verify(dailyPlan, times(totalMeals)).addMeal(any());
+  }
 
-    verify(dailyPlan, times(MealType.values().length)).addMeal(any());
+  @Test
+  @DisplayName("Debería combinar restricciones del paciente con tags adicionales excluidos")
+  void shouldMergePatientRestrictionsAndAdditionalExcludedTags() {
+    // Given
+    Restriction restriction = mock(Restriction.class);
+    when(restriction.getExcludedTags()).thenReturn(Set.of(FoodTag.GLUTEN));
+    when(patientProfile.getRestrictions()).thenReturn(Set.of(restriction));
+
+    Set<FoodTag> additionalTags = Set.of(FoodTag.HONEY);
+
+    when(planFoodPortionAssembler.assemble(any(), any(), any(), any())).thenReturn(dummyConsumed);
+
+    // When
+    planMealAssembler.assemble(
+        dailyPlan, patientProfile, calories, macros, additionalTags, usedFoodIdsInDay);
+
+    // Then
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<Set<FoodTag>> captor = ArgumentCaptor.forClass(Set.class);
+
+    verify(planFoodPortionAssembler, times(MealType.values().length))
+        .assemble(any(), any(), captor.capture(), eq(usedFoodIdsInDay));
+
+    Set<FoodTag> capturedTags = captor.getValue();
+    assertTrue(capturedTags.contains(FoodTag.GLUTEN));
+    assertTrue(capturedTags.contains(FoodTag.HONEY));
+  }
+
+  @Test
+  @DisplayName("Debería pasar el Set de alimentos usados a través de todas las comidas del día")
+  void shouldPassUsedFoodIdsAcrossAllMealsInDay() {
+    // Given
+    usedFoodIdsInDay.add(10L);
+    when(planFoodPortionAssembler.assemble(any(), any(), any(), any())).thenReturn(dummyConsumed);
+
+    // When
+    assertDoesNotThrow(
+        () ->
+            planMealAssembler.assemble(
+                dailyPlan, patientProfile, calories, macros, usedFoodIdsInDay));
+
+    // Then
+    verify(planFoodPortionAssembler, times(MealType.values().length))
+        .assemble(any(), any(), any(), eq(usedFoodIdsInDay));
   }
 }

@@ -19,6 +19,18 @@ public record Protein(@Column(name = "grams") int grams) {
     return new Protein(result);
   }
 
+  public Protein subtract(Protein other) {
+    Objects.requireNonNull(other, "Protein to subtract cannot be null");
+
+    int result = Math.subtractExact(this.grams, other.grams);
+
+    if (result < 0) {
+      throw new IllegalArgumentException("Resulting protein cannot be negative: " + result);
+    }
+
+    return new Protein(result);
+  }
+
   public double toCalories() {
     return grams * 4.0;
   }

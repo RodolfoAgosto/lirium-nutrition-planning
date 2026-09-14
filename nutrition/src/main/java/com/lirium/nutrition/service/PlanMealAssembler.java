@@ -10,12 +10,17 @@ import java.util.Set;
 public interface PlanMealAssembler {
 
   void assemble(
-      DailyPlan dailyPlan, PatientProfile patient, Calories calories, MacroDistribution macros);
+      DailyPlan dailyPlan,
+      PatientProfile patient,
+      Calories calories,
+      MacroDistribution macros,
+      Set<Long> usedFoodIdsInDay);
 
   void assemble(
       DailyPlan dailyPlan,
       PatientProfile patient,
       Calories calories,
       MacroDistribution macros,
-      Set<FoodTag> additionalExcludedTags);
+      Set<FoodTag> additionalExcludedTags,
+      Set<Long> usedFoodIdsInDay);
 }

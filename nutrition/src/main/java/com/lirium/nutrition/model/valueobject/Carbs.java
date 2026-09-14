@@ -23,6 +23,18 @@ public record Carbs(@Column(name = "carbs") int amount) {
     return new Carbs(result);
   }
 
+  public Carbs subtract(Carbs other) {
+    Objects.requireNonNull(other, "Carbs to subtract cannot be null");
+
+    int result = Math.subtractExact(this.amount, other.amount);
+
+    if (result < MIN_CARBS) {
+      throw new IllegalArgumentException("Resulting carbs cannot be negative: " + result);
+    }
+
+    return new Carbs(result);
+  }
+
   public int toCalories() {
     return amount * 4;
   }

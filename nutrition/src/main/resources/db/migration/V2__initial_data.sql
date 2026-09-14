@@ -59,8 +59,27 @@ INSERT INTO foods (
       (0, 0, 1, 1.0, 0, 0, NULL, TIMESTAMP '2026-08-02 16:51:58.094911', 34, TIMESTAMP '2026-08-02 16:51:58.094911', 'Water', 'BEVERAGE', 200, 1000),
       (1, 0, 1, 1.0, 0, 0, NULL, TIMESTAMP '2026-08-02 16:51:58.094911', 35, TIMESTAMP '2026-08-02 16:51:58.094911', 'Green Tea', 'BEVERAGE', 150, 500),
       (45, 10, 1, 1.04, 0, 1, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 36, TIMESTAMP '2026-08-02 16:51:58.09591', 'Orange Juice', 'BEVERAGE', 150, 300),
-      (54, 6, 1, 1.02, 2, 3, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 37, TIMESTAMP '2026-08-02 16:51:58.09591', 'Soy Milk', 'BEVERAGE', 150, 400);
-
+      (54, 6, 1, 1.02, 2, 3, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 37, TIMESTAMP '2026-08-02 16:51:58.09591', 'Soy Milk', 'BEVERAGE', 150, 400),
+      (130, 28, 0, NULL, 0, 3, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 38, TIMESTAMP '2026-08-02 16:51:58.09591', 'White Rice', 'CARB', 100, 300),
+      (77, 17, 0, NULL, 0, 2, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 39, TIMESTAMP '2026-08-02 16:51:58.09591', 'Potato', 'CARB', 100, 400),
+      (360, 79, 0, NULL, 1, 8, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 40, TIMESTAMP '2026-08-02 16:51:58.09591', 'Cornmeal', 'CARB', 30, 150),
+      (112, 23, 0, NULL, 1, 4, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 41, TIMESTAMP '2026-08-02 16:51:58.09591', 'Couscous', 'CARB', 60, 200),
+      (86, 19, 0, NULL, 1, 3, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 42, TIMESTAMP '2026-08-02 16:51:58.09591', 'Corn', 'CARB', 80, 250),
+      (266, 49, 0, NULL, 3, 9, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 43, TIMESTAMP '2026-08-02 16:51:58.09591', 'White Bread', 'CARB', 30, 180),
+      (387, 81, 0, NULL, 3, 8, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 44, TIMESTAMP '2026-08-02 16:51:58.09591', 'Rice Cakes', 'CARB', 20, 100),
+      (116, 20, 0, NULL, 0, 9, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 45, TIMESTAMP '2026-08-02 16:51:58.09591', 'Lentils', 'CARB', 80, 250),
+      (135, 0, 0, NULL, 2, 29, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 46, TIMESTAMP '2026-08-02 16:51:58.09591', 'Turkey Breast', 'PROTEIN', 80, 250),
+      (173, 0, 0, NULL, 7, 26, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 47, TIMESTAMP '2026-08-02 16:51:58.09591', 'Lean Beef', 'PROTEIN', 80, 250),
+      (82, 0, 0, NULL, 1, 18, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 48, TIMESTAMP '2026-08-02 16:51:58.09591', 'Cod', 'PROTEIN', 80, 250),
+      (52, 1, 0, NULL, 0, 11, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 49, TIMESTAMP '2026-08-02 16:51:58.09591', 'Egg Whites', 'PROTEIN', 80, 250),
+      (35, 5, 1, 1.03, 0, 4, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 50, TIMESTAMP '2026-08-02 16:51:58.09591', 'Skim Milk', 'DAIRY', 150, 400),
+      (59, 4, 1, 1.03, 0, 10, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 51, TIMESTAMP '2026-08-02 16:51:58.09591', 'Low-Fat Greek Yogurt', 'DAIRY', 100, 300),
+      (32, 8, 0, NULL, 0, 1, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 52, TIMESTAMP '2026-08-02 16:51:58.09591', 'Strawberries', 'FRUIT', 100, 300),
+      (69, 18, 2, NULL, 0, 1, 150.0, TIMESTAMP '2026-08-02 16:51:58.09591', 53, TIMESTAMP '2026-08-02 16:51:58.09591', 'Grapes', 'FRUIT', 100, 300),
+      (50, 13, 0, NULL, 0, 1, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 54, TIMESTAMP '2026-08-02 16:51:58.09591', 'Pineapple', 'FRUIT', 100, 300),
+      (127, 23, 0, NULL, 0, 9, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 55, TIMESTAMP '2026-08-02 16:51:58.09591', 'Black Beans', 'CARB', 80, 250),
+      (164, 27, 0, NULL, 3, 9, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 56, TIMESTAMP '2026-08-02 16:51:58.09591', 'Chickpeas', 'CARB', 80, 250),
+      (299, 79, 0, NULL, 0, 3, NULL, TIMESTAMP '2026-08-02 16:51:58.09591', 57, TIMESTAMP '2026-08-02 16:51:58.09591', 'Raisins', 'CARB', 20, 80);
 -- ---------------------------------------------------------------------
 -- Food tags (15 filas)
 -- ---------------------------------------------------------------------
@@ -79,7 +98,12 @@ INSERT INTO food_tags (food_id, tag) VALUES
                                          (29, 'NUTS'),
                                          (31, 'GLUTEN'),
                                          (31, 'HONEY'),
-                                         (37, 'SOY');
+                                         (37, 'SOY'),
+                                         (46, 'MEAT'),
+                                         (47, 'MEAT'),
+                                         (48, 'FISH'),
+                                         (50, 'LACTOSE'),
+                                         (51, 'LACTOSE');
 
 -- ---------------------------------------------------------------------
 -- Food suitable for (90 filas)
@@ -119,9 +143,29 @@ INSERT INTO food_suitable_for (food_id, meal_type) VALUES
                                                        (32, 'DINNER'), (32, 'LUNCH'), (32, 'SNACK'),
                                                        (33, 'DINNER'), (33, 'LUNCH'),
                                                        (34, 'DINNER'), (34, 'LUNCH'), (34, 'BREAKFAST'), (34, 'SNACK'), (34, 'MID_MORNING'),
-                                                       (35, 'BREAKFAST'), (35, 'SNACK'), (35, 'MID_MORNING'),
+                                                       (35, 'BREAKFAST'), (35, 'MID_MORNING'),
                                                        (36, 'BREAKFAST'),
-                                                       (37, 'BREAKFAST'), (37, 'SNACK');
+                                                       (37, 'BREAKFAST'), (37, 'SNACK'),
+                                                       (38, 'BREAKFAST'), (38, 'LUNCH'),                                                      (38, 'DINNER'),
+                                                       (39, 'LUNCH'), (39, 'DINNER'),
+                                                       (40, 'BREAKFAST'), (40, 'LUNCH'), (40, 'DINNER'),
+                                                       (41, 'LUNCH'), (41, 'DINNER'),
+                                                       (42, 'LUNCH'), (42, 'DINNER'),
+                                                       (43, 'BREAKFAST'), (43, 'SNACK'),
+                                                       (44, 'BREAKFAST'), (44, 'SNACK'),
+                                                       (45, 'LUNCH'), (45, 'DINNER'),
+                                                       (46, 'LUNCH'), (46, 'DINNER'),
+                                                       (47, 'LUNCH'), (47, 'DINNER'),
+                                                       (48, 'LUNCH'), (48, 'DINNER'),
+                                                       (49, 'BREAKFAST'), (49, 'LUNCH'),
+                                                       (50, 'BREAKFAST'), (50, 'SNACK'), (50, 'MID_MORNING'),
+                                                       (51, 'BREAKFAST'), (51, 'SNACK'), (51, 'MID_MORNING'),
+                                                       (52, 'BREAKFAST'), (52, 'SNACK'), (52, 'MID_MORNING'),
+                                                       (53, 'BREAKFAST'), (53, 'SNACK'), (53, 'MID_MORNING'),
+                                                       (54, 'BREAKFAST'), (54, 'SNACK'), (54, 'MID_MORNING'),
+                                                       (55, 'LUNCH'), (55, 'DINNER'),
+                                                       (56, 'LUNCH'), (56, 'DINNER'),
+                                                       (57, 'BREAKFAST'), (57, 'SNACK');
 
 -- ---------------------------------------------------------------------
 -- Nutrition plan templates (5 filas)

@@ -40,11 +40,7 @@ class NutritionPlanServiceImplTest {
 
   @BeforeEach
   void setUp() {
-    service =
-        new NutritionPlanServiceImpl(
-            repository,
-            // demás dependencias,
-            clock);
+    service = new NutritionPlanServiceImpl(repository, clock);
   }
 
   @Test

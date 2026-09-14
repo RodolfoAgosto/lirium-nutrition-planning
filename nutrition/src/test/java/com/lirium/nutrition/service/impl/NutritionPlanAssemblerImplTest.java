@@ -1,9 +1,14 @@
 package com.lirium.nutrition.service.impl;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import com.lirium.nutrition.model.entity.DailyPlan;
 import com.lirium.nutrition.model.entity.NutritionPlan;
@@ -46,6 +51,13 @@ class NutritionPlanAssemblerImplTest {
     assertEquals(DayOfWeek.values().length, result.getWeek().size());
 
     verify(planMealAssembler, times(7))
-        .assemble(any(DailyPlan.class), eq(patient), eq(calories), eq(macros), anySet());
+        .assemble(
+            any(DailyPlan.class),
+            eq(patient),
+            eq(calories),
+            eq(macros),
+            anySet(), // 5to argumento: additionalExcludedTags (Set<FoodTag>)
+            anySet() // 6to argumento: usedFoodIdsInDay (Set<Long>)
+            );
   }
 }

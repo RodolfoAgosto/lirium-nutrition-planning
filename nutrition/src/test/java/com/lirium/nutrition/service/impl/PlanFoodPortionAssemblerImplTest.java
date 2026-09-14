@@ -1,27 +1,33 @@
 package com.lirium.nutrition.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.lirium.nutrition.model.entity.DailyPlan;
 import com.lirium.nutrition.model.entity.Food;
 import com.lirium.nutrition.model.entity.PatientProfile;
 import com.lirium.nutrition.model.entity.PlanMeal;
-import com.lirium.nutrition.model.entity.Restriction;
 import com.lirium.nutrition.model.enums.FoodCategory;
 import com.lirium.nutrition.model.enums.FoodTag;
 import com.lirium.nutrition.model.enums.MealType;
-import com.lirium.nutrition.model.enums.MeasureUnit;
-import com.lirium.nutrition.model.valueobject.Calories;
-import com.lirium.nutrition.model.valueobject.Carbs;
-import com.lirium.nutrition.model.valueobject.Fat;
-import com.lirium.nutrition.model.valueobject.Protein;
+import com.lirium.nutrition.model.valueobject.*;
 import com.lirium.nutrition.repository.FoodRepository;
+import com.lirium.nutrition.service.PlanFoodPortionAssembler;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -30,109 +36,47 @@ class PlanFoodPortionAssemblerImplTest {
 
   @Mock private FoodRepository foodRepository;
 
+  @Mock private PlanFoodPortionAssembler planFoodPortionAssembler;
+
+  @InjectMocks private PlanMealAssemblerImpl planMealAssembler;
+
   @Test
-  void shouldAssembleSingleMealWithSingleFood() {
-
+  void shouldPassUsedFoodIdsAcrossAllMealsInDay() {
     // Given
-    PlanFoodPortionAssemblerImpl assembler = new PlanFoodPortionAssemblerImpl(foodRepository);
+    DailyPlan dailyPlan = mock(DailyPlan.class);
+    PatientProfile patientProfile = mock(PatientProfile.class);
+    when(patientProfile.getRestrictions()).thenReturn(Set.of());
 
-    PlanMeal meal = mock(PlanMeal.class);
-    PatientProfile patient = mock(PatientProfile.class);
+    // Mockear la respuesta del assembler secundario para evitar que retorne null
+    NutrientBudget dummyConsumed =
+        new NutrientBudget(new Calories(0), new Carbs(0), new Fat(0), new Protein(0));
+    when(planFoodPortionAssembler.assemble(any(), any(), anySet(), anySet()))
+        .thenReturn(dummyConsumed);
 
-    Calories calories = mock(Calories.class);
-    Fat fat = mock(Fat.class);
-    Carbs carbs = mock(Carbs.class);
-    Protein protein = mock(Protein.class);
+    Calories calories = new Calories(2000);
+    MacroDistribution macros = new MacroDistribution(200, 60, 150);
 
-    Food fruit = mock(Food.class);
-    Food dairy = mock(Food.class);
-
-    when(meal.getType()).thenReturn(MealType.MID_MORNING);
-
-    when(calories.amount()).thenReturn(1000);
-    when(carbs.amount()).thenReturn(100);
-    when(fat.amount()).thenReturn(50);
-    when(protein.grams()).thenReturn(80);
-
-    when(patient.getRestrictions()).thenReturn(Set.of());
-
-    lenient().when(fruit.getCategory()).thenReturn(FoodCategory.FRUIT);
-    lenient().when(dairy.getCategory()).thenReturn(FoodCategory.DAIRY);
-
-    lenient().when(fruit.getDefaultUnit()).thenReturn(MeasureUnit.UNIT);
-    lenient().when(dairy.getDefaultUnit()).thenReturn(MeasureUnit.UNIT);
-
-    lenient().when(fruit.getCaloriesPer100g()).thenReturn(50);
-    lenient().when(dairy.getCaloriesPer100g()).thenReturn(50);
-
-    lenient().when(fruit.getCarbsPer100g()).thenReturn(10);
-    lenient().when(dairy.getCarbsPer100g()).thenReturn(10);
-
-    lenient().when(fruit.getFatPer100g()).thenReturn(1);
-    lenient().when(dairy.getFatPer100g()).thenReturn(1);
-
-    lenient().when(fruit.getProteinPer100g()).thenReturn(1);
-    lenient().when(dairy.getProteinPer100g()).thenReturn(1);
-
-    lenient().when(fruit.toGrams(anyDouble(), any())).thenReturn(100.0);
-
-    lenient().when(dairy.toGrams(anyDouble(), any())).thenReturn(100.0);
-
-    when(foodRepository.findSuitableFoods(eq(MealType.MID_MORNING), anySet()))
-        .thenReturn(new ArrayList<>(List.of(fruit, dairy)));
+    Set<Long> usedFoodIdsInDay = new HashSet<>();
+    usedFoodIdsInDay.add(1L);
 
     // When
-    assembler.assemble(meal, patient, calories, fat, carbs, protein);
+    planMealAssembler.assemble(dailyPlan, patientProfile, calories, macros, usedFoodIdsInDay);
 
     // Then
-    verify(foodRepository).findSuitableFoods(eq(MealType.MID_MORNING), anySet());
-
-    verify(meal, atLeastOnce()).addFoodPortion(any());
-  }
-
-  @Test
-  void shouldAssembleMidMorningMeal() {
-
-    PlanMeal meal = mock(PlanMeal.class);
-    PatientProfile patient = mock(PatientProfile.class);
-
-    when(meal.getType()).thenReturn(MealType.MID_MORNING);
-    when(patient.getRestrictions()).thenReturn(Set.of());
-
-    Food fruit =
-        Food.ofUnit(
-            "Banana", 90, 1, 20, 0, FoodCategory.FRUIT, Set.of(MealType.MID_MORNING), 120.0);
-
-    Food dairy = Food.of("Yogurt", 60, 5, 6, 2, FoodCategory.DAIRY, Set.of(MealType.MID_MORNING));
-
-    when(foodRepository.findSuitableFoods(eq(MealType.MID_MORNING), anySet()))
-        .thenReturn(new ArrayList<>(List.of(fruit, dairy)));
-
-    PlanFoodPortionAssemblerImpl assembler = new PlanFoodPortionAssemblerImpl(foodRepository);
-
-    assembler.assemble(
-        meal, patient, new Calories(300), new Fat(10), new Carbs(30), new Protein(20));
-
-    verify(meal).addFoodPortion(any());
+    verify(planFoodPortionAssembler, atLeastOnce())
+        .assemble(any(), any(), anySet(), eq(usedFoodIdsInDay));
   }
 
   @Test
   void shouldAssembleLunchWithAllCategories() {
-
+    // Given
     PlanMeal meal = mock(PlanMeal.class);
-    PatientProfile patient = mock(PatientProfile.class);
-
     when(meal.getType()).thenReturn(MealType.LUNCH);
-    when(patient.getRestrictions()).thenReturn(Set.of());
 
     Food protein = Food.of("Chicken", 150, 30, 0, 5, FoodCategory.PROTEIN, Set.of(MealType.LUNCH));
-
     Food carb = Food.of("Rice", 120, 2, 28, 1, FoodCategory.CARB, Set.of(MealType.LUNCH));
-
     Food vegetable = Food.of("Tomato", 20, 1, 4, 0, FoodCategory.VEGETABLE, Set.of(MealType.LUNCH));
-
     Food sweet = Food.of("Cookie", 400, 4, 70, 10, FoodCategory.SWEET, Set.of(MealType.LUNCH));
-
     Food beverage =
         Food.ofLiquid("Juice", 40, 0, 10, 0, FoodCategory.BEVERAGE, Set.of(MealType.LUNCH), 1.0);
 
@@ -141,54 +85,49 @@ class PlanFoodPortionAssemblerImplTest {
 
     PlanFoodPortionAssemblerImpl assembler = new PlanFoodPortionAssemblerImpl(foodRepository);
 
-    assembler.assemble(
-        meal, patient, new Calories(700), new Fat(20), new Carbs(80), new Protein(50));
+    NutrientBudget budget =
+        new NutrientBudget(new Calories(700), new Carbs(80), new Fat(20), new Protein(50));
 
+    Set<Long> usedFoodIdsInDay = new HashSet<>();
+
+    // When - 3 parámetros: (planMeal, budget, usedFoodIdsInDay)
+    assembler.assemble(meal, budget, usedFoodIdsInDay);
+
+    // Then
     verify(meal, atLeast(3)).addFoodPortion(any());
   }
 
   @Test
   void shouldMergeRestrictionTagsAndAdditionalExcludedTags() {
-
+    // Given
     PlanMeal meal = mock(PlanMeal.class);
-    PatientProfile patient = mock(PatientProfile.class);
-
-    Restriction restriction = Restriction.builder().excludedTags(Set.of(FoodTag.GLUTEN)).build();
-
     when(meal.getType()).thenReturn(MealType.LUNCH);
-    when(patient.getRestrictions()).thenReturn(Set.of(restriction));
+
+    Set<FoodTag> excludedTags = Set.of(FoodTag.GLUTEN, FoodTag.HONEY);
 
     Food protein = Food.of("Chicken", 150, 30, 0, 5, FoodCategory.PROTEIN, Set.of(MealType.LUNCH));
-
     Food carb = Food.of("Rice", 120, 2, 28, 1, FoodCategory.CARB, Set.of(MealType.LUNCH));
 
-    Food vegetable = Food.of("Tomato", 20, 1, 4, 0, FoodCategory.VEGETABLE, Set.of(MealType.LUNCH));
-
-    Food sweet = Food.of("Cookie", 400, 4, 70, 10, FoodCategory.SWEET, Set.of(MealType.LUNCH));
-
-    Food beverage =
-        Food.ofLiquid("Juice", 40, 0, 10, 0, FoodCategory.BEVERAGE, Set.of(MealType.LUNCH), 1.0);
-
     when(foodRepository.findSuitableFoods(eq(MealType.LUNCH), anySet()))
-        .thenReturn(new ArrayList<>(List.of(protein, carb, vegetable, sweet, beverage)));
+        .thenReturn(new ArrayList<>(List.of(protein, carb)));
 
     PlanFoodPortionAssemblerImpl assembler = new PlanFoodPortionAssemblerImpl(foodRepository);
 
-    assembler.assemble(
-        meal,
-        patient,
-        Set.of(FoodTag.HONEY),
-        new Calories(700),
-        new Fat(20),
-        new Carbs(80),
-        new Protein(50));
+    NutrientBudget budget =
+        new NutrientBudget(new Calories(700), new Carbs(80), new Fat(20), new Protein(50));
 
+    Set<Long> usedFoodIdsInDay = new HashSet<>();
+
+    // When - 4 parámetros: (planMeal, budget, excludedTags, usedFoodIdsInDay)
+    assembler.assemble(meal, budget, excludedTags, usedFoodIdsInDay);
+
+    // Then
+    @SuppressWarnings("unchecked")
     ArgumentCaptor<Set<FoodTag>> captor = ArgumentCaptor.forClass(Set.class);
 
     verify(foodRepository).findSuitableFoods(eq(MealType.LUNCH), captor.capture());
 
     Set<FoodTag> tags = captor.getValue();
-
     assertTrue(tags.contains(FoodTag.GLUTEN));
     assertTrue(tags.contains(FoodTag.HONEY));
   }

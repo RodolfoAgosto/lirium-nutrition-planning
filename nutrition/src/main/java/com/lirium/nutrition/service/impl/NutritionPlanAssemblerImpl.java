@@ -10,6 +10,7 @@ import com.lirium.nutrition.service.NutritionPlanAssembler;
 import com.lirium.nutrition.service.PlanMealAssembler;
 import java.time.DayOfWeek;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -57,7 +58,9 @@ public class NutritionPlanAssemblerImpl implements NutritionPlanAssembler {
 
     for (DayOfWeek day : DayOfWeek.values()) {
       DailyPlan dailyPlan = DailyPlan.of(day, nutritionPlan);
-      planMealAssembler.assemble(dailyPlan, patient, calories, macros, additionalExcludedTags);
+      Set<Long> usedFoodIdsInDay = new HashSet<>();
+      planMealAssembler.assemble(
+          dailyPlan, patient, calories, macros, additionalExcludedTags, usedFoodIdsInDay);
       nutritionPlan.addDailyPlan(dailyPlan);
     }
 

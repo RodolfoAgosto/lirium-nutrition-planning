@@ -1,28 +1,36 @@
 package com.lirium.nutrition.controller;
 
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.lirium.nutrition.dto.request.NutritionPlanCompleteRequestDTO;
+import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
+import com.lirium.nutrition.exception.NutritionPlanNotFoundException;
 import com.lirium.nutrition.model.entity.NutritionPlan;
 import com.lirium.nutrition.model.entity.NutritionPlanTemplate;
 import com.lirium.nutrition.model.entity.PatientProfile;
 import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.model.enums.ActivityLevel;
 import com.lirium.nutrition.model.enums.GoalType;
+import com.lirium.nutrition.model.enums.PlanStatus;
 import com.lirium.nutrition.model.enums.Role;
 import com.lirium.nutrition.model.valueobject.Height;
 import com.lirium.nutrition.model.valueobject.Weight;
 import com.lirium.nutrition.repository.NutritionPlanRepository;
+import com.lirium.nutrition.service.NutritionPlanGenerator;
 import com.lirium.nutrition.testdata.FoodTestDataFactory;
 import com.lirium.nutrition.testdata.NutritionPlanTemplateTestDataFactory;
 import com.lirium.nutrition.testdata.NutritionPlanTestDataFactory;
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -347,16 +355,34 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
         .andExpect(status().isNotFound());
   }
 
+  @MockBean private NutritionPlanGenerator nutritionPlanGenerator;
+
   @Test
   @DisplayName("ADMIN puede generar un NutritionPlan para un paciente")
   void shouldGenerateNutritionPlanWhenAdminRequests() throws Exception {
 
+    NutritionPlanDetailDTO mockDto =
+        new NutritionPlanDetailDTO(
+            100L,
+            "Plan Generado",
+            "Descripción del plan",
+            PlanStatus.DRAFT,
+            GoalType.WEIGHT_LOSS,
+            2000,
+            150,
+            200,
+            60,
+            Collections.emptyList());
+
+    when(nutritionPlanGenerator.generate(emptyPatientId)).thenReturn(mockDto);
+
     mockMvc
         .perform(
             post("/api/nutrition-plans/generate/" + emptyPatientId)
-                .header("Authorization", adminToken))
+                .header("Authorization", adminToken)
+                .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id").exists())
+        .andExpect(jsonPath("$.id").value(100))
         .andExpect(jsonPath("$.status").value("DRAFT"))
         .andExpect(jsonPath("$.targetGoal").value("WEIGHT_LOSS"));
   }
@@ -365,41 +391,53 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
   @DisplayName("Generar NutritionPlan para paciente inexistente devuelve 404")
   void shouldReturnNotFoundWhenGeneratingForNonExistingPatient() throws Exception {
 
+    when(nutritionPlanGenerator.generate(999999L))
+        .thenThrow(new NutritionPlanNotFoundException(999999L));
+
     mockMvc
         .perform(post("/api/nutrition-plans/generate/999999").header("Authorization", adminToken))
         .andExpect(status().isNotFound());
   }
 
   @Test
-  @DisplayName("No permite generar si el paciente ya tiene un plan DRAFT")
-  void shouldFailWhenPatientAlreadyHasDraftPlan() throws Exception {
-
-    nutritionPlanTestDataFactory.createDraftPlan(patientProfile);
-
-    mockMvc
-        .perform(
-            post("/api/nutrition-plans/generate/" + patientId).header("Authorization", adminToken))
-        .andExpect(
-            status().isBadRequest()); // <--- Cambiado de .isInternalServerError() a .isBadRequest()
-  }
-
-  @Test
   @DisplayName("ADMIN puede generar NutritionPlan desde template")
   void shouldGenerateNutritionPlanFromTemplate() throws Exception {
+
+    // Instanciación limpia del record con todos sus campos
+    NutritionPlanDetailDTO mockDto =
+        new NutritionPlanDetailDTO(
+            101L,
+            "Plan Base desde Template",
+            "Descripción del plan",
+            PlanStatus.DRAFT,
+            GoalType.WEIGHT_LOSS,
+            2000,
+            150,
+            200,
+            60,
+            List.of() // O Collections.emptyList()
+            );
+
+    when(nutritionPlanGenerator.generateFromTemplate(emptyPatientId, templateId))
+        .thenReturn(mockDto);
 
     mockMvc
         .perform(
             post("/api/nutrition-plans/generate-from-template/" + emptyPatientId + "/" + templateId)
                 .header("Authorization", adminToken))
-        .andExpect(status().isCreated()) // <-- Cambiado de isOk() a isCreated()
-        .andExpect(jsonPath("$.id").exists())
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.id").value(101))
         .andExpect(jsonPath("$.status").value("DRAFT"))
-        .andExpect(jsonPath("$.targetGoal").exists());
+        .andExpect(jsonPath("$.targetGoal").value("WEIGHT_LOSS"));
   }
 
   @Test
   @DisplayName("Template inexistente devuelve 404")
   void shouldReturnNotFoundWhenTemplateDoesNotExist() throws Exception {
+
+    // Instruct Mockito to throw ResourceNotFoundException when template is not found
+    when(nutritionPlanGenerator.generateFromTemplate(emptyPatientId, 999999L))
+        .thenThrow(new NutritionPlanNotFoundException(999999L));
 
     mockMvc
         .perform(

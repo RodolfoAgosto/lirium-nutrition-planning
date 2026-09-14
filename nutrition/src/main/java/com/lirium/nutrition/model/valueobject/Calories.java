@@ -23,6 +23,18 @@ public record Calories(@Column(name = "calories") int amount) {
     return new Calories(result);
   }
 
+  public Calories subtract(Calories other) {
+    Objects.requireNonNull(other, "Calories to subtract cannot be null");
+
+    int result = Math.subtractExact(this.amount, other.amount);
+
+    if (result < MIN_CALORIES) {
+      throw new IllegalArgumentException("Resulting calories cannot be negative: " + result);
+    }
+
+    return new Calories(result);
+  }
+
   public boolean isZero() {
     return amount == 0;
   }
