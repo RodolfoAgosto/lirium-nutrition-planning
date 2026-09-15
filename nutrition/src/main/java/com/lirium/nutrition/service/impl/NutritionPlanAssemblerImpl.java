@@ -9,9 +9,7 @@ import com.lirium.nutrition.model.valueobject.MacroDistribution;
 import com.lirium.nutrition.service.NutritionPlanAssembler;
 import com.lirium.nutrition.service.PlanMealAssembler;
 import java.time.DayOfWeek;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -56,11 +54,20 @@ public class NutritionPlanAssemblerImpl implements NutritionPlanAssembler {
             macros.fatGrams(),
             patient);
 
+    Map<Long, Integer> foodFrequencyInWeek = new HashMap<>();
     for (DayOfWeek day : DayOfWeek.values()) {
       DailyPlan dailyPlan = DailyPlan.of(day, nutritionPlan);
       Set<Long> usedFoodIdsInDay = new HashSet<>();
+      Map<Long, Double> foodGramsInDay = new HashMap<>();
       planMealAssembler.assemble(
-          dailyPlan, patient, calories, macros, additionalExcludedTags, usedFoodIdsInDay);
+          dailyPlan,
+          patient,
+          calories,
+          macros,
+          additionalExcludedTags,
+          usedFoodIdsInDay,
+          foodFrequencyInWeek,
+          foodGramsInDay);
       nutritionPlan.addDailyPlan(dailyPlan);
     }
 

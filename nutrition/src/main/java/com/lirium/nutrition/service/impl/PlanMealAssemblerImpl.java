@@ -9,11 +9,7 @@ import com.lirium.nutrition.model.enums.MealType;
 import com.lirium.nutrition.model.valueobject.*;
 import com.lirium.nutrition.service.PlanFoodPortionAssembler;
 import com.lirium.nutrition.service.PlanMealAssembler;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
@@ -32,8 +28,18 @@ public class PlanMealAssemblerImpl implements PlanMealAssembler {
       PatientProfile patientProfile,
       Calories calories,
       MacroDistribution macros,
-      Set<Long> usedFoodIdsInDay) {
-    assemble(dailyPlan, patientProfile, calories, macros, Collections.emptySet(), usedFoodIdsInDay);
+      Set<Long> usedFoodIdsInDay,
+      Map<Long, Integer> foodFrequencyInWeek,
+      Map<Long, Double> foodGramsInDay) {
+    assemble(
+        dailyPlan,
+        patientProfile,
+        calories,
+        macros,
+        Collections.emptySet(),
+        usedFoodIdsInDay,
+        foodFrequencyInWeek,
+        foodGramsInDay);
   }
 
   @Override
@@ -43,7 +49,9 @@ public class PlanMealAssemblerImpl implements PlanMealAssembler {
       Calories calories,
       MacroDistribution macros,
       Set<FoodTag> additionalExcludedTags,
-      Set<Long> usedFoodIdsInDay) {
+      Set<Long> usedFoodIdsInDay,
+      Map<Long, Integer> foodFrequencyInWeek,
+      Map<Long, Double> foodGramsInDay) {
 
     Set<FoodTag> excludedTags =
         new HashSet<>(resolveExcludedTags(patientProfile.getRestrictions()));
@@ -65,7 +73,13 @@ public class PlanMealAssemblerImpl implements PlanMealAssembler {
           calculateMealBudget(meal, nutrientBudgetTarget, nutrientBudgetRemaining);
 
       NutrientBudget consumed =
-          planFoodPortionAssembler.assemble(planMeal, mealBudget, excludedTags, usedFoodIdsInDay);
+          planFoodPortionAssembler.assemble(
+              planMeal,
+              mealBudget,
+              excludedTags,
+              usedFoodIdsInDay,
+              foodFrequencyInWeek,
+              foodGramsInDay);
 
       nutrientBudgetRemaining = nutrientBudgetRemaining.subtract(consumed);
 

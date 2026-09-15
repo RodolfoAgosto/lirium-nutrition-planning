@@ -70,8 +70,18 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
 
   @Override
   public NutrientBudget assemble(
-      PlanMeal planMeal, NutrientBudget nutrientBudget, Set<Long> usedFoodIdsInDay) {
-    return assemble(planMeal, nutrientBudget, Collections.emptySet(), usedFoodIdsInDay);
+      PlanMeal planMeal,
+      NutrientBudget nutrientBudget,
+      Set<Long> usedFoodIdsInDay,
+      Map<Long, Integer> foodFrequencyInWeek,
+      Map<Long, Double> foodGramsInDay) {
+    return assemble(
+        planMeal,
+        nutrientBudget,
+        Collections.emptySet(),
+        usedFoodIdsInDay,
+        foodFrequencyInWeek,
+        foodGramsInDay);
   }
 
   @Override
@@ -79,7 +89,9 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
       PlanMeal planMeal,
       NutrientBudget nutrientBudget,
       Set<FoodTag> excludedTags,
-      Set<Long> usedFoodIdsInDay) {
+      Set<Long> usedFoodIdsInDay,
+      Map<Long, Integer> foodFrequencyInWeek,
+      Map<Long, Double> foodGramsInDay) {
 
     double caloriesConsumed = 0.0;
     double carbsConsumed = 0.0;
@@ -98,26 +110,57 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
     double remFat = nutrientBudget.fat().amount();
     double remProt = nutrientBudget.protein().grams();
 
-    int totalSlots = slots.size();
-    int currentSlotIndex = 0;
-
     for (SlotDistribution slot : slots) {
-      currentSlotIndex++;
-      int remainingSlotsInMeal = (totalSlots - currentSlotIndex) + 1;
 
       if (remCal <= 10.0 && remProt <= 2.0) {
         break;
       }
 
-      Optional<Food> foodOpt =
+      final double currentRemCal = remCal;
+      final double currentRemCarb = remCarb;
+      final double currentRemFat = remFat;
+      final double currentRemProt = remProt;
+
+      List<Food> candidates =
           availableFoods.stream()
               .filter(f -> f.getCategory() == slot.category())
               .filter(f -> !usedFoodIdsInDay.contains(f.getId()))
-              .findFirst();
+              .filter(f -> foodFrequencyInWeek.getOrDefault(f.getId(), 0) < getMaxFrequency(f))
+              .filter(
+                  f -> {
+                    double estimatedGrams =
+                        estimateGrams(
+                            f, currentRemCal, currentRemCarb, currentRemFat, currentRemProt);
+                    if (estimatedGrams <= 0) return false;
+                    return !isExtremeDeviation(
+                        f,
+                        estimatedGrams,
+                        currentRemCal,
+                        currentRemCarb,
+                        currentRemFat,
+                        currentRemProt);
+                  })
+              .sorted(
+                  Comparator.comparingDouble(
+                      f ->
+                          calculateDeviationScore(
+                              f, currentRemCal, currentRemCarb, currentRemFat, currentRemProt)))
+              .limit(3)
+              .toList();
 
+      Optional<Food> foodOpt =
+          candidates.isEmpty()
+              ? Optional.empty()
+              : Optional.of(candidates.get(new Random().nextInt(candidates.size())));
+
+      // Fallback (también respeta frecuencia)
       if (foodOpt.isEmpty()) {
         foodOpt =
-            availableFoods.stream().filter(f -> f.getCategory() == slot.category()).findFirst();
+            availableFoods.stream()
+                .filter(f -> f.getCategory() == slot.category())
+                .filter(f -> !usedFoodIdsInDay.contains(f.getId()))
+                .filter(f -> foodFrequencyInWeek.getOrDefault(f.getId(), 0) < getMaxFrequency(f))
+                .findFirst();
       }
 
       if (foodOpt.isEmpty()) {
@@ -128,31 +171,16 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
       Food food = foodOpt.get();
       availableFoods.remove(food);
 
-      // Presupuesto target para este slot en particular (evita que el primer carb consuma el 100%
-      // del budget de la comida)
-      double targetCalForSlot = remCal / remainingSlotsInMeal;
-      double targetCarbForSlot = remCarb / remainingSlotsInMeal;
-      double targetProtForSlot = remProt / remainingSlotsInMeal;
-      double targetFatForSlot = remFat / remainingSlotsInMeal;
-
-      // 1. Calcular gramos teóricos requeridos
-      double rawGrams =
-          calculateGrams(
-              food,
-              remCal,
-              remCarb,
-              remFat,
-              remProt,
-              targetCalForSlot,
-              targetCarbForSlot,
-              targetProtForSlot,
-              targetFatForSlot);
+      // 1. Calcular gramos teóricos basándose en la responsabilidad del slot y remanentes
+      // actualizados
+      double rawGrams = calculateGrams(food, remCal, remCarb, remFat, remProt);
       if (rawGrams <= 0) {
         continue;
       }
 
       // 2. Acotar según límites de porción del alimento y calorías restantes
       double boundedGrams = clampGramsToFoodLimits(food, rawGrams, remCal);
+      boundedGrams = adjustGramsForFatTolerance(food, boundedGrams, remFat);
       if (boundedGrams <= 0) {
         continue;
       }
@@ -169,6 +197,11 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
       double addedCarb = (food.getCarbsPer100g() * actualGrams) / 100.0;
       double addedFat = (food.getFatPer100g() * actualGrams) / 100.0;
       double addedProt = (food.getProteinPer100g() * actualGrams) / 100.0;
+
+      // También evitamos pasarnos mucho de calorías
+      if (addedCal > remCal + 40.0 && food.getCategory() != FoodCategory.VEGETABLE) {
+        continue;
+      }
 
       // GUARD CLAUSE FLEXIBLE: Permite pequeños excesos en el macro secundario si el principal es
       // necesario
@@ -188,6 +221,8 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
       planMeal.addFoodPortion(portion);
 
       usedFoodIdsInDay.add(food.getId());
+      foodFrequencyInWeek.merge(food.getId(), 1, Integer::sum);
+      foodGramsInDay.merge(food.getId(), actualGrams, Double::sum);
 
       // Deducción del presupuesto restante
       remCal -= addedCal;
@@ -229,15 +264,7 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
   }
 
   private double calculateGrams(
-      Food food,
-      double remCal,
-      double remCarb,
-      double remFat,
-      double remProt,
-      double targetCalForSlot,
-      double targetCarbForSlot,
-      double targetProtForSlot,
-      double targetFatForSlot) {
+      Food food, double remCal, double remCarb, double remFat, double remProt) {
 
     FoodCategory category = food.getCategory();
 
@@ -256,17 +283,17 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
         switch (category) {
           case PROTEIN, DAIRY ->
               food.getProteinPer100g() > 0
-                  ? (remProt * 100.0) / food.getProteinPer100g()
+                  ? (Math.max(0.0, remProt) * 100.0) / food.getProteinPer100g()
                   : DEFAULT_MACRO_CALCULATION_GRAMS;
 
           case CARB, SWEET ->
               food.getCarbsPer100g() > 0
-                  ? (remCarb * 100.0) / food.getCarbsPer100g()
+                  ? (Math.max(0.0, remCarb) * 100.0) / food.getCarbsPer100g()
                   : DEFAULT_MACRO_CALCULATION_GRAMS;
 
           case FAT ->
               food.getFatPer100g() > 0
-                  ? (remFat * 100.0) / food.getFatPer100g()
+                  ? (Math.max(0.0, remFat) * 100.0) / food.getFatPer100g()
                   : DEFAULT_FAT_PORTION_GRAMS;
 
           case VEGETABLE, FRUIT ->
@@ -354,12 +381,14 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
 
     double maxGrams = Double.MAX_VALUE;
 
+    // Límite por calorías (siempre)
     if (food.getCaloriesPer100g() > 0 && remainingCal > 0) {
       maxGrams = Math.min(maxGrams, (remainingCal * 100.0) / food.getCaloriesPer100g());
     }
 
     FoodCategory category = food.getCategory();
-    // Solo acotar por el macro principal de la categoría del alimento
+
+    // Límite por el macro principal según categoría
     if ((category == FoodCategory.CARB || category == FoodCategory.SWEET)
         && food.getCarbsPer100g() > 0
         && remainingCarb > 0) {
@@ -372,10 +401,79 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
       maxGrams = Math.min(maxGrams, (remainingProt * 100.0) / food.getProteinPer100g());
     }
 
-    if (category == FoodCategory.FAT && food.getFatPer100g() > 0 && remainingFat > 0) {
-      maxGrams = Math.min(maxGrams, (remainingFat * 100.0) / food.getFatPer100g());
+    if (food.getFatPer100g() > 0
+        && remainingFat > 0
+        && category != FoodCategory.PROTEIN
+        && category != FoodCategory.DAIRY) {
+
+      double maxAllowedFat = remainingFat + 4.0;
+
+      maxGrams = Math.min(maxGrams, (maxAllowedFat * 100.0) / food.getFatPer100g());
     }
 
     return maxGrams;
+  }
+
+  private int getMaxFrequency(Food food) {
+    // Podés hacerlo más fino por categoría o por food específico
+    if (food.getCategory() == FoodCategory.DAIRY) {
+      return 2; // máximo 2 veces por día (o por semana si el mapa es semanal)
+    }
+    return 3; // resto de alimentos
+  }
+
+  private double estimateGrams(
+      Food food, double remCal, double remCarb, double remFat, double remProt) {
+    // Reutilizá tu lógica actual de calculateGrams
+    return calculateGrams(food, remCal, remCarb, remFat, remProt);
+  }
+
+  private boolean isExtremeDeviation(
+      Food food, double grams, double remCal, double remCarb, double remFat, double remProt) {
+
+    double addedCal = (food.getCaloriesPer100g() * grams) / 100.0;
+    double addedFat = (food.getFatPer100g() * grams) / 100.0;
+    double addedProt = (food.getProteinPer100g() * grams) / 100.0;
+
+    double calRatio = remCal > 0 ? addedCal / remCal : 0;
+    double fatRatio = remFat > 0 ? addedFat / remFat : 0;
+    double protRatio = remProt > 0 ? addedProt / remProt : 0;
+
+    // Rechazar si se pasa mucho de calorías, grasa o proteína
+    return calRatio > 1.4 || fatRatio > 1.3 || protRatio > 1.5;
+  }
+
+  private double calculateDeviationScore(
+      Food food, double remCal, double remCarb, double remFat, double remProt) {
+
+    double grams = estimateGrams(food, remCal, remCarb, remFat, remProt);
+    if (grams <= 0) return Double.MAX_VALUE;
+
+    double addedCal = (food.getCaloriesPer100g() * grams) / 100.0;
+    double addedCarb = (food.getCarbsPer100g() * grams) / 100.0;
+    double addedFat = (food.getFatPer100g() * grams) / 100.0;
+    double addedProt = (food.getProteinPer100g() * grams) / 100.0;
+
+    // Normalizamos para que no domine un macro
+    double calDev =
+        remCal > 0 ? Math.abs(addedCal - remCal * 0.45) / remCal : 0; // 0.45 ≈ proporción del slot
+    double carbDev = remCarb > 0 ? Math.abs(addedCarb - remCarb * 0.4) / remCarb : 0;
+    double fatDev = remFat > 0 ? Math.abs(addedFat - remFat * 0.3) / remFat : 0;
+    double protDev = remProt > 0 ? Math.abs(addedProt - remProt * 0.4) / remProt : 0;
+
+    // Penalizamos un poco la grasa si ya vamos altos (opcional)
+    return calDev * 1.2 + carbDev * 1.1 + fatDev * 3.5 + protDev * 1.3;
+  }
+
+  private double adjustGramsForFatTolerance(Food food, double grams, double remainingFat) {
+
+    double addedFat = (food.getFatPer100g() * grams) / 100.0;
+    double maxAllowedFat = remainingFat + 4.0;
+
+    if (addedFat > maxAllowedFat && addedFat > 0) {
+      return grams * (maxAllowedFat / addedFat);
+    }
+
+    return grams;
   }
 }
