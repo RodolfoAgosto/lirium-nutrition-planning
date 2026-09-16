@@ -8,16 +8,16 @@ import java.util.Set;
 
 public interface PlanFoodPortionAssembler {
 
-  NutrientBudget assemble(
+  MealAssemblyResult assemble(
       PlanMeal planMeal,
-      NutrientBudget nutrientBudget,
+      NutrientBudget target,
       Set<Long> usedFoodIdsInDay,
       Map<Long, Integer> foodFrequencyInWeek,
       Map<Long, Double> foodGramsInDay);
 
-  NutrientBudget assemble(
+  MealAssemblyResult assemble(
       PlanMeal planMeal,
-      NutrientBudget nutrientBudget,
+      NutrientBudget target,
       Set<FoodTag> additionalExcludedTags,
       Set<Long> usedFoodIdsInDay,
       Map<Long, Integer> foodFrequencyInWeek,

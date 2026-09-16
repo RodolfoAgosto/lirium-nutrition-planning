@@ -65,26 +65,37 @@ public class PlanMealAssemblerImpl implements PlanMealAssembler {
             new Protein(macros.proteinGrams()));
 
     NutrientBudget nutrientBudgetRemaining = nutrientBudgetTarget;
+    MacroDeviation carry = MacroDeviation.ZERO;
 
     for (MealType meal : MealType.values()) {
       PlanMeal planMeal = PlanMeal.of(meal, dailyPlan);
 
       NutrientBudget mealBudget =
           calculateMealBudget(meal, nutrientBudgetTarget, nutrientBudgetRemaining);
+      NutrientBudget adjustedMealBudget = applyCarry(mealBudget, carry);
 
-      NutrientBudget consumed =
+      MealAssemblyResult result =
           planFoodPortionAssembler.assemble(
               planMeal,
-              mealBudget,
+              adjustedMealBudget,
               excludedTags,
               usedFoodIdsInDay,
               foodFrequencyInWeek,
               foodGramsInDay);
 
-      nutrientBudgetRemaining = nutrientBudgetRemaining.subtract(consumed);
+      nutrientBudgetRemaining = nutrientBudgetRemaining.subtractClamped(result.consumed());
+      carry = result.deviation();
 
       dailyPlan.addMeal(planMeal);
     }
+  }
+
+  private NutrientBudget applyCarry(NutrientBudget mealBudget, MacroDeviation carry) {
+    return new NutrientBudget(
+        new Calories(Math.max(0, (int) (mealBudget.calories().amount() - carry.calories()))),
+        new Carbs(Math.max(0, (int) (mealBudget.carbs().amount() - carry.carbs()))),
+        new Fat(Math.max(0, (int) (mealBudget.fat().amount() - carry.fat()))),
+        new Protein(Math.max(0, (int) (mealBudget.protein().grams() - carry.protein()))));
   }
 
   private Set<FoodTag> resolveExcludedTags(Set<Restriction> restrictions) {
