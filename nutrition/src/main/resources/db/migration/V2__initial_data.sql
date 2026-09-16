@@ -83,7 +83,17 @@ INSERT INTO foods (
       (190, 9, 0, NULL, 11, 20, NULL, TIMESTAMP '2026-09-16 00:00:00', 58, TIMESTAMP '2026-09-16 00:00:00', 'Tempeh', 'PROTEIN', 80, 250),
       (120, 4, 0, NULL, 2, 25, NULL, TIMESTAMP '2026-09-16 00:00:00', 59, TIMESTAMP '2026-09-16 00:00:00', 'Seitan', 'PROTEIN', 80, 250),
       (122, 10, 0, NULL, 5, 11, NULL, TIMESTAMP '2026-09-16 00:00:00', 60, TIMESTAMP '2026-09-16 00:00:00', 'Edamame', 'PROTEIN', 80, 250),
-      (100, 8, 0, NULL, 1, 18, NULL, TIMESTAMP '2026-09-16 00:00:00', 61, TIMESTAMP '2026-09-16 00:00:00', 'Soy Crumbles', 'PROTEIN', 80, 250);
+      (100, 8, 0, NULL, 1, 18, NULL, TIMESTAMP '2026-09-16 00:00:00', 61, TIMESTAMP '2026-09-16 00:00:00', 'Soy Crumbles', 'PROTEIN', 80, 250),
+      (212, 14, 0, NULL, 11, 18, NULL,   TIMESTAMP '2026-09-16 00:00:00', 62, TIMESTAMP '2026-09-16 00:00:00', 'Natto', 'PROTEIN', 60, 200),
+      (55,  2,  0, NULL, 2,  6,  NULL,   TIMESTAMP '2026-09-16 00:00:00', 63, TIMESTAMP '2026-09-16 00:00:00', 'Silken Tofu', 'PROTEIN', 80, 400),
+      (144, 3,  0, NULL, 9,  17, NULL,   TIMESTAMP '2026-09-16 00:00:00', 64, TIMESTAMP '2026-09-16 00:00:00', 'Firm Tofu', 'PROTEIN', 80, 250),
+      (165, 17, 2, NULL, 6,  14, 150.0,  TIMESTAMP '2026-09-16 00:00:00', 65, TIMESTAMP '2026-09-16 00:00:00', 'Black Bean Burger', 'PROTEIN', 150, 300),
+      (120, 3,  1, 1.03, 2, 21, NULL,    TIMESTAMP '2026-09-16 00:00:00', 66, TIMESTAMP '2026-09-16 00:00:00', 'Vegan Protein Shake', 'PROTEIN', 150, 260),
+      (119, 10, 0, NULL, 3,  16, NULL,   TIMESTAMP '2026-09-16 00:00:00', 67, TIMESTAMP '2026-09-16 00:00:00', 'Lupini Beans', 'PROTEIN', 80, 250),
+      (595, 21, 0, NULL, 54, 17, NULL, TIMESTAMP '2026-09-16 00:00:00', 68, TIMESTAMP '2026-09-16 00:00:00', 'Tahini', 'FAT', 10, 40),
+      (486, 42, 0, NULL, 31, 17, NULL, TIMESTAMP '2026-09-16 00:00:00', 69, TIMESTAMP '2026-09-16 00:00:00', 'Chia Seeds', 'FAT', 10, 40),
+      (584, 20, 0, NULL, 51, 21, NULL, TIMESTAMP '2026-09-16 00:00:00', 70, TIMESTAMP '2026-09-16 00:00:00', 'Sunflower Seeds', 'FAT', 10, 40);;
+
 -- ---------------------------------------------------------------------
 -- Food tags (15 filas)
 -- ---------------------------------------------------------------------
@@ -118,7 +128,16 @@ INSERT INTO food_tags (food_id, tag) VALUES
                                          (58, 'SOY'),
                                          (59, 'GLUTEN'),
                                          (60, 'SOY'),
-                                         (61, 'SOY');
+                                         (61, 'SOY'),
+                                         (62, 'SOY'), (62, 'HIGH_PROTEIN'),
+                                         (63, 'SOY'),
+                                         (64, 'SOY'), (64, 'HIGH_PROTEIN'),
+                                         (65, 'GLUTEN'), (65, 'HIGH_PROTEIN'),
+                                         (66, 'HIGH_PROTEIN'),
+                                         (67, 'LEGUME'), (67, 'HIGH_PROTEIN'),
+                                         (68, 'HIGH_PROTEIN'),
+                                         (69, 'HIGH_PROTEIN'),
+                                         (70, 'HIGH_PROTEIN');
 
 -- ---------------------------------------------------------------------
 -- Food suitable for (90 filas)
@@ -184,7 +203,16 @@ INSERT INTO food_suitable_for (food_id, meal_type) VALUES
                                                        (58, 'LUNCH'), (58, 'DINNER'),
                                                        (59, 'LUNCH'), (59, 'DINNER'),
                                                        (60, 'LUNCH'), (60, 'DINNER'),
-                                                       (61, 'LUNCH'), (61, 'DINNER');
+                                                       (61, 'LUNCH'), (61, 'DINNER'),
+                                                       (62, 'LUNCH'), (62, 'DINNER'),
+                                                       (63, 'LUNCH'), (63, 'DINNER'),
+                                                       (64, 'LUNCH'), (64, 'DINNER'),
+                                                       (65, 'LUNCH'), (65, 'DINNER'),
+                                                       (66, 'LUNCH'), (66, 'DINNER'), (66, 'BREAKFAST'), (66, 'SNACK'),
+                                                       (67, 'LUNCH'), (67, 'DINNER'),
+                                                       (68, 'LUNCH'), (68, 'DINNER'), (68, 'BREAKFAST'),
+                                                       (69, 'LUNCH'), (69, 'DINNER'),
+                                                       (70, 'LUNCH'), (70, 'DINNER');
 
 -- ---------------------------------------------------------------------
 -- Nutrition plan templates (5 filas)
@@ -195,7 +223,7 @@ INSERT INTO nutrition_plan_template (
     updated_by, target_goal
 ) VALUES
       (35, 25, 40, TIMESTAMP '2026-08-02 16:51:58.167241', 1, TIMESTAMP '2026-08-02 16:51:58.167241', 'system', 'High protein, moderate carbs, low fat plan for gradual weight loss.', 'Weight Loss - Standard', 'system', 'WEIGHT_LOSS'),
-      (40, 15, 45, TIMESTAMP '2026-08-02 16:51:58.167241', 2, TIMESTAMP '2026-08-02 16:51:58.167241', 'system', 'Very high protein intake with complex carbs to support muscle hypertrophy.', 'Muscle Gain - High Protein', 'system', 'MUSCLE_GAIN'),
+      (50, 25, 25, TIMESTAMP '2026-08-02 16:51:58.167241', 2, TIMESTAMP '2026-08-02 16:51:58.167241', 'system', 'Very high protein intake with complex carbs to support muscle hypertrophy.', 'Muscle Gain - High Protein', 'system', 'MUSCLE_GAIN'),
       (55, 20, 25, TIMESTAMP '2026-08-02 16:51:58.167241', 3, TIMESTAMP '2026-08-02 16:51:58.167241', 'system', 'Plant-based balanced plan excluding all animal products.', 'Vegan - Weight Maintenance', 'system', 'WEIGHT_MAINTENANCE'),
       (40, 30, 30, TIMESTAMP '2026-08-02 16:51:58.168239', 4, TIMESTAMP '2026-08-02 16:51:58.168239', 'system', 'Anti-inflammatory plan free of gluten and lactose.', 'Metabolic Health - Gluten & Lactose Free', 'system', 'METABOLIC_HEALTH'),
       (50, 25, 25, TIMESTAMP '2026-08-02 16:51:58.168239', 5, TIMESTAMP '2026-08-02 16:51:58.168239', 'system', 'Nutrient-dense plan for pregnancy. Avoids alcohol and raw fish.', 'Pregnancy Health - Balanced', 'system', 'PREGNANCY_HEALTH');
