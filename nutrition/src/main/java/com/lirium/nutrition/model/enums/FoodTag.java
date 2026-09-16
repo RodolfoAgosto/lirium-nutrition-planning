@@ -14,7 +14,9 @@ public enum FoodTag {
   GELATIN("Gelatin (animal-derived)"),
   NUTS("Nuts (peanuts, walnuts, etc.)"),
   SOY("Soy products"),
-  ALCOHOL("Alcohol");
+  ALCOHOL("Alcohol"),
+  LEGUME("Legumes (beans, lentils, chickpeas)"),
+  HIGH_PROTEIN("High protein source");
 
   private final String label;
 
