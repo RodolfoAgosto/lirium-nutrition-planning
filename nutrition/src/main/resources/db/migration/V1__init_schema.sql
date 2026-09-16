@@ -59,7 +59,7 @@ create table food_suitable_for (
 
 create table food_tags (
                            food_id bigint not null,
-                           tag varchar(255) check (tag in ('GLUTEN','LACTOSE','MEAT','FISH','EGG','HONEY','GELATIN','NUTS','SOY','ALCOHOL')),
+                           tag varchar(255) check (tag in ('GLUTEN','LACTOSE','MEAT','FISH','EGG','HONEY','GELATIN','NUTS','SOY','ALCOHOL', 'LEGUME', 'HIGH_PROTEIN')),
                            constraint uk_food_tags_food_tag unique (food_id, tag)
 );
 
