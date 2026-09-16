@@ -259,6 +259,59 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
           remProt);
     }
 
+    int topUpAttempts = 0;
+    while (remProt > 15.0 && remCal > 50.0 && topUpAttempts < 2) {
+      topUpAttempts++;
+
+      Optional<Food> topUpFood =
+          availableFoods.stream()
+              .filter(
+                  f ->
+                      f.getCategory() == FoodCategory.PROTEIN
+                          || f.getCategory() == FoodCategory.DAIRY)
+              .filter(f -> !usedFoodIdsInDay.contains(f.getId()))
+              .filter(f -> foodFrequencyInWeek.getOrDefault(f.getId(), 0) < getMaxFrequency(f))
+              .max(Comparator.comparingDouble(Food::getProteinPer100g));
+
+      if (topUpFood.isEmpty()) break;
+
+      Food food = topUpFood.get();
+      availableFoods.remove(food);
+
+      double rawGrams =
+          calculateGrams(food, FoodCategory.PROTEIN, remCal, remCarb, remFat, remProt);
+      double boundedGrams = clampGramsToFoodLimits(food, rawGrams, remCal);
+      boundedGrams = adjustGramsForFatTolerance(food, boundedGrams, remFat);
+      if (boundedGrams <= 0) continue;
+
+      double finalQuantity = convertToFinalUnit(food, boundedGrams);
+      MeasureUnit finalUnit = food.getDefaultUnit();
+      double actualGrams = calculateActualGrams(food, finalQuantity, finalUnit);
+
+      double addedCal = (food.getCaloriesPer100g() * actualGrams) / 100.0;
+      double addedCarb = (food.getCarbsPer100g() * actualGrams) / 100.0;
+      double addedFat = (food.getFatPer100g() * actualGrams) / 100.0;
+      double addedProt = (food.getProteinPer100g() * actualGrams) / 100.0;
+
+      if (addedCal > remCal + 50.0) continue;
+
+      PlanFoodPortion portion = PlanFoodPortion.of(planMeal, food, finalQuantity, finalUnit);
+      planMeal.addFoodPortion(portion);
+
+      usedFoodIdsInDay.add(food.getId());
+      foodFrequencyInWeek.merge(food.getId(), 1, Integer::sum);
+      foodGramsInDay.merge(food.getId(), actualGrams, Double::sum);
+
+      remCal -= addedCal;
+      remCarb -= addedCarb;
+      remFat -= addedFat;
+      remProt -= addedProt;
+      caloriesConsumed += addedCal;
+      carbsConsumed += addedCarb;
+      fatsConsumed += addedFat;
+      proteinConsumed += addedProt;
+    }
+
     int finalCalories = (int) Math.round(caloriesConsumed);
     int finalCarbs = (int) Math.round(carbsConsumed);
     int finalFat = (int) Math.round(fatsConsumed);
@@ -349,20 +402,18 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
     double maxGrams =
         (food.getMaxServingGrams() != null) ? food.getMaxServingGrams() : DEFAULT_MAX_SERVING_GRAMS;
 
-    // Si el mínimo de la porción excede severamente las calorías restantes de la comida, recortar a
-    // lo que alcance
     if (food.getCaloriesPer100g() > 0) {
       double maxGramsByCal = (remainingCal * 100.0) / food.getCaloriesPer100g();
       maxGrams = Math.min(maxGrams, maxGramsByCal);
     }
 
-    if (calculatedGrams < minGrams) {
-      // Si la cantidad calculada es menor al mínimo pero aún caben calorías, intentar asignar el
-      // mínimo
-      if (minGrams <= maxGrams) {
-        return minGrams;
-      }
+    // Si ni siquiera entra la porción mínima razonable, no lo agregues
+    if (maxGrams < minGrams) {
       return ZERO_GRAMS;
+    }
+
+    if (calculatedGrams < minGrams) {
+      return minGrams;
     }
 
     return Math.min(calculatedGrams, maxGrams);
@@ -449,7 +500,7 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
     if (food.getCategory() == FoodCategory.DAIRY) {
       return 2; // máximo 2 veces por día (o por semana si el mapa es semanal)
     }
-    return 3; // resto de alimentos
+    return 4; // resto de alimentos
   }
 
   private double estimateGrams(
@@ -501,7 +552,7 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
     double protDev = remProt > 0 ? Math.abs(addedProt - remProt * 0.4) / remProt : 0;
 
     // Penalizamos la grasa si vamos altos
-    return calDev * 1.2 + carbDev * 1.1 + fatDev * 3.5 + protDev * 1.3;
+    return calDev * 1.2 + carbDev * 1.1 + fatDev * 2.0 + protDev * 2.5;
   }
 
   private double adjustGramsForFatTolerance(Food food, double grams, double remainingFat) {
