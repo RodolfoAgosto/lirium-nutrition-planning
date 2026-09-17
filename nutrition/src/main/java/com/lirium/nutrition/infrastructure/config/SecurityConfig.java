@@ -61,6 +61,8 @@ public class SecurityConfig {
                     .requestMatchers(
                         "/", "/images/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
                     .permitAll()
+                    .requestMatchers("/actuator/health")
+                    .permitAll()
 
                     // Specific GET permissions (Allows PATIENT access before blocking write
                     // operations)
@@ -81,6 +83,8 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.PUT, "/api/foods/**")
                     .hasRole(ROLE_ADMIN)
                     .requestMatchers(HttpMethod.DELETE, "/api/foods/**")
+                    .hasRole(ROLE_ADMIN)
+                    .requestMatchers("/actuator/**")
                     .hasRole(ROLE_ADMIN)
 
                     // ADMIN and NUTRITIONIST
