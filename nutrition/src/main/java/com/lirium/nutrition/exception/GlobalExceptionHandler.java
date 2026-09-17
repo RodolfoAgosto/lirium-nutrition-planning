@@ -500,14 +500,13 @@ public class GlobalExceptionHandler {
     log.error("Unexpected error path={}", request.getRequestURI(), ex);
 
     ApiError error =
-            new ApiError(
-                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    "Internal Server Error",
-                    "An unexpected error occurred. Please contact support.",
-                    request.getRequestURI(),
-                    LocalDateTime.now(ARGENTINA_ZONE));
+        new ApiError(
+            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            "Internal Server Error",
+            "An unexpected error occurred. Please contact support.",
+            request.getRequestURI(),
+            LocalDateTime.now(ARGENTINA_ZONE));
 
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
   }
-
 }
