@@ -215,8 +215,8 @@ public class GlobalExceptionHandler {
     ApiError error =
         new ApiError(
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            "Internal server error",
-            "Unexpected error occurred",
+            "Internal Server Error",
+            "An unexpected error occurred. Please contact support.",
             request.getRequestURI(),
             LocalDateTime.now(ARGENTINA_ZONE));
 
@@ -492,21 +492,5 @@ public class GlobalExceptionHandler {
             LocalDateTime.now(ARGENTINA_ZONE));
 
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
-  }
-
-  @ExceptionHandler(Exception.class)
-  public ResponseEntity<ApiError> handleUnexpected(Exception ex, HttpServletRequest request) {
-
-    log.error("Unexpected error path={}", request.getRequestURI(), ex);
-
-    ApiError error =
-        new ApiError(
-            HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            "Internal Server Error",
-            "An unexpected error occurred. Please contact support.",
-            request.getRequestURI(),
-            LocalDateTime.now(ARGENTINA_ZONE));
-
-    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
   }
 }

@@ -156,7 +156,8 @@ class GlobalExceptionHandlerTest {
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
 
-    assertThat(response.getBody().message()).isEqualTo("Unexpected error occurred");
+    assertThat(response.getBody().message())
+        .isEqualTo("An unexpected error occurred. Please contact support.");
   }
 
   @Test
