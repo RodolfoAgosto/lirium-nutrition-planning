@@ -244,4 +244,30 @@ public class NutritionPlanController {
   public ResponseEntity<List<NutritionPlanSummaryDTO>> findByPatient(@PathVariable Long patientId) {
     return ResponseEntity.ok(nutritionPlanService.findByPatient(patientId));
   }
+
+  @Operation(
+      operationId = "getActiveNutritionPlanByPatient",
+      summary = "Get current active nutrition plan for a patient",
+      description =
+          "Retrieves the nutrition plan currently in ACTIVE status for the given patient. "
+              + "Accessible by ADMIN, NUTRITIONIST, or the target patient.")
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Active nutrition plan retrieved successfully",
+            content =
+                @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = NutritionPlanDetailDTO.class))),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Patient has no active nutrition plan",
+            content = @Content)
+      })
+  @GetMapping("/patient/{patientId}/active")
+  @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or #patientId == authentication.principal.id")
+  public ResponseEntity<NutritionPlanDetailDTO> findActiveByPatient(@PathVariable Long patientId) {
+    return ResponseEntity.ok(nutritionPlanService.findActiveByPatient(patientId));
+  }
 }

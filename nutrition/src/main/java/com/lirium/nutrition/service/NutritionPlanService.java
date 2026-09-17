@@ -18,4 +18,6 @@ public interface NutritionPlanService {
   List<NutritionPlanSummaryDTO> findByPatient(Long patientId);
 
   Optional<NutritionPlan> findActivePlan(Long patientId);
+
+  NutritionPlanDetailDTO findActiveByPatient(Long patientId);
 }

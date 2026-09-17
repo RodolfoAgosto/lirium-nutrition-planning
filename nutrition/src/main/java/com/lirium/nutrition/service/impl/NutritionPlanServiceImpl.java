@@ -106,4 +106,15 @@ public class NutritionPlanServiceImpl implements NutritionPlanService {
         .map(plan -> plan.getPatientProfile().getUser().getId().equals(patientId))
         .orElse(false);
   }
+
+  @Override
+  public NutritionPlanDetailDTO findActiveByPatient(Long patientId) {
+    NutritionPlan plan =
+        findActivePlan(patientId)
+            .orElseThrow(
+                () ->
+                    new NutritionPlanNotFoundException(
+                        "No active nutrition plan found for patientId: " + patientId));
+    return NutritionPlanMapper.toDetail(plan);
+  }
 }
