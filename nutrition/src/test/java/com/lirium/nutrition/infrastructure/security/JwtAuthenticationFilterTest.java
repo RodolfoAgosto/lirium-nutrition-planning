@@ -3,6 +3,7 @@ package com.lirium.nutrition.infrastructure.security;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,6 +33,8 @@ class JwtAuthenticationFilterTest {
   @Mock private HttpServletResponse response;
 
   @Mock private UserDetails userDetails;
+
+  @Mock private Claims claims;
 
   @AfterEach
   void cleanup() {
@@ -67,7 +70,7 @@ class JwtAuthenticationFilterTest {
 
     when(request.getHeader("Authorization")).thenReturn("Bearer invalid-token");
 
-    when(jwtService.extractUsername("invalid-token"))
+    when(jwtService.parseClaims("invalid-token"))
         .thenThrow(new IllegalArgumentException("invalid"));
 
     filter.doFilterInternal(request, response, filterChain);
@@ -82,11 +85,13 @@ class JwtAuthenticationFilterTest {
 
     when(request.getHeader("Authorization")).thenReturn("Bearer token");
 
-    when(jwtService.extractUsername("token")).thenReturn("john@test.com");
+    when(jwtService.parseClaims("token")).thenReturn(claims);
+
+    when(jwtService.extractUsername(claims)).thenReturn("john@test.com");
 
     when(userDetailsService.loadUserByUsername("john@test.com")).thenReturn(userDetails);
 
-    when(jwtService.isTokenValid("token", userDetails)).thenReturn(true);
+    when(jwtService.isTokenValid(claims, userDetails)).thenReturn(true);
 
     filter.doFilterInternal(request, response, filterChain);
 
@@ -103,11 +108,13 @@ class JwtAuthenticationFilterTest {
 
     when(request.getHeader("Authorization")).thenReturn("Bearer token");
 
-    when(jwtService.extractUsername("token")).thenReturn("john@test.com");
+    when(jwtService.parseClaims("token")).thenReturn(claims);
+
+    when(jwtService.extractUsername(claims)).thenReturn("john@test.com");
 
     when(userDetailsService.loadUserByUsername("john@test.com")).thenReturn(userDetails);
 
-    when(jwtService.isTokenValid("token", userDetails)).thenReturn(false);
+    when(jwtService.isTokenValid(claims, userDetails)).thenReturn(false);
 
     filter.doFilterInternal(request, response, filterChain);
 
@@ -125,7 +132,9 @@ class JwtAuthenticationFilterTest {
 
     when(request.getHeader("Authorization")).thenReturn("Bearer token");
 
-    when(jwtService.extractUsername("token")).thenReturn("john@test.com");
+    when(jwtService.parseClaims("token")).thenReturn(claims);
+
+    when(jwtService.extractUsername(claims)).thenReturn("john@test.com");
 
     filter.doFilterInternal(request, response, filterChain);
 

@@ -46,12 +46,32 @@ public class JwtService {
     return extractUsername(token).equals(userDetails.getUsername()) && !isTokenExpired(token);
   }
 
+  /**
+   * Parses the token once so callers (e.g. the JWT filter) can reuse the resulting Claims instead
+   * of triggering a fresh signature verification + parse per check.
+   */
+  public Claims parseClaims(String token) {
+    return getClaims(token);
+  }
+
+  public String extractUsername(Claims claims) {
+    return claims.getSubject();
+  }
+
+  public boolean isTokenValid(Claims claims, UserDetails userDetails) {
+    return claims.getSubject().equals(userDetails.getUsername()) && !isTokenExpired(claims);
+  }
+
   private Claims getClaims(String token) {
     return Jwts.parserBuilder().setSigningKey(getKey()).build().parseClaimsJws(token).getBody();
   }
 
   private boolean isTokenExpired(String token) {
     return getClaims(token).getExpiration().before(new Date());
+  }
+
+  private boolean isTokenExpired(Claims claims) {
+    return claims.getExpiration().before(new Date());
   }
 
   public String generateExpiredToken(UserDetails userDetails) {

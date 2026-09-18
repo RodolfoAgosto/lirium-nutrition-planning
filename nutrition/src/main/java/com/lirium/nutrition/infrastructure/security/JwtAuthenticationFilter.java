@@ -1,5 +1,6 @@
 package com.lirium.nutrition.infrastructure.security;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -36,19 +37,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     final String token = authHeader.substring(7);
-    final String username;
+    final Claims claims;
     try {
-      username = jwtService.extractUsername(token);
+      claims = jwtService.parseClaims(token);
     } catch (JwtException | IllegalArgumentException e) {
+      log.warn("Malformed or invalid JWT received: {}", e.getMessage());
       filterChain.doFilter(request, response);
       return;
     }
+    final String username = jwtService.extractUsername(claims);
 
     if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
       UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-      if (jwtService.isTokenValid(token, userDetails)) {
+      if (jwtService.isTokenValid(claims, userDetails)) {
         UsernamePasswordAuthenticationToken authToken =
             new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities());
