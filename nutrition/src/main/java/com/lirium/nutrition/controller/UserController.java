@@ -40,7 +40,7 @@ public class UserController {
 
   @Operation(
       operationId = "registerUser",
-      summary = "Register a new user",
+      summary = "Register a new user (patient self-registration)",
       description =
           "Public endpoint for patient self-registration. Creates a new account in the system.")
   @SecurityRequirements
@@ -83,8 +83,7 @@ public class UserController {
       operationId = "registerPatient",
       summary = "Register a new patient",
       description =
-          "Creates a new user account with patient profile details. Restricted to ADMIN and NUTRITIONIST roles.",
-      security = @SecurityRequirement(name = "bearerAuth"))
+          "Creates a new user account with patient profile details. Restricted to ADMIN and NUTRITIONIST roles.")
   @SecurityRequirement(name = "bearerAuth")
   @ApiResponses(
       value = {
@@ -98,19 +97,31 @@ public class UserController {
         @ApiResponse(
             responseCode = "400",
             description = "Invalid request payload or validation constraint failure.",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized. Full authentication is required to access this resource.",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "403",
             description = "Forbidden. User lacks the required role (ADMIN or NUTRITIONIST).",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "409",
             description = "Conflict. A patient with the provided email already exists.",
-            content = @Content)
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @PostMapping("/patient")
   public ResponseEntity<UserResponseDTO> registerPatient(
@@ -140,11 +151,17 @@ public class UserController {
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized. Authentication token is missing or invalid.",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "404",
             description = "User not found with the provided ID.",
-            content = @Content)
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @PreAuthorize(
       "hasAnyRole('ADMIN', 'NUTRITIONIST') or @patientSecurity.isOwner(#id, authentication)")
@@ -170,15 +187,24 @@ public class UserController {
         @ApiResponse(
             responseCode = "400",
             description = "Missing or malformed email parameter.",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized. Authentication token is missing or invalid.",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "404",
             description = "User not found with the provided email.",
-            content = @Content)
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
   @GetMapping("/email")
@@ -190,8 +216,7 @@ public class UserController {
       operationId = "getAllUsers",
       summary = "Retrieve all users",
       description =
-          "Returns a list of all registered users. Restricted to ADMIN and NUTRITIONIST roles.",
-      security = @SecurityRequirement(name = "bearerAuth"))
+          "Returns a list of all registered users. Restricted to ADMIN and NUTRITIONIST roles.")
   @SecurityRequirement(name = "bearerAuth")
   @ApiResponses(
       value = {
@@ -206,12 +231,18 @@ public class UserController {
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized. Authentication token is missing or invalid.",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "403",
             description =
                 "Forbidden. Lacks required permissions (requires ADMIN or NUTRITIONIST role).",
-            content = @Content)
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
   @GetMapping
@@ -236,15 +267,24 @@ public class UserController {
         @ApiResponse(
             responseCode = "400",
             description = "Invalid request payload or validation constraint failure.",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized. Authentication token is missing or invalid.",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "404",
             description = "User not found with the provided ID.",
-            content = @Content)
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @PreAuthorize(
       "hasAnyRole('ADMIN', 'NUTRITIONIST') or @patientSecurity.isOwner(#id, authentication)")
@@ -276,15 +316,24 @@ public class UserController {
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized. Authentication token is missing or invalid.",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "403",
             description = "Forbidden. Requires 'user.enable' authority.",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "404",
             description = "User not found with the provided ID.",
-            content = @Content)
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @PatchMapping("/{id}/enabled")
   @PreAuthorize("hasAuthority('user.enable')")
@@ -316,20 +365,32 @@ public class UserController {
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized. Authentication token is missing or invalid.",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "403",
             description =
                 "Forbidden. User can only validate their own email unless they have 'user.write' authority.",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "404",
             description = "User not found with the provided ID.",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "409",
             description = "Conflict. User email is already validated.",
-            content = @Content)
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @PatchMapping("/{id}/validate-email")
   @PreAuthorize("hasAnyRole('ADMIN') or @patientSecurity.isOwner(#id, authentication)")
@@ -357,19 +418,31 @@ public class UserController {
         @ApiResponse(
             responseCode = "400",
             description = "Bad Request. User account is already disabled.",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized. Authentication token is missing or invalid.",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "403",
             description = "Forbidden. Requires 'user.delete' authority.",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "404",
             description = "User not found with the provided ID.",
-            content = @Content)
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @DeleteMapping("/{id}")
   @PreAuthorize("hasAnyRole('ADMIN') or hasAuthority('user.delete')")

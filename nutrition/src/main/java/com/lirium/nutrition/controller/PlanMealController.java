@@ -5,6 +5,7 @@ import com.lirium.nutrition.dto.request.PlanFoodPortionUpdateQuantityRequestDTO;
 import com.lirium.nutrition.dto.request.PlanMealCreateRequestDTO;
 import com.lirium.nutrition.dto.response.PlanMealResponseDTO;
 import com.lirium.nutrition.dto.response.PlanMealSummaryDTO;
+import com.lirium.nutrition.infrastructure.config.CommonAuthResponses;
 import com.lirium.nutrition.service.PlanMealService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -40,6 +41,7 @@ public class PlanMealController {
 
   private final PlanMealService service;
 
+  @CommonAuthResponses
   @Operation(
       operationId = "getPlanMealById",
       summary = "Get plan meal by ID",
@@ -62,6 +64,7 @@ public class PlanMealController {
     return ResponseEntity.ok(service.getById(id));
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "getPlanMealsByPlanDay",
       summary = "Get plan meals by plan day ID",
@@ -86,6 +89,7 @@ public class PlanMealController {
     return service.getByPlanDay(planDayId);
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "createPlanMeal",
       summary = "Create a new plan meal",
@@ -112,6 +116,7 @@ public class PlanMealController {
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "deletePlanMeal",
       summary = "Delete a plan meal",
@@ -130,6 +135,7 @@ public class PlanMealController {
     return ResponseEntity.noContent().build();
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "addPlanMealPortion",
       summary = "Add a food portion to a plan meal",
@@ -156,6 +162,7 @@ public class PlanMealController {
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "removePlanMealPortion",
       summary = "Remove a food portion from a plan meal",
@@ -179,6 +186,7 @@ public class PlanMealController {
     return ResponseEntity.ok(response);
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "updatePlanMealPortionQuantity",
       summary = "Update food portion quantity",

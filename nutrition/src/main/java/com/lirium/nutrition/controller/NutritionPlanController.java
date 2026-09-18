@@ -3,11 +3,12 @@ package com.lirium.nutrition.controller;
 import com.lirium.nutrition.dto.request.NutritionPlanCompleteRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
+import com.lirium.nutrition.exception.ApiError;
+import com.lirium.nutrition.infrastructure.config.CommonAuthResponses;
 import com.lirium.nutrition.service.NutritionPlanGenerator;
 import com.lirium.nutrition.service.NutritionPlanService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -50,35 +51,41 @@ public class NutritionPlanController {
   @ApiResponses(
       value = {
         @ApiResponse(
-            responseCode = "201",
-            description = "Nutrition plan successfully generated",
-            headers =
-                @Header(
-                    name = "Location",
-                    description = "URI of the newly generated nutrition plan",
-                    schema = @Schema(type = "string")),
-            content =
-                @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = NutritionPlanDetailDTO.class))),
-        @ApiResponse(
             responseCode = "400",
             description = "Invalid patient ID or parameters out of bounds",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized access / Unauthenticated",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "403",
             description = "Forbidden: Insufficient privileges to generate plan for this patient",
-            content = @Content),
-        @ApiResponse(responseCode = "404", description = "Patient not found", content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Patient not found",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "422",
             description =
                 "Unprocessable entity: Missing required physical metrics or goals for patient",
-            content = @Content)
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @PreAuthorize("hasAnyRole('NUTRITIONIST', 'ADMIN')")
   @PostMapping("/generate/{patientId}")
@@ -94,6 +101,7 @@ public class NutritionPlanController {
     return ResponseEntity.status(HttpStatus.CREATED).body(dto);
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "completeNutritionPlan",
       summary = "Complete nutrition plan",
@@ -105,15 +113,27 @@ public class NutritionPlanController {
             responseCode = "200",
             description = "Nutrition plan completed successfully",
             content = @Content),
-        @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid input data",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "404",
             description = "Nutrition plan not found",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "409",
             description = "Plan is not in a valid status to be completed",
-            content = @Content)
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @PatchMapping("/{id}/complete")
   @PreAuthorize("hasAnyRole('NUTRITIONIST', 'ADMIN')")
@@ -127,6 +147,7 @@ public class NutritionPlanController {
     return ResponseEntity.ok(response);
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "activateNutritionPlan",
       summary = "Activate a nutrition plan",
@@ -136,10 +157,20 @@ public class NutritionPlanController {
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "204", description = "Nutrition plan activated successfully"),
-        @ApiResponse(responseCode = "404", description = "Nutrition plan not found"),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Nutrition plan not found",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "409",
-            description = "Plan is not in DRAFT status to be activated")
+            description = "Plan is not in DRAFT status to be activated",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @PreAuthorize("hasAnyRole('NUTRITIONIST', 'ADMIN')")
   @PatchMapping("/{id}/activate")
@@ -151,6 +182,7 @@ public class NutritionPlanController {
     return ResponseEntity.noContent().build();
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "generateNutritionPlanFromTemplate",
       summary = "Generate nutrition plan from a template",
@@ -168,15 +200,24 @@ public class NutritionPlanController {
         @ApiResponse(
             responseCode = "404",
             description = "Patient or template not found",
-            content = @Content),
-        @ApiResponse(
-            responseCode = "422",
-            description = "Missing required physical metrics or goals for patient",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "409",
             description = "Patient already has a plan in DRAFT status",
-            content = @Content)
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "422",
+            description = "Missing required physical metrics or goals for patient",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @PreAuthorize("hasAnyRole('NUTRITIONIST', 'ADMIN')")
   @PostMapping("/generate-from-template/{patientId}/{templateId}")
@@ -200,6 +241,7 @@ public class NutritionPlanController {
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "getNutritionPlanById",
       summary = "Get nutrition plan by ID",
@@ -222,6 +264,7 @@ public class NutritionPlanController {
     return ResponseEntity.ok(nutritionPlanService.findById(id));
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "getNutritionPlansByPatient",
       summary = "Get nutrition plans by patient ID",
@@ -237,7 +280,7 @@ public class NutritionPlanController {
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     array =
                         @ArraySchema(
-                            schema = @Schema(implementation = NutritionPlanSummaryDTO.class)))),
+                            schema = @Schema(implementation = NutritionPlanSummaryDTO.class))))
       })
   @GetMapping("/patient/{patientId}")
   @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or #patientId == authentication.principal.id")
@@ -245,6 +288,7 @@ public class NutritionPlanController {
     return ResponseEntity.ok(nutritionPlanService.findByPatient(patientId));
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "getActiveNutritionPlanByPatient",
       summary = "Get current active nutrition plan for a patient",
@@ -263,7 +307,14 @@ public class NutritionPlanController {
         @ApiResponse(
             responseCode = "404",
             description = "Patient has no active nutrition plan",
-            content = @Content)
+            content = @Content),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Patient has no active nutrition plan",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @GetMapping("/patient/{patientId}/active")
   @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST') or #patientId == authentication.principal.id")

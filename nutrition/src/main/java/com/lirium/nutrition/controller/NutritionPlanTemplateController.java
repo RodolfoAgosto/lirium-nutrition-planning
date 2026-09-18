@@ -4,6 +4,8 @@ import com.lirium.nutrition.dto.request.NutritionPlanTemplateCreateRequestDTO;
 import com.lirium.nutrition.dto.request.NutritionPlanTemplateUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanTemplateResponseDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanTemplateSummaryDTO;
+import com.lirium.nutrition.exception.ApiError;
+import com.lirium.nutrition.infrastructure.config.CommonAuthResponses;
 import com.lirium.nutrition.service.NutritionPlanTemplateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -39,6 +41,7 @@ public class NutritionPlanTemplateController {
 
   private final NutritionPlanTemplateService service;
 
+  @CommonAuthResponses
   @Operation(
       operationId = "getAllNutritionPlanTemplates",
       summary = "Get all nutrition plan templates",
@@ -62,6 +65,7 @@ public class NutritionPlanTemplateController {
     return service.getAll();
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "getNutritionPlanTemplateById",
       summary = "Get nutrition plan template by ID",
@@ -82,13 +86,36 @@ public class NutritionPlanTemplateController {
     return service.getById(id);
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "createNutritionPlanTemplate",
       summary = "Create basic plan template",
       description =
           "Creates a new basic plan template. Validates that macronutrient percentages sum up to exactly 100%.")
   @ApiResponses(
-      value = {@ApiResponse(responseCode = "201", description = "Template created successfully")})
+      value = {
+        @ApiResponse(
+            responseCode = "201",
+            description = "Template created successfully",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = NutritionPlanTemplateResponseDTO.class))),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid request payload or validation constraint failure.",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "422",
+            description = "Macro percentages must sum to exactly 100%.",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
+      })
   @SecurityRequirement(name = "bearerAuth")
   @PostMapping
   @PreAuthorize("hasAnyRole('ADMIN','NUTRITIONIST')")
@@ -97,6 +124,7 @@ public class NutritionPlanTemplateController {
     return ResponseEntity.status(HttpStatus.CREATED).body(service.create(dto));
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "deleteNutritionPlanTemplate",
       summary = "Delete nutrition plan template",
@@ -113,6 +141,7 @@ public class NutritionPlanTemplateController {
     return ResponseEntity.noContent().build();
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "updateNutritionPlanTemplate",
       summary = "Update nutrition plan template",

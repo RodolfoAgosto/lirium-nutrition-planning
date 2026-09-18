@@ -6,6 +6,7 @@ import com.lirium.nutrition.dto.response.AdherenceReportDTO;
 import com.lirium.nutrition.dto.response.DailyRecordResponseDTO;
 import com.lirium.nutrition.dto.response.MealRecordResponseDTO;
 import com.lirium.nutrition.dto.response.NutritionComparisonReportDTO;
+import com.lirium.nutrition.exception.ApiError;
 import com.lirium.nutrition.service.AdherenceReportService;
 import com.lirium.nutrition.service.DailyRecordService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -64,33 +65,54 @@ public class DailyRecordController {
         @ApiResponse(
             responseCode = "200",
             description = "Daily record already exists and was retrieved successfully",
-            content = @Content(schema = @Schema(implementation = DailyRecordResponseDTO.class))),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = DailyRecordResponseDTO.class))),
         @ApiResponse(
             responseCode = "201",
             description = "Daily record was successfully generated from the active nutrition plan",
-            content = @Content(schema = @Schema(implementation = DailyRecordResponseDTO.class))),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = DailyRecordResponseDTO.class))),
         @ApiResponse(
             responseCode = "400",
             description =
                 "Invalid date (date is in the future or prior to the active nutrition plan start date)",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized (Missing or expired JWT token)",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "403",
             description = "Forbidden (Patient is attempting to access another user's daily record)",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "404",
             description = "Patient profile not found",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "422",
             description =
                 "Unprocessable Entity (Patient does not have an active nutrition plan to generate records from)",
-            content = @Content)
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @PostMapping("/patient/{patientId}/ensure")
   @PreAuthorize(
@@ -135,12 +157,36 @@ public class DailyRecordController {
             description = "Daily record retrieved successfully",
             content =
                 @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    mediaType = "application/json",
                     schema = @Schema(implementation = DailyRecordResponseDTO.class))),
         @ApiResponse(
             responseCode = "400",
             description = "Invalid daily record ID parameter",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized. Missing or invalid JWT token.",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden. User lacks the required role.",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Daily record not found",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @GetMapping("/{id}")
   @PreAuthorize(
@@ -165,10 +211,24 @@ public class DailyRecordController {
             description = "Daily records retrieved successfully",
             content =
                 @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    mediaType = "application/json",
                     array =
                         @ArraySchema(
-                            schema = @Schema(implementation = DailyRecordResponseDTO.class))))
+                            schema = @Schema(implementation = DailyRecordResponseDTO.class)))),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized. Missing or invalid JWT token.",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden. User lacks the required role.",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @GetMapping("/patient/{patientId}")
   @PreAuthorize(
@@ -192,8 +252,29 @@ public class DailyRecordController {
             description = "Meal record updated successfully",
             content =
                 @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = MealRecordResponseDTO.class)))
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = MealRecordResponseDTO.class))),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized. Missing or invalid JWT token.",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden. User lacks the required role.",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Meal record not found",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @PatchMapping("/meals/{mealRecordId}")
   @PreAuthorize(
@@ -224,13 +305,38 @@ public class DailyRecordController {
     @ApiResponse(
         responseCode = "201",
         description = "Portion added successfully to meal record",
-        content = @Content(schema = @Schema(implementation = MealRecordResponseDTO.class))),
-    @ApiResponse(responseCode = "400", description = "Invalid payload or non-positive quantity"),
-    @ApiResponse(responseCode = "401", description = "Unauthorized - JWT required"),
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = MealRecordResponseDTO.class))),
+    @ApiResponse(
+        responseCode = "400",
+        description = "Invalid payload or non-positive quantity",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized - JWT required",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiError.class))),
     @ApiResponse(
         responseCode = "403",
-        description = "Forbidden - Not authorized to modify this meal record"),
-    @ApiResponse(responseCode = "404", description = "Meal record or Food not found")
+        description = "Forbidden - Not authorized to modify this meal record",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiError.class))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "Meal record or Food not found",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiError.class)))
   })
   public ResponseEntity<MealRecordResponseDTO> addFoodPortion(
       @PathVariable("mealRecordId")
@@ -254,7 +360,21 @@ public class DailyRecordController {
               + "within a daily record (DailyRecord). Marks the meal as overridden.")
   @ApiResponses(
       value = {
-        @ApiResponse(responseCode = "204", description = "Food portion removed successfully")
+        @ApiResponse(responseCode = "204", description = "Food portion removed successfully"),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized. Missing or invalid JWT token.",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden. User lacks the required role.",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @DeleteMapping("/{dailyRecordId}/meals/{mealRecordId}/portions/{portionId}")
   @PreAuthorize(
@@ -300,16 +420,31 @@ public class DailyRecordController {
         @ApiResponse(
             responseCode = "400",
             description = "Invalid date range or missing parameters",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized - JWT required",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "403",
             description = "Forbidden - Not authorized to view this patient's adherence",
-            content = @Content),
-        @ApiResponse(responseCode = "404", description = "Patient not found", content = @Content)
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Patient not found",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @GetMapping("/patient/{patientId}/adherence")
   @PreAuthorize(
@@ -362,19 +497,31 @@ public class DailyRecordController {
         @ApiResponse(
             responseCode = "400",
             description = "Invalid inputs or 'from' date is after 'to' date",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized - JWT required",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "403",
             description = "Forbidden - Not authorized",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "404",
             description = "Patient or active plan not found",
-            content = @Content)
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   public ResponseEntity<NutritionComparisonReportDTO> getNutritionComparisonReport(
       @PathVariable("patientId")

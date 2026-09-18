@@ -4,6 +4,8 @@ import com.lirium.nutrition.dto.request.RestrictionCatalogUpdateRequestDTO;
 import com.lirium.nutrition.dto.request.RestrictionCreateRequestDTO;
 import com.lirium.nutrition.dto.response.RestrictionResponseDTO;
 import com.lirium.nutrition.dto.response.RestrictionSummaryDTO;
+import com.lirium.nutrition.exception.ApiError;
+import com.lirium.nutrition.infrastructure.config.CommonAuthResponses;
 import com.lirium.nutrition.service.RestrictionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -39,6 +41,7 @@ public class RestrictionController {
 
   private final RestrictionService restrictionService;
 
+  @CommonAuthResponses
   @Operation(
       operationId = "getAllRestrictions",
       summary = "Get all dietary restrictions",
@@ -63,6 +66,7 @@ public class RestrictionController {
     return ResponseEntity.ok(restrictions);
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "createRestriction",
       summary = "Create a new dietary restriction",
@@ -76,7 +80,14 @@ public class RestrictionController {
             content =
                 @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = RestrictionSummaryDTO.class)))
+                    schema = @Schema(implementation = RestrictionSummaryDTO.class))),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid request payload or validation constraint failure.",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @PostMapping
   @PreAuthorize("hasRole('ADMIN')")
@@ -90,6 +101,7 @@ public class RestrictionController {
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "getRestrictionById",
       summary = "Get dietary restriction details by ID",
@@ -117,6 +129,7 @@ public class RestrictionController {
     return ResponseEntity.ok(response);
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "updateRestriction",
       summary = "Update a dietary restriction",
@@ -130,7 +143,14 @@ public class RestrictionController {
             content =
                 @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = RestrictionSummaryDTO.class)))
+                    schema = @Schema(implementation = RestrictionSummaryDTO.class))),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid request payload or validation constraint failure.",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @PutMapping("/{id}")
   @PreAuthorize("hasRole('ADMIN')")

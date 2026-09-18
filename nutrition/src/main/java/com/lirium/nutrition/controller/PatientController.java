@@ -3,6 +3,7 @@ package com.lirium.nutrition.controller;
 import com.lirium.nutrition.dto.request.PatientUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.PatientDetailDTO;
 import com.lirium.nutrition.dto.response.PatientSummaryDTO;
+import com.lirium.nutrition.infrastructure.config.CommonAuthResponses;
 import com.lirium.nutrition.service.PatientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -34,6 +35,7 @@ public class PatientController {
 
   private final PatientService patientService;
 
+  @CommonAuthResponses
   @Operation(
       operationId = "searchPatients",
       summary = "Search patients by filters",
@@ -70,6 +72,7 @@ public class PatientController {
     return ResponseEntity.ok(response);
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "getPatientById",
       summary = "Get patient by ID",
@@ -92,6 +95,7 @@ public class PatientController {
     return ResponseEntity.ok(patientService.getPatientDetail(id));
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "updatePatientProfile",
       summary = "Update patient profile",

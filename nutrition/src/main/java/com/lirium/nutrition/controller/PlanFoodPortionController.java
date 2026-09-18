@@ -1,6 +1,7 @@
 package com.lirium.nutrition.controller;
 
 import com.lirium.nutrition.dto.response.PlanFoodPortionResponseDTO;
+import com.lirium.nutrition.infrastructure.config.CommonAuthResponses;
 import com.lirium.nutrition.service.PlanFoodPortionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -35,6 +36,7 @@ public class PlanFoodPortionController {
 
   private final PlanFoodPortionService service;
 
+  @CommonAuthResponses
   @Operation(
       operationId = "getPlanFoodPortionsByMeal",
       summary = "Get plan food portions by plan meal ID",
@@ -60,6 +62,7 @@ public class PlanFoodPortionController {
     return ResponseEntity.ok(service.getByPlanMeal(planMealId));
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "getPlanFoodPortionById",
       summary = "Get plan food portion by ID",

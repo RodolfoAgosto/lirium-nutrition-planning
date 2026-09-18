@@ -4,6 +4,7 @@ import com.lirium.nutrition.dto.request.LoginRequestDTO;
 import com.lirium.nutrition.dto.request.OAuth2ExchangeRequestDTO;
 import com.lirium.nutrition.dto.request.RefreshRequestDTO;
 import com.lirium.nutrition.dto.response.AuthResponseDTO;
+import com.lirium.nutrition.exception.ApiError;
 import com.lirium.nutrition.infrastructure.security.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -46,15 +47,24 @@ public class AuthController {
         @ApiResponse(
             responseCode = "400",
             description = "Invalid request structure or missing mandatory fields.",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "401",
             description = "Invalid credentials (incorrect email or password).",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "403",
             description = "Account is disabled or suspended by an administrator.",
-            content = @Content)
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @PostMapping("/login")
   public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
@@ -78,11 +88,17 @@ public class AuthController {
         @ApiResponse(
             responseCode = "400",
             description = "Invalid request structure or missing refresh token field.",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "401",
             description = "Unauthorized. The refresh token is invalid, expired, or revoked.",
-            content = @Content)
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @PostMapping("/refresh")
   public ResponseEntity<AuthResponseDTO> refresh(@Valid @RequestBody RefreshRequestDTO request) {
@@ -106,11 +122,17 @@ public class AuthController {
         @ApiResponse(
             responseCode = "400",
             description = "Invalid request structure or missing code.",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(
             responseCode = "401",
             description = "Authorization code is invalid, expired, or already used.",
-            content = @Content)
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
       })
   @PostMapping("/oauth2/exchange")
   public ResponseEntity<AuthResponseDTO> exchangeOAuth2Code(

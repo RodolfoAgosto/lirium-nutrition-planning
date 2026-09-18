@@ -4,9 +4,13 @@ import com.lirium.nutrition.dto.request.FoodCreateRequestDTO;
 import com.lirium.nutrition.dto.request.FoodUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.FoodResponseDTO;
 import com.lirium.nutrition.dto.response.FoodSummaryDTO;
+import com.lirium.nutrition.infrastructure.config.CommonAuthResponses;
 import com.lirium.nutrition.service.FoodService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -40,22 +44,36 @@ public class FoodController {
 
   private final FoodService foodService;
 
+  @CommonAuthResponses
   @Operation(
       operationId = "getAllFoods",
       summary = "Get all foods",
       description = "Returns all foods available in the nutrition catalog.")
-  @ApiResponses({@ApiResponse(responseCode = "200", description = "Foods retrieved successfully")})
+  @ApiResponse(
+      responseCode = "200",
+      description = "Foods retrieved successfully",
+      content =
+          @Content(
+              mediaType = "application/json",
+              array = @ArraySchema(schema = @Schema(implementation = FoodSummaryDTO.class))))
   @GetMapping
   @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST', 'PATIENT')")
   public Set<FoodSummaryDTO> getAllFoods() {
     return foodService.findAll();
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "getFoodById",
       summary = "Get food by ID",
       description = "Returns the complete information of a food from the nutrition catalog.")
-  @ApiResponses({@ApiResponse(responseCode = "200", description = "Food retrieved successfully")})
+  @ApiResponse(
+      responseCode = "200",
+      description = "Food retrieved successfully",
+      content =
+          @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = FoodResponseDTO.class)))
   @GetMapping("/{id}")
   @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST', 'PATIENT')")
   public FoodResponseDTO getFoodById(
@@ -66,6 +84,7 @@ public class FoodController {
     return foodService.findById(id);
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "createFood",
       summary = "Create a food",
@@ -88,17 +107,24 @@ public class FoodController {
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "updateFood",
       summary = "Update a food",
       description =
           "Updates an existing food in the nutrition catalog. Administrators and nutritionists can perform this operation.")
   @ApiResponses({
-    @ApiResponse(responseCode = "200", description = "Food updated successfully"),
     @ApiResponse(
         responseCode = "409",
         description = "The updated food conflicts with an existing catalog entry")
   })
+  @ApiResponse(
+      responseCode = "200",
+      description = "Food updated successfully",
+      content =
+          @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = FoodSummaryDTO.class)))
   @PatchMapping("/{id}")
   @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
   public ResponseEntity<FoodSummaryDTO> updateFood(
@@ -112,6 +138,7 @@ public class FoodController {
     return ResponseEntity.ok(response);
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "deleteFood",
       summary = "Delete a food",
@@ -136,11 +163,12 @@ public class FoodController {
     return ResponseEntity.noContent().build();
   }
 
+  @CommonAuthResponses
   @Operation(
-      operationId = "getAllFoods",
-      summary = "Get all foods",
+      operationId = "getFoodsPaged",
+      summary = "Get paginated foods",
       description = "Returns a paginated list of active foods available in the nutrition catalog.")
-  @ApiResponses({@ApiResponse(responseCode = "200", description = "Foods retrieved successfully")})
+  @ApiResponse(responseCode = "200", description = "Foods retrieved successfully")
   @GetMapping("/paged")
   @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST', 'PATIENT')")
   public Page<FoodSummaryDTO> getAllFoods(
