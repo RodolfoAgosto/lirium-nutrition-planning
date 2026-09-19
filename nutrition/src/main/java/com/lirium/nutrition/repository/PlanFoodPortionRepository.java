@@ -5,6 +5,8 @@ import com.lirium.nutrition.model.entity.PlanFoodPortion;
 import com.lirium.nutrition.model.entity.PlanMeal;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -21,4 +23,13 @@ public interface PlanFoodPortionRepository extends JpaRepository<PlanFoodPortion
   boolean existsByMeal_IdAndFood_Id(Long planMealId, Long foodId);
 
   boolean existsByFoodId(Long foodId);
+
+  @Query(
+      """
+            SELECT COUNT(pfp) > 0
+            FROM PlanFoodPortion pfp
+            WHERE pfp.id = :portionId
+              AND pfp.meal.dailyPlan.nutritionPlan.patientProfile.user.id = :userId
+        """)
+  boolean existsByIdAndUserId(@Param("portionId") Long portionId, @Param("userId") Long userId);
 }
