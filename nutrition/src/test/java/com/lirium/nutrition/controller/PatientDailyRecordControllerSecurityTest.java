@@ -9,7 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lirium.nutrition.dto.response.DailyRecordResponseDTO;
-import com.lirium.nutrition.infrastructure.security.JwtAuthenticationFilter; // Importalo
+import com.lirium.nutrition.infrastructure.security.JwtAuthenticationFilter;
 import com.lirium.nutrition.infrastructure.security.PatientSecurity;
 import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.repository.PatientProfileRepository;
@@ -37,13 +37,13 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(
-    controllers = DailyRecordController.class,
+    controllers = PatientDailyRecordController.class,
     excludeFilters =
         @ComponentScan.Filter(
             type = FilterType.ASSIGNABLE_TYPE,
             classes = JwtAuthenticationFilter.class))
-@Import({PatientSecurity.class, DailyRecordControllerSecurityTest.TestSecurityConfig.class})
-public class DailyRecordControllerSecurityTest {
+@Import({PatientSecurity.class, PatientDailyRecordControllerSecurityTest.TestSecurityConfig.class})
+public class PatientDailyRecordControllerSecurityTest {
 
   @Autowired private MockMvc mvc;
 
@@ -85,7 +85,7 @@ public class DailyRecordControllerSecurityTest {
         .thenReturn(Collections.emptyList()); // Sin roles ADMIN/NUTRITIONIST
 
     mvc.perform(
-            get("/api/daily-records/patient/{patientId}", targetPatientId).with(user(principal)))
+            get("/api/patients/{patientId}/daily-records", targetPatientId).with(user(principal)))
         .andExpect(status().isForbidden());
   }
 
@@ -102,7 +102,7 @@ public class DailyRecordControllerSecurityTest {
     when(principal.getAuthorities()).thenReturn(Collections.emptyList());
 
     mvc.perform(
-            get("/api/daily-records/patient/{patientId}", targetPatientId).with(user(principal)))
+            get("/api/patients/{patientId}/daily-records", targetPatientId).with(user(principal)))
         .andExpect(status().isForbidden());
 
     verifyNoInteractions(dailyRecordService);
@@ -121,7 +121,7 @@ public class DailyRecordControllerSecurityTest {
     when(principal.getAuthorities()).thenReturn(Collections.emptyList());
 
     mvc.perform(
-            get("/api/daily-records/patient/{patientId}/adherence", targetPatientId)
+            get("/api/patients/{patientId}/daily-records/adherence", targetPatientId)
                 .param("from", "2025-01-01")
                 .param("to", "2025-01-07")
                 .with(user(principal)))
@@ -143,7 +143,7 @@ public class DailyRecordControllerSecurityTest {
     when(principal.getAuthorities()).thenReturn(Collections.emptyList());
 
     mvc.perform(
-            get("/api/daily-records/patient/{patientId}/nutrition-comparison", targetPatientId)
+            get("/api/patients/{patientId}/daily-records/nutrition-comparison", targetPatientId)
                 .param("from", "2025-01-01")
                 .param("to", "2025-01-07")
                 .with(user(principal)))
@@ -164,9 +164,9 @@ public class DailyRecordControllerSecurityTest {
     when(patientSecurity.isOwner(eq(targetPatientId), any(Authentication.class))).thenReturn(false);
     when(principal.getUsername()).thenReturn("patient@test.com");
 
-    // Endpoint actualizado: GET /api/daily-records/patient/{patientId}
+    // Endpoint actualizado: GET /api/patients/{patientId}/daily-records
     mvc.perform(
-            get("/api/daily-records/patient/{patientId}", targetPatientId).with(user(principal)))
+            get("/api/patients/{patientId}/daily-records", targetPatientId).with(user(principal)))
         .andExpect(status().isForbidden());
 
     verifyNoInteractions(dailyRecordService);
@@ -184,7 +184,7 @@ public class DailyRecordControllerSecurityTest {
     when(principal.getUsername()).thenReturn("patient@test.com");
 
     mvc.perform(
-            get("/api/daily-records/patient/{patientId}", targetPatientId).with(user(principal)))
+            get("/api/patients/{patientId}/daily-records", targetPatientId).with(user(principal)))
         .andExpect(status().isForbidden());
 
     verifyNoInteractions(dailyRecordService);
@@ -202,7 +202,7 @@ public class DailyRecordControllerSecurityTest {
     when(principal.getUsername()).thenReturn("test@test.com");
 
     mvc.perform(
-            get("/api/daily-records/patient/{patientId}/adherence", targetPatientId)
+            get("/api/patients/{patientId}/daily-records/adherence", targetPatientId)
                 .param("from", "2025-01-01")
                 .param("to", "2025-01-07")
                 .with(user(principal)))
@@ -223,7 +223,7 @@ public class DailyRecordControllerSecurityTest {
     when(principal.getUsername()).thenReturn("test@test.com");
 
     mvc.perform(
-            get("/api/daily-records/patient/{patientId}/nutrition-comparison", targetPatientId)
+            get("/api/patients/{patientId}/daily-records/nutrition-comparison", targetPatientId)
                 .param("from", "2025-01-01")
                 .param("to", "2025-01-07")
                 .with(user(principal)))
@@ -247,7 +247,7 @@ public class DailyRecordControllerSecurityTest {
 
     // Act & Assert
     mvc.perform(
-            post("/api/daily-records/patient/{patientId}/ensure", patientId)
+            post("/api/patients/{patientId}/daily-records/ensure", patientId)
                 .param("date", targetDate.toString())
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isCreated())
@@ -271,7 +271,7 @@ public class DailyRecordControllerSecurityTest {
 
     // Act & Assert
     mvc.perform(
-            post("/api/daily-records/patient/{patientId}/ensure", patientId)
+            post("/api/patients/{patientId}/daily-records/ensure", patientId)
                 .param("date", targetDate.toString())
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isCreated())

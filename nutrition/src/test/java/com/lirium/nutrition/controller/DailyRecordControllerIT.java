@@ -114,7 +114,7 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            post("/api/daily-records/patient/" + patientId + "/ensure")
+            post("/api/patients/" + patientId + "/daily-records/ensure")
                 .header("Authorization", adminToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.date").exists());
@@ -126,7 +126,7 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            post("/api/daily-records/patient/" + patientId + "/ensure")
+            post("/api/patients/" + patientId + "/daily-records/ensure")
                 .header("Authorization", nutritionistToken))
         .andExpect(status().isOk());
   }
@@ -137,7 +137,7 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            post("/api/daily-records/patient/" + patientId + "/ensure")
+            post("/api/patients/" + patientId + "/daily-records/ensure")
                 .header("Authorization", patientToken))
         .andExpect(status().isOk());
   }
@@ -147,7 +147,7 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
   void shouldReturnForbiddenWhenPatientRequestsAnotherPatientsTodayRecord() throws Exception {
     mockMvc
         .perform(
-            post("/api/daily-records/patient/" + otherPatientId + "/ensure")
+            post("/api/patients/" + otherPatientId + "/daily-records/ensure")
                 .header("Authorization", patientToken))
         .andExpect(status().isForbidden());
   }
@@ -166,7 +166,7 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
   void shouldReturnNotFoundWhenPatientDoesNotExist() throws Exception {
     mockMvc
         .perform(
-            post("/api/daily-records/patient/99999/ensure").header("Authorization", adminToken))
+            post("/api/patients/99999/daily-records/ensure").header("Authorization", adminToken))
         .andExpect(status().isNotFound());
   }
 
@@ -234,7 +234,9 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
   void shouldReturnPatientDailyRecordsWhenAdminRequests() throws Exception {
 
     mockMvc
-        .perform(get("/api/daily-records/patient/" + patientId).header("Authorization", adminToken))
+        .perform(
+            get("/api/patients/" + patientId + "/daily-records")
+                .header("Authorization", adminToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
         .andExpect(jsonPath("$[0].id").value(dailyRecordId));
@@ -246,7 +248,7 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            get("/api/daily-records/patient/" + patientId)
+            get("/api/patients/" + patientId + "/daily-records")
                 .header("Authorization", nutritionistToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
@@ -259,7 +261,8 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            get("/api/daily-records/patient/" + patientId).header("Authorization", patientToken))
+            get("/api/patients/" + patientId + "/daily-records")
+                .header("Authorization", patientToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
         .andExpect(jsonPath("$[0].id").value(dailyRecordId));
@@ -271,7 +274,7 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            get("/api/daily-records/patient/" + otherPatientId)
+            get("/api/patients/" + otherPatientId + "/daily-records")
                 .header("Authorization", patientToken))
         .andExpect(status().isForbidden());
   }
@@ -284,7 +287,7 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            get("/api/daily-records/patient/" + patientWithoutRecordsId)
+            get("/api/patients/" + patientWithoutRecordsId + "/daily-records")
                 .header("Authorization", adminToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
@@ -297,7 +300,7 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            get("/api/daily-records/patient/" + patientId + "/adherence")
+            get("/api/patients/" + patientId + "/daily-records/adherence")
                 .param("from", LocalDate.now().minusDays(7).toString())
                 .param("to", LocalDate.now().toString())
                 .header("Authorization", adminToken))
@@ -310,7 +313,7 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            get("/api/daily-records/patient/" + patientId + "/adherence")
+            get("/api/patients/" + patientId + "/daily-records/adherence")
                 .param("from", LocalDate.now(ARGENTINA_ZONE).minusDays(7).toString())
                 .param("to", LocalDate.now(ARGENTINA_ZONE).toString())
                 .header("Authorization", patientToken))
@@ -323,7 +326,7 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            get("/api/daily-records/patient/" + otherPatientId + "/adherence")
+            get("/api/patients/" + otherPatientId + "/daily-records/adherence")
                 .param("from", LocalDate.now().minusDays(7).toString())
                 .param("to", LocalDate.now().toString())
                 .header("Authorization", patientToken))
@@ -336,7 +339,7 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            get("/api/daily-records/patient/" + patientId + "/nutrition-comparison")
+            get("/api/patients/" + patientId + "/daily-records/nutrition-comparison")
                 .param("from", LocalDate.now().minusDays(7).toString())
                 .param("to", LocalDate.now().toString())
                 .header("Authorization", adminToken))

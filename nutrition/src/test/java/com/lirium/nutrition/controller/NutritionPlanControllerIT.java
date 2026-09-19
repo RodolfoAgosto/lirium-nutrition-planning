@@ -204,7 +204,8 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            get("/api/nutrition-plans/patient/" + patientId).header("Authorization", adminToken))
+            get("/api/patients/" + patientId + "/nutrition-plans")
+                .header("Authorization", adminToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
         .andExpect(jsonPath("$[0].id").value(nutritionPlanId));
@@ -216,7 +217,7 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            get("/api/nutrition-plans/patient/" + patientId)
+            get("/api/patients/" + patientId + "/nutrition-plans")
                 .header("Authorization", nutritionistToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
@@ -229,7 +230,8 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            get("/api/nutrition-plans/patient/" + patientId).header("Authorization", patientToken))
+            get("/api/patients/" + patientId + "/nutrition-plans")
+                .header("Authorization", patientToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
         .andExpect(jsonPath("$[0].id").value(nutritionPlanId));
@@ -241,7 +243,7 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            get("/api/nutrition-plans/patient/" + otherPatientId)
+            get("/api/patients/" + otherPatientId + "/nutrition-plans")
                 .header("Authorization", patientToken))
         .andExpect(status().isForbidden());
   }
@@ -251,7 +253,7 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
   void shouldReturnUnauthorizedWhenUserIsNotAuthenticatedForFindByPatient() throws Exception {
 
     mockMvc
-        .perform(get("/api/nutrition-plans/patient/" + patientId))
+        .perform(get("/api/patients/" + patientId + "/nutrition-plans"))
         .andExpect(status().isUnauthorized());
   }
 
@@ -261,7 +263,7 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            get("/api/nutrition-plans/patient/" + otherPatientId)
+            get("/api/patients/" + otherPatientId + "/nutrition-plans")
                 .header("Authorization", adminToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
