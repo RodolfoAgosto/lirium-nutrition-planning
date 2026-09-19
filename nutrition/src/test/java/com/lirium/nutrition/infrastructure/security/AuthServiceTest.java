@@ -80,19 +80,25 @@ class AuthServiceTest {
 
     User user = new User();
 
-    RefreshToken refreshToken = createRefreshToken(user);
+    RefreshToken oldRefreshToken = createRefreshToken(user);
 
-    when(refreshTokenService.validate("refresh-token")).thenReturn(refreshToken);
+    RefreshToken rotatedRefreshToken =
+        new RefreshToken(user, "new-refresh-token", Instant.now().plusSeconds(3600));
+
+    when(refreshTokenService.validate("refresh-token")).thenReturn(oldRefreshToken);
 
     when(jwtService.generateToken(user)).thenReturn("new-access-token");
+
+    when(refreshTokenService.createRefreshToken(user)).thenReturn(rotatedRefreshToken);
 
     AuthResponseDTO response = authService.refresh("refresh-token");
 
     assertEquals("new-access-token", response.token());
-    assertEquals("refresh-token", response.refreshToken());
+    assertEquals("new-refresh-token", response.refreshToken());
 
     verify(refreshTokenService).validate("refresh-token");
     verify(jwtService).generateToken(user);
+    verify(refreshTokenService).createRefreshToken(user);
   }
 
   @Test

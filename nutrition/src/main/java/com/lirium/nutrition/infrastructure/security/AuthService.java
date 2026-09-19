@@ -37,9 +37,10 @@ public class AuthService {
   }
 
   public AuthResponseDTO refresh(String refreshToken) {
-    RefreshToken token = refreshTokenService.validate(refreshToken);
-    String newAccessToken = jwtService.generateToken(token.getUser());
-    return new AuthResponseDTO(newAccessToken, refreshToken);
+    RefreshToken oldToken = refreshTokenService.validate(refreshToken);
+    String newAccessToken = jwtService.generateToken(oldToken.getUser());
+    RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(oldToken.getUser());
+    return new AuthResponseDTO(newAccessToken, newRefreshToken.getToken());
   }
 
   public AuthResponseDTO exchangeOAuth2Code(String code) {
