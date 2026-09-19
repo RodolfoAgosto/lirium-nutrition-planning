@@ -288,4 +288,28 @@ class NutritionPlanTemplateControllerIT extends AbstractIntegrationTest {
 
     mockMvc.perform(get("/api/nutrition-plan-templates")).andExpect(status().isUnauthorized());
   }
+
+  @Test
+  @DisplayName("Debe retornar 400 cuando falta proteinPercentage en el request")
+  void shouldReturnBadRequestWhenProteinPercentageIsMissing() throws Exception {
+
+    String body =
+        """
+                    {
+                      "name":"Template sin proteinPercentage",
+                      "description":"Falta un campo requerido",
+                      "targetGoal":"WEIGHT_LOSS",
+                      "carbPercentage":30,
+                      "fatPercentage":30
+                    }
+                    """;
+
+    mockMvc
+        .perform(
+            post("/api/nutrition-plan-templates")
+                .header("Authorization", adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isBadRequest());
+  }
 }

@@ -24,17 +24,17 @@ public record NutritionPlanTemplateCreateRequestDTO(
         @NotNull(message = "Protein percentage is required")
         @Min(value = 0, message = "Protein percentage cannot be negative")
         @Max(value = 100, message = "Protein percentage cannot exceed 100")
-        int proteinPercentage,
+        Integer proteinPercentage,
     @Schema(description = "Carbohydrate percentage (0-100)", example = "30")
         @NotNull(message = "Carb percentage is required")
         @Min(value = 0, message = "Carb percentage cannot be negative")
         @Max(value = 100, message = "Carb percentage cannot exceed 100")
-        int carbPercentage,
+        Integer carbPercentage,
     @Schema(description = "Fat percentage (0-100)", example = "30")
         @NotNull(message = "Fat percentage is required")
         @Min(value = 0, message = "Fat percentage cannot be negative")
         @Max(value = 100, message = "Fat percentage cannot exceed 100")
-        int fatPercentage,
+        Integer fatPercentage,
     @Schema(
             description = "Food tags to automatically exclude from this template",
             example = "[\"GLUTEN\", \"LACTOSE\"]")
