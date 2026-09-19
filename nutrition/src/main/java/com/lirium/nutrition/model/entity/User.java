@@ -13,7 +13,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Table(name = "users")
 @Getter
 @Setter
-@AllArgsConstructor
 public class User extends Auditable implements UserDetails {
 
   @Id
