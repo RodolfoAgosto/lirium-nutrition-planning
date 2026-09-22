@@ -13,6 +13,7 @@ import com.lirium.nutrition.dto.request.UserCreateRequestDTO;
 import com.lirium.nutrition.dto.request.UserUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.UserResponseDTO;
 import com.lirium.nutrition.infrastructure.security.JwtService;
+import com.lirium.nutrition.infrastructure.security.TokenBlacklistService;
 import com.lirium.nutrition.infrastructure.security.UserDetailsServiceImpl;
 import com.lirium.nutrition.service.UserService;
 import java.time.LocalDate;
@@ -36,6 +37,8 @@ class UserControllerTest {
   @MockBean private UserService userService;
 
   @MockBean private JwtService jwtService;
+
+  @MockBean private TokenBlacklistService tokenBlacklistService;
 
   @MockBean private UserDetailsServiceImpl userDetailsServiceImpl;
 

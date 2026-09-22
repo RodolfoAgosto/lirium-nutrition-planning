@@ -6,6 +6,7 @@ import com.lirium.nutrition.exception.UnauthorizedException;
 import com.lirium.nutrition.model.entity.RefreshToken;
 import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.repository.UserRepository;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,6 +22,7 @@ public class AuthService {
   private final RefreshTokenService refreshTokenService;
   private final OAuth2AuthorizationCodeService authorizationCodeService;
   private final UserRepository userRepository;
+  private final TokenBlacklistService tokenBlacklistService;
 
   public AuthResponseDTO login(LoginRequestDTO request) {
 
@@ -54,5 +56,10 @@ public class AuthService {
     String token = jwtService.generateToken(user);
     RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
     return new AuthResponseDTO(token, refreshToken.getToken());
+  }
+
+  public void logout(Claims accessTokenClaims, User user) {
+    refreshTokenService.revokeAllForUser(user);
+    tokenBlacklistService.blacklist(accessTokenClaims.getId(), accessTokenClaims.getExpiration());
   }
 }

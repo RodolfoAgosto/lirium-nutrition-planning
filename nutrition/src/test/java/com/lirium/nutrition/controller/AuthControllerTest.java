@@ -14,6 +14,7 @@ import com.lirium.nutrition.dto.response.AuthResponseDTO;
 import com.lirium.nutrition.exception.InvalidRefreshTokenException;
 import com.lirium.nutrition.infrastructure.security.AuthService;
 import com.lirium.nutrition.infrastructure.security.JwtService;
+import com.lirium.nutrition.infrastructure.security.TokenBlacklistService;
 import com.lirium.nutrition.infrastructure.security.UserDetailsServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,8 @@ class AuthControllerTest {
   @MockBean JwtService jwtService;
 
   @MockBean UserDetailsServiceImpl userDetailsService;
+
+  @MockBean private TokenBlacklistService tokenBlacklistService;
 
   @Autowired MockMvc mockMvc;
 

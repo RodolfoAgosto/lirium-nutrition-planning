@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.lirium.nutrition.dto.response.PlanFoodPortionResponseDTO;
 import com.lirium.nutrition.infrastructure.security.JwtService;
+import com.lirium.nutrition.infrastructure.security.TokenBlacklistService;
 import com.lirium.nutrition.infrastructure.security.UserDetailsServiceImpl;
 import com.lirium.nutrition.model.enums.MeasureUnit;
 import com.lirium.nutrition.service.PlanFoodPortionService;
@@ -28,6 +29,8 @@ class PlanFoodPortionControllerTest {
   @MockBean private PlanFoodPortionService service;
 
   @MockBean private JwtService jwtService;
+
+  @MockBean private TokenBlacklistService tokenBlacklistService;
 
   @MockBean private UserDetailsServiceImpl userDetailsServiceImpl;
 

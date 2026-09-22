@@ -12,6 +12,7 @@ import com.lirium.nutrition.dto.request.NutritionPlanTemplateUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanTemplateResponseDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanTemplateSummaryDTO;
 import com.lirium.nutrition.infrastructure.security.JwtService;
+import com.lirium.nutrition.infrastructure.security.TokenBlacklistService;
 import com.lirium.nutrition.infrastructure.security.UserDetailsServiceImpl;
 import com.lirium.nutrition.model.enums.GoalType;
 import com.lirium.nutrition.service.NutritionPlanTemplateService;
@@ -36,6 +37,8 @@ class NutritionPlanTemplateControllerTest {
   @MockBean private NutritionPlanTemplateService nutritionPlanTemplateService;
 
   @MockBean private JwtService jwtService;
+
+  @MockBean private TokenBlacklistService tokenBlacklistService;
 
   @MockBean private UserDetailsServiceImpl userDetailsServiceImpl;
 

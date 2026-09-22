@@ -6,6 +6,7 @@ import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
@@ -30,6 +31,7 @@ public class JwtService {
         userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
     return Jwts.builder()
+        .setId(UUID.randomUUID().toString())
         .setSubject(userDetails.getUsername())
         .claim("roles", roles) // lista real, no el toString()
         .setIssuedAt(new Date())

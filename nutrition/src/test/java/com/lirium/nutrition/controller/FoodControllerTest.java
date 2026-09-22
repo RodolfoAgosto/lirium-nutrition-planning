@@ -11,6 +11,7 @@ import com.lirium.nutrition.dto.request.FoodUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.FoodResponseDTO;
 import com.lirium.nutrition.dto.response.FoodSummaryDTO;
 import com.lirium.nutrition.infrastructure.security.JwtService;
+import com.lirium.nutrition.infrastructure.security.TokenBlacklistService;
 import com.lirium.nutrition.infrastructure.security.UserDetailsServiceImpl;
 import com.lirium.nutrition.model.enums.FoodCategory;
 import com.lirium.nutrition.model.enums.FoodTag;
@@ -37,6 +38,8 @@ class FoodControllerTest {
   @MockBean private FoodService foodService;
 
   @MockBean private JwtService jwtService;
+
+  @MockBean private TokenBlacklistService tokenBlacklistService;
 
   @MockBean private UserDetailsServiceImpl userDetailsServiceImpl;
 

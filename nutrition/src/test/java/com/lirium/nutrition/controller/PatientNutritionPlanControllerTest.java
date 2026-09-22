@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
 import com.lirium.nutrition.infrastructure.security.JwtService;
+import com.lirium.nutrition.infrastructure.security.TokenBlacklistService;
 import com.lirium.nutrition.infrastructure.security.UserDetailsServiceImpl;
 import com.lirium.nutrition.model.enums.GoalType;
 import com.lirium.nutrition.model.enums.PlanStatus;
@@ -30,6 +31,8 @@ class PatientNutritionPlanControllerTest {
   @MockBean private NutritionPlanService nutritionPlanService;
 
   @MockBean private JwtService jwtService;
+
+  @MockBean private TokenBlacklistService tokenBlacklistService;
 
   @MockBean private UserDetailsServiceImpl userDetailsServiceImpl;
 

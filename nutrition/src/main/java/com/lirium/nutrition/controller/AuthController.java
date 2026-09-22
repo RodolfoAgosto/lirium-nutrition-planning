@@ -6,15 +6,22 @@ import com.lirium.nutrition.dto.request.RefreshRequestDTO;
 import com.lirium.nutrition.dto.response.AuthResponseDTO;
 import com.lirium.nutrition.exception.ApiError;
 import com.lirium.nutrition.infrastructure.security.AuthService;
+import com.lirium.nutrition.infrastructure.security.JwtService;
+import com.lirium.nutrition.model.entity.User;
+import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
   private final AuthService authService;
+  private final JwtService jwtService;
 
   @Operation(
       operationId = "login",
@@ -138,5 +146,35 @@ public class AuthController {
   public ResponseEntity<AuthResponseDTO> exchangeOAuth2Code(
       @Valid @RequestBody OAuth2ExchangeRequestDTO request) {
     return ResponseEntity.ok(authService.exchangeOAuth2Code(request.code()));
+  }
+
+  @Operation(
+      operationId = "logout",
+      summary = "Log out",
+      description =
+          "Ends the current session: blacklists this specific access token until its own "
+              + "expiration (so it can't be reused even though it's technically still within its "
+              + "validity window) and revokes the user's active refresh token.")
+  @SecurityRequirement(name = "bearerAuth")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "Logged out successfully."),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized. Missing or invalid JWT token.",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ApiError.class)))
+      })
+  @PostMapping("/logout")
+  @PreAuthorize("isAuthenticated()")
+  public ResponseEntity<Void> logout(
+      HttpServletRequest request, @AuthenticationPrincipal User user) {
+
+    String token = request.getHeader("Authorization").substring(7);
+    Claims claims = jwtService.parseClaims(token);
+    authService.logout(claims, user);
+    return ResponseEntity.noContent().build();
   }
 }

@@ -23,6 +23,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtService jwtService;
   private final UserDetailsServiceImpl userDetailsService;
+  private final TokenBlacklistService tokenBlacklistService;
 
   @Override
   protected void doFilterInternal(
@@ -46,6 +47,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       return;
     }
     final String username = jwtService.extractUsername(claims);
+
+    if (tokenBlacklistService.isBlacklisted(claims.getId())) {
+      log.debug("Rejected blacklisted (logged-out) token for user: {}", username);
+      filterChain.doFilter(request, response);
+      return;
+    }
 
     if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 

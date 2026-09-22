@@ -56,6 +56,8 @@ public class SecurityConfig {
                     // Public
                     .requestMatchers("/h2-console/**")
                     .permitAll()
+                    .requestMatchers("/api/auth/logout")
+                    .authenticated()
                     .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**")
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/users")

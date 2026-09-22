@@ -26,6 +26,8 @@ class JwtAuthenticationFilterTest {
 
   @Mock private UserDetailsServiceImpl userDetailsService;
 
+  @Mock private TokenBlacklistService tokenBlacklistService;
+
   @Mock private FilterChain filterChain;
 
   @Mock private HttpServletRequest request;
@@ -87,6 +89,10 @@ class JwtAuthenticationFilterTest {
 
     when(jwtService.parseClaims("token")).thenReturn(claims);
 
+    when(claims.getId()).thenReturn("test-jti");
+
+    when(tokenBlacklistService.isBlacklisted("test-jti")).thenReturn(false);
+
     when(jwtService.extractUsername(claims)).thenReturn("john@test.com");
 
     when(userDetailsService.loadUserByUsername("john@test.com")).thenReturn(userDetails);
@@ -109,6 +115,10 @@ class JwtAuthenticationFilterTest {
     when(request.getHeader("Authorization")).thenReturn("Bearer token");
 
     when(jwtService.parseClaims("token")).thenReturn(claims);
+
+    when(claims.getId()).thenReturn("test-jti");
+
+    when(tokenBlacklistService.isBlacklisted("test-jti")).thenReturn(false);
 
     when(jwtService.extractUsername(claims)).thenReturn("john@test.com");
 
@@ -133,6 +143,10 @@ class JwtAuthenticationFilterTest {
     when(request.getHeader("Authorization")).thenReturn("Bearer token");
 
     when(jwtService.parseClaims("token")).thenReturn(claims);
+
+    when(claims.getId()).thenReturn("test-jti");
+
+    when(tokenBlacklistService.isBlacklisted("test-jti")).thenReturn(false);
 
     when(jwtService.extractUsername(claims)).thenReturn("john@test.com");
 

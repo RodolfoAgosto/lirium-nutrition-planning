@@ -5,6 +5,7 @@ import com.lirium.nutrition.model.entity.RefreshToken;
 import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.repository.RefreshTokenRepository;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,14 +21,7 @@ public class RefreshTokenService {
   private final RefreshTokenRepository refreshTokenRepository;
 
   public RefreshToken createRefreshToken(User user) {
-    // Revocar el anterior si existe
-    refreshTokenRepository
-        .findByUserAndRevokedFalse(user)
-        .ifPresent(
-            t -> {
-              t.revoke();
-              refreshTokenRepository.save(t);
-            });
+    revokeAssets(user);
 
     RefreshToken token =
         new RefreshToken(
@@ -41,5 +35,15 @@ public class RefreshTokenService {
         .filter(t -> !t.isRevoked())
         .filter(t -> !t.isExpired())
         .orElseThrow(() -> new InvalidRefreshTokenException("Refresh token invalid or expired"));
+  }
+
+  public void revokeAllForUser(User user) {
+    revokeAssets(user);
+  }
+
+  private void revokeAssets(User user) {
+    List<RefreshToken> tokens = refreshTokenRepository.findAllByUserAndRevokedFalse(user);
+    tokens.forEach(RefreshToken::revoke);
+    refreshTokenRepository.saveAll(tokens);
   }
 }

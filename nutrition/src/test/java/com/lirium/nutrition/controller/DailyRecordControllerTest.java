@@ -12,6 +12,7 @@ import com.lirium.nutrition.dto.response.MealRecordResponseDTO;
 import com.lirium.nutrition.exception.DailyRecordNotFoundException;
 import com.lirium.nutrition.exception.MealRecordNotFoundException;
 import com.lirium.nutrition.infrastructure.security.JwtService;
+import com.lirium.nutrition.infrastructure.security.TokenBlacklistService;
 import com.lirium.nutrition.infrastructure.security.UserDetailsServiceImpl;
 import com.lirium.nutrition.model.enums.MealType;
 import com.lirium.nutrition.model.enums.MeasureUnit;
@@ -35,6 +36,8 @@ class DailyRecordControllerTest {
   @MockBean private DailyRecordService dailyRecordService;
 
   @MockBean JwtService jwtService;
+
+  @MockBean private TokenBlacklistService tokenBlacklistService;
 
   @MockBean UserDetailsServiceImpl userDetailsService;
 

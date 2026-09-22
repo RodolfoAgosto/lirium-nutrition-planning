@@ -11,6 +11,7 @@ import com.lirium.nutrition.dto.request.PatientUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.PatientDetailDTO;
 import com.lirium.nutrition.dto.response.PatientSummaryDTO;
 import com.lirium.nutrition.infrastructure.security.JwtService;
+import com.lirium.nutrition.infrastructure.security.TokenBlacklistService;
 import com.lirium.nutrition.infrastructure.security.UserDetailsServiceImpl;
 import com.lirium.nutrition.model.enums.ActivityLevel;
 import com.lirium.nutrition.model.enums.GoalType;
@@ -35,6 +36,8 @@ import org.springframework.test.web.servlet.MockMvc;
 class PatientControllerTest {
 
   @MockBean private JwtService jwtService;
+
+  @MockBean private TokenBlacklistService tokenBlacklistService;
 
   @MockBean private UserDetailsServiceImpl userDetailsServiceImpl;
 

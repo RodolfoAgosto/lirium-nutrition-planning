@@ -9,6 +9,7 @@ import com.lirium.nutrition.model.entity.RefreshToken;
 import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.repository.RefreshTokenRepository;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -24,6 +26,8 @@ class RefreshTokenServiceTest {
   @InjectMocks private RefreshTokenService refreshTokenService;
 
   @Mock private RefreshTokenRepository refreshTokenRepository;
+
+  @MockBean private TokenBlacklistService tokenBlacklistService;
 
   @Mock private User user;
 
@@ -35,7 +39,7 @@ class RefreshTokenServiceTest {
   @Test
   void shouldCreateRefreshTokenWhenUserHasNoPreviousToken() {
 
-    when(refreshTokenRepository.findByUserAndRevokedFalse(user)).thenReturn(Optional.empty());
+    when(refreshTokenRepository.findAllByUserAndRevokedFalse(user)).thenReturn(List.of());
 
     when(refreshTokenRepository.save(any(RefreshToken.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
@@ -46,7 +50,7 @@ class RefreshTokenServiceTest {
     assertEquals(user, token.getUser());
     assertNotNull(token.getToken());
 
-    verify(refreshTokenRepository).findByUserAndRevokedFalse(user);
+    verify(refreshTokenRepository).findAllByUserAndRevokedFalse(user);
     verify(refreshTokenRepository).save(any(RefreshToken.class));
   }
 
@@ -55,12 +59,13 @@ class RefreshTokenServiceTest {
 
     RefreshToken existingToken =
         spy(new RefreshToken(user, "old-token", Instant.now().plusSeconds(3600)));
-    when(refreshTokenRepository.findByUserAndRevokedFalse(user))
-        .thenReturn(Optional.of(existingToken));
+    when(refreshTokenRepository.findAllByUserAndRevokedFalse(user))
+        .thenReturn(List.of(existingToken));
     when(refreshTokenRepository.save(any(RefreshToken.class))).thenAnswer(i -> i.getArgument(0));
     refreshTokenService.createRefreshToken(user);
     verify(existingToken).revoke();
-    verify(refreshTokenRepository, times(2)).save(any(RefreshToken.class));
+    verify(refreshTokenRepository).saveAll(List.of(existingToken));
+    verify(refreshTokenRepository).save(any(RefreshToken.class));
   }
 
   @Test
