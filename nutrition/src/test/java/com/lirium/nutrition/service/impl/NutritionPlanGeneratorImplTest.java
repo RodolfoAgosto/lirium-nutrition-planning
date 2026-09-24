@@ -268,6 +268,8 @@ class NutritionPlanGeneratorImplTest {
 
     given(template.getExcludedTags()).willReturn(excludedTags);
 
+    given(template.getName()).willReturn("Keto template");
+
     given(nutritionPlanAssembler.assemble(patient, calories, macros, excludedTags))
         .willReturn(plan);
 
@@ -287,6 +289,8 @@ class NutritionPlanGeneratorImplTest {
     verify(macroDistributor).distributeFromTemplate(calories, template);
 
     verify(nutritionPlanAssembler).assemble(patient, calories, macros, excludedTags);
+
+    verify(plan).rename("Keto template");
 
     verify(nutritionPlanRepository).save(plan);
 

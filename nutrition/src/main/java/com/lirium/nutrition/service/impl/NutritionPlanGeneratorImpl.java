@@ -140,6 +140,8 @@ public class NutritionPlanGeneratorImpl implements NutritionPlanGenerator {
     NutritionPlan plan =
         nutritionPlanAssembler.assemble(patient, calories, macros, template.getExcludedTags());
 
+    plan.rename(template.getName());
+
     nutritionPlanRepository.save(plan);
 
     log.info(
@@ -151,6 +153,10 @@ public class NutritionPlanGeneratorImpl implements NutritionPlanGenerator {
     return NutritionPlanMapper.toDetail(plan);
   }
 
+  /**
+   * A patient can have at most one DRAFT plan. An ACTIVE plan does not block generation: the new
+   * draft replaces it when activated.
+   */
   private void ensureNoDraftPlan(Long patientId) {
     if (nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT)) {
       log.warn("Plan generation failed - draft already exists patientId={}", patientId);

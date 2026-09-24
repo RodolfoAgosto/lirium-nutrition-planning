@@ -30,6 +30,34 @@ class NutritionPlanTest {
   }
 
   @Test
+  void shouldAssignDefaultNameFromGoal() {
+
+    NutritionPlan plan =
+        NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 120, 200, 60, patient());
+
+    assertThat(plan.getName()).isEqualTo("Weight loss plan");
+  }
+
+  @Test
+  void shouldRenamePlan() {
+
+    NutritionPlan plan = createPlan();
+
+    plan.rename("Summer cut");
+
+    assertThat(plan.getName()).isEqualTo("Summer cut");
+  }
+
+  @Test
+  void shouldNotRenameWithBlankName() {
+
+    NutritionPlan plan = createPlan();
+
+    assertThatThrownBy(() -> plan.rename(" ")).isInstanceOf(IllegalArgumentException.class);
+    assertThat(plan.getName()).isEqualTo("Weight loss plan");
+  }
+
+  @Test
   void shouldCompleteActivePlan() {
 
     NutritionPlan plan = createActivePlan();

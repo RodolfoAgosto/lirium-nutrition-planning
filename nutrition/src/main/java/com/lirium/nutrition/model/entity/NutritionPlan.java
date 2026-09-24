@@ -86,7 +86,17 @@ public class NutritionPlan extends Auditable {
     plan.fatGrams = fatGrams;
     plan.patientProfile = patient;
     plan.status = PlanStatus.DRAFT; // Always starts as a draft
+    plan.name = defaultNameFor(targetGoal);
     return plan;
+  }
+
+  private static String defaultNameFor(GoalType goal) {
+    return goal != null ? goal.getLabel() + " plan" : "Nutrition plan";
+  }
+
+  public void rename(String name) {
+    requireNotBlank(name, "Name cannot be null or blank");
+    this.name = name;
   }
 
   public void addDailyPlan(DailyPlan dailyPlan) {
