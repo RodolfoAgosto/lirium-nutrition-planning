@@ -2,6 +2,7 @@ package com.lirium.nutrition.model.entity;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.lirium.nutrition.exception.PlanConflictException;
 import com.lirium.nutrition.model.enums.GoalType;
 import com.lirium.nutrition.model.enums.MealType;
 import java.time.DayOfWeek;
@@ -73,7 +74,7 @@ class DailyPlanTest {
 
     dailyPlan.addMeal(breakfast1);
 
-    assertThrows(IllegalArgumentException.class, () -> dailyPlan.addMeal(breakfast2));
+    assertThrows(PlanConflictException.class, () -> dailyPlan.addMeal(breakfast2));
   }
 
   @Test

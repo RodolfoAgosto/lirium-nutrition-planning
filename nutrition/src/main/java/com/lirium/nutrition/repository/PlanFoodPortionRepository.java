@@ -20,16 +20,14 @@ public interface PlanFoodPortionRepository extends JpaRepository<PlanFoodPortion
 
   List<PlanFoodPortion> findByMealAndFood(PlanMeal meal, Food food);
 
-  boolean existsByMeal_IdAndFood_Id(Long planMealId, Long foodId);
-
   boolean existsByFoodId(Long foodId);
 
   @Query(
       """
-            SELECT COUNT(pfp) > 0
-            FROM PlanFoodPortion pfp
-            WHERE pfp.id = :portionId
-              AND pfp.meal.dailyPlan.nutritionPlan.patientProfile.user.id = :userId
-        """)
+                SELECT COUNT(pfp) > 0
+                FROM PlanFoodPortion pfp
+                WHERE pfp.id = :portionId
+                  AND pfp.meal.dailyPlan.nutritionPlan.patientProfile.user.id = :userId
+            """)
   boolean existsByIdAndUserId(@Param("portionId") Long portionId, @Param("userId") Long userId);
 }

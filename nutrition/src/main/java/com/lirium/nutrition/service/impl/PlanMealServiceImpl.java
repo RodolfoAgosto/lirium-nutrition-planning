@@ -51,6 +51,7 @@ public class PlanMealServiceImpl implements PlanMealService {
   }
 
   @Override
+  @Transactional
   public PlanMealResponseDTO create(PlanMealCreateRequestDTO dto) {
 
     log.info("Creating plan meal dailyPlanId={} type={}", dto.dailyPlanId(), dto.type());
@@ -72,6 +73,8 @@ public class PlanMealServiceImpl implements PlanMealService {
 
     PlanMeal entity = PlanMealMapper.toEntity(dto, dailyPlan);
 
+    dailyPlan.addMeal(entity);
+
     PlanMeal saved = repository.save(entity);
 
     log.info(
@@ -81,14 +84,17 @@ public class PlanMealServiceImpl implements PlanMealService {
   }
 
   @Override
+  @Transactional
   public void delete(Long id) {
 
     PlanMeal planMeal =
         repository.findById(id).orElseThrow(() -> new PlanMealNotFoundException(id));
 
-    NutritionPlan plan = planMeal.getDailyPlan().getNutritionPlan();
-    plan.ensureEditable();
+    DailyPlan dailyPlan = planMeal.getDailyPlan();
+    dailyPlan.getNutritionPlan().ensureEditable();
 
+    // Remove it from the aggregate too, so DailyPlan.meals stays consistent
+    dailyPlan.removeMeal(planMeal);
     repository.delete(planMeal);
 
     log.info("PlanMeal id={} deleted physically because plan is in DRAFT", id);
@@ -102,13 +108,6 @@ public class PlanMealServiceImpl implements PlanMealService {
         repository.findById(mealId).orElseThrow(() -> new PlanMealNotFoundException(mealId));
 
     planMeal.getDailyPlan().getNutritionPlan().ensureEditable();
-
-    boolean exists = planFoodPortionRepository.existsByMeal_IdAndFood_Id(mealId, dto.foodId());
-
-    if (exists) {
-      throw new DuplicateFoodException(
-          String.format("The food with id %d already exists.", dto.foodId()));
-    }
 
     Food food = foodService.findEntityById(dto.foodId());
 

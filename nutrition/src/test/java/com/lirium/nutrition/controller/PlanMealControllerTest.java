@@ -168,6 +168,6 @@ class PlanMealControllerTest {
   }
 
   private PlanMealCreateRequestDTO createRequest() {
-    return new PlanMealCreateRequestDTO(MealType.BREAKFAST, 1L, List.of(1L, 2L));
+    return new PlanMealCreateRequestDTO(MealType.BREAKFAST, 1L);
   }
 }

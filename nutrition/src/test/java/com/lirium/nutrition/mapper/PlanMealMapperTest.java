@@ -75,8 +75,7 @@ class PlanMealMapperTest {
 
     DailyPlan dailyPlan = Mockito.mock(DailyPlan.class);
 
-    PlanMealCreateRequestDTO dto =
-        new PlanMealCreateRequestDTO(MealType.BREAKFAST, 100L, List.of());
+    PlanMealCreateRequestDTO dto = new PlanMealCreateRequestDTO(MealType.BREAKFAST, 100L);
 
     PlanMeal entity = PlanMealMapper.toEntity(dto, dailyPlan);
 

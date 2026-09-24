@@ -19,7 +19,6 @@ import com.lirium.nutrition.repository.PlanFoodPortionRepository;
 import com.lirium.nutrition.repository.PlanMealRepository;
 import com.lirium.nutrition.testdata.NutritionPlanTestDataFactory;
 import java.util.EnumSet;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -158,8 +157,12 @@ class PlanMealControllerIT extends AbstractIntegrationTest {
   @DisplayName("ADMIN puede crear un plan meal")
   void shouldCreatePlanMeal() throws Exception {
 
-    PlanMealCreateRequestDTO dto =
-        new PlanMealCreateRequestDTO(MealType.BREAKFAST, dailyPlan.getId(), List.of());
+    // The fixture day already has every meal type: free one slot first
+    mockMvc
+        .perform(delete("/api/plan-meals/{id}", meal.getId()).header("Authorization", adminToken))
+        .andExpect(status().isNoContent());
+
+    PlanMealCreateRequestDTO dto = new PlanMealCreateRequestDTO(meal.getType(), dailyPlan.getId());
 
     mockMvc
         .perform(
@@ -169,16 +172,30 @@ class PlanMealControllerIT extends AbstractIntegrationTest {
                 .content(objectMapper.writeValueAsString(dto)))
         .andExpect(status().isCreated()) // <-- Cambiado de isOk() a isCreated()
         .andExpect(jsonPath("$.id").exists())
-        .andExpect(jsonPath("$.type").value(MealType.BREAKFAST.name()))
+        .andExpect(jsonPath("$.type").value(meal.getType().name()))
         .andExpect(jsonPath("$.dailyPlanId").value(dailyPlan.getId()));
+  }
+
+  @Test
+  @DisplayName("Debe retornar 409 cuando el día ya tiene una comida de ese tipo")
+  void shouldReturnConflictWhenMealTypeAlreadyExistsForDay() throws Exception {
+
+    PlanMealCreateRequestDTO dto = new PlanMealCreateRequestDTO(meal.getType(), dailyPlan.getId());
+
+    mockMvc
+        .perform(
+            post("/api/plan-meals")
+                .header("Authorization", adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isConflict());
   }
 
   @Test
   @DisplayName("Debe retornar 404 cuando el daily plan no existe")
   void shouldReturnNotFoundWhenCreatingMealForUnknownDailyPlan() throws Exception {
 
-    PlanMealCreateRequestDTO dto =
-        new PlanMealCreateRequestDTO(MealType.BREAKFAST, 999999L, List.of());
+    PlanMealCreateRequestDTO dto = new PlanMealCreateRequestDTO(MealType.BREAKFAST, 999999L);
 
     mockMvc
         .perform(
@@ -195,12 +212,11 @@ class PlanMealControllerIT extends AbstractIntegrationTest {
 
     String json =
         """
-        {
-            "type":"INVALID",
-            "dailyPlanId":%d,
-            "foodPortionIds":[]
-        }
-        """
+            {
+                "type":"INVALID",
+                "dailyPlanId":%d
+            }
+            """
             .formatted(dailyPlan.getId());
 
     mockMvc

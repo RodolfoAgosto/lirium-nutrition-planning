@@ -1,5 +1,6 @@
 package com.lirium.nutrition.model.entity;
 
+import com.lirium.nutrition.exception.PlanConflictException;
 import jakarta.persistence.*;
 import java.time.DayOfWeek;
 import java.util.ArrayList;
@@ -61,7 +62,7 @@ public class DailyPlan {
     boolean alreadyExists = meals.stream().anyMatch(m -> m.getType() == planMeal.getType());
 
     if (alreadyExists)
-      throw new IllegalArgumentException(
+      throw new PlanConflictException(
           "A meal of type " + planMeal.getType() + " already exists for this day");
 
     meals.add(planMeal);

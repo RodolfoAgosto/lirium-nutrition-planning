@@ -1,5 +1,6 @@
 package com.lirium.nutrition.model.entity;
 
+import com.lirium.nutrition.exception.DuplicateFoodException;
 import com.lirium.nutrition.model.enums.MealType;
 import jakarta.persistence.*;
 import java.util.ArrayList;
@@ -59,7 +60,12 @@ public class PlanMeal extends DateAuditable {
     boolean alreadyExists =
         foods.stream()
             .anyMatch(p -> Objects.equals(p.getFood().getId(), planFoodPortion.getFood().getId()));
-    if (alreadyExists) return;
+    if (alreadyExists) {
+      throw new DuplicateFoodException(
+          String.format(
+              "The food with id %d already exists in this meal.",
+              planFoodPortion.getFood().getId()));
+    }
     foods.add(planFoodPortion);
     planFoodPortion.assignToMeal(this);
   }

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
+import com.lirium.nutrition.exception.DuplicateFoodException;
 import com.lirium.nutrition.model.enums.FoodCategory;
 import com.lirium.nutrition.model.enums.MealType;
 import com.lirium.nutrition.model.enums.MeasureUnit;
@@ -74,8 +75,9 @@ class PlanMealTest {
     PlanFoodPortion second = PlanFoodPortion.of(meal, rice, 200.0, MeasureUnit.GRAM);
 
     meal.addFoodPortion(first);
-    meal.addFoodPortion(second);
 
+    assertThatThrownBy(() -> meal.addFoodPortion(second))
+        .isInstanceOf(DuplicateFoodException.class);
     assertThat(meal.getFoodPortions()).hasSize(1);
   }
 

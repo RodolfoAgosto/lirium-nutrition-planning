@@ -11,7 +11,7 @@ import com.lirium.nutrition.dto.request.PlanMealCreateRequestDTO;
 import com.lirium.nutrition.dto.response.PlanMealResponseDTO;
 import com.lirium.nutrition.dto.response.PlanMealSummaryDTO;
 import com.lirium.nutrition.exception.DailyPlanNotFoundException;
-import com.lirium.nutrition.exception.DuplicateFoodException;
+import com.lirium.nutrition.exception.PlanConflictException;
 import com.lirium.nutrition.exception.PlanMealNotFoundException;
 import com.lirium.nutrition.exception.UnprocessableEntityException;
 import com.lirium.nutrition.mapper.PlanFoodPortionMapper;
@@ -96,7 +96,35 @@ class PlanMealServiceImplTest {
 
       // Then
       verify(nutritionPlan).ensureEditable();
+      verify(dailyPlan).addMeal(entity);
       verify(repository).save(entity);
+    }
+  }
+
+  @Test
+  void shouldNotCreatePlanMealWhenMealTypeAlreadyExists() {
+    // Given
+    Long dailyPlanId = 1L;
+
+    DailyPlan dailyPlan = mock(DailyPlan.class);
+    NutritionPlan nutritionPlan = mock(NutritionPlan.class);
+    PlanMeal entity = mock(PlanMeal.class);
+
+    PlanMealCreateRequestDTO dto = mock(PlanMealCreateRequestDTO.class);
+
+    given(dto.dailyPlanId()).willReturn(dailyPlanId);
+    given(dailyPlanRepository.findById(dailyPlanId)).willReturn(Optional.of(dailyPlan));
+    given(dailyPlan.getNutritionPlan()).willReturn(nutritionPlan);
+    given(dailyPlan.addMeal(entity))
+        .willThrow(new PlanConflictException("A meal of type LUNCH already exists for this day"));
+
+    try (MockedStatic<PlanMealMapper> mapper = mockStatic(PlanMealMapper.class)) {
+
+      mapper.when(() -> PlanMealMapper.toEntity(dto, dailyPlan)).thenReturn(entity);
+
+      // When + Then
+      assertThrows(PlanConflictException.class, () -> service.create(dto));
+      verify(repository, never()).save(any());
     }
   }
 
@@ -151,6 +179,7 @@ class PlanMealServiceImplTest {
     service.delete(id);
 
     verify(nutritionPlan).ensureEditable();
+    verify(dailyPlan).removeMeal(planMeal);
     verify(repository).delete(planMeal);
   }
 
@@ -224,25 +253,6 @@ class PlanMealServiceImplTest {
   }
 
   @Test
-  void shouldFailAddPortionWhenFoodAlreadyExists() {
-
-    NutritionPlan nutritionPlan = mock(NutritionPlan.class);
-    DailyPlan dailyPlan = mock(DailyPlan.class);
-    given(dailyPlan.getNutritionPlan()).willReturn(nutritionPlan);
-
-    PlanMeal meal = mock(PlanMeal.class);
-    given(meal.getDailyPlan()).willReturn(dailyPlan);
-
-    given(repository.findById(1L)).willReturn(Optional.of(meal));
-
-    given(planFoodPortionRepository.existsByMeal_IdAndFood_Id(1L, 10L)).willReturn(true);
-
-    FoodPortionAddRequestDTO dto = new FoodPortionAddRequestDTO(10L, 100.0, MeasureUnit.GRAM);
-
-    assertThrows(DuplicateFoodException.class, () -> service.addPortion(1L, dto));
-  }
-
-  @Test
   void shouldAddPortionSuccessfully() {
 
     NutritionPlan nutritionPlan = mock(NutritionPlan.class);
@@ -256,8 +266,6 @@ class PlanMealServiceImplTest {
     PlanFoodPortion newPortion = mock(PlanFoodPortion.class);
 
     given(repository.findById(1L)).willReturn(Optional.of(meal));
-
-    given(planFoodPortionRepository.existsByMeal_IdAndFood_Id(1L, 10L)).willReturn(false);
 
     given(foodService.findEntityById(10L)).willReturn(food);
 
