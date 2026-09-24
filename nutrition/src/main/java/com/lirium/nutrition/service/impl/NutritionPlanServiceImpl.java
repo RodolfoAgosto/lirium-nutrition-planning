@@ -45,17 +45,19 @@ public class NutritionPlanServiceImpl implements NutritionPlanService {
 
     Long patientId = newPlan.getPatientProfile().getId();
 
-    // Cierra el plan anterior si existe
-    repository
-        .findByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE)
-        .ifPresent(
-            previousPlan -> {
-              previousPlan.close(LocalDate.now(clock).minusDays(1));
-              repository.save(previousPlan);
-            });
+    Optional<NutritionPlan> previousActivePlan =
+        repository.findByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE);
 
-    // Activa el nuevo
+    // Activate first: it validates the plan is DRAFT before anything else is changed
     newPlan.activate(LocalDate.now(clock));
+
+    // Then close the previous active plan, if any
+    previousActivePlan.ifPresent(
+        previousPlan -> {
+          previousPlan.close(LocalDate.now(clock).minusDays(1));
+          repository.save(previousPlan);
+        });
+
     repository.save(newPlan);
 
     return NutritionPlanMapper.toDetail(newPlan);

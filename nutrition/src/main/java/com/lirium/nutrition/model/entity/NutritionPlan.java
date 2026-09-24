@@ -142,9 +142,9 @@ public class NutritionPlan extends Auditable {
 
     Objects.requireNonNull(startDate, "Start date is required");
 
-    if (this.status != PlanStatus.DRAFT && this.status != PlanStatus.INACTIVE) {
+    if (this.status != PlanStatus.DRAFT) {
       throw new UnprocessableEntityException(
-          "Only DRAFT or INACTIVE plans can be activated. Current status: " + this.status);
+          "Only DRAFT plans can be activated. Current status: " + this.status);
     }
 
     this.status = PlanStatus.ACTIVE;

@@ -7,6 +7,8 @@ import com.lirium.nutrition.dto.request.NutritionPlanCompleteRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
 import com.lirium.nutrition.exception.NutritionPlanNotFoundException;
+import com.lirium.nutrition.exception.PlanConflictException;
+import com.lirium.nutrition.exception.UnprocessableEntityException;
 import com.lirium.nutrition.model.entity.NutritionPlan;
 import com.lirium.nutrition.model.entity.PatientProfile;
 import com.lirium.nutrition.model.entity.Restriction;
@@ -72,6 +74,26 @@ class NutritionPlanServiceImplTest {
   }
 
   @Test
+  void shouldThrowWhenCompletingNonActivePlan() {
+
+    // Given
+    Long planId = 1L;
+
+    NutritionPlan plan =
+        NutritionPlan.generate(
+            GoalType.WEIGHT_LOSS, 2000, 120, 200, 60, generateUser().getPatientProfile());
+
+    NutritionPlanCompleteRequestDTO request =
+        new NutritionPlanCompleteRequestDTO("Volume", "Muscle-building plan");
+
+    when(repository.findById(planId)).thenReturn(Optional.of(plan));
+
+    // When + Then
+    assertThrows(PlanConflictException.class, () -> service.complete(planId, request));
+    assertEquals(PlanStatus.DRAFT, plan.getStatus());
+  }
+
+  @Test
   void shouldThrowWhenPlanNotFoundInComplete() {
 
     // Given
@@ -127,6 +149,31 @@ class NutritionPlanServiceImplTest {
     verify(repository).save(newPlan);
 
     verify(repository, times(1)).save(any());
+  }
+
+  @Test
+  void shouldNotTouchPreviousPlanWhenActivatingANonDraftPlan() {
+
+    // Given: the plan to activate is the patient's current ACTIVE plan
+    Long planId = 1L;
+    Long patientId = 10L;
+
+    PatientProfile patient = mock(PatientProfile.class);
+    NutritionPlan activePlan = mock(NutritionPlan.class);
+
+    when(activePlan.getPatientProfile()).thenReturn(patient);
+    when(patient.getId()).thenReturn(patientId);
+    when(repository.findById(planId)).thenReturn(Optional.of(activePlan));
+    when(repository.findByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE))
+        .thenReturn(Optional.of(activePlan));
+    doThrow(new UnprocessableEntityException("Only DRAFT plans can be activated"))
+        .when(activePlan)
+        .activate(any(LocalDate.class));
+
+    // When + Then
+    assertThrows(UnprocessableEntityException.class, () -> service.activatePlan(planId));
+    verify(activePlan, never()).close(any(LocalDate.class));
+    verify(repository, never()).save(any());
   }
 
   @Test

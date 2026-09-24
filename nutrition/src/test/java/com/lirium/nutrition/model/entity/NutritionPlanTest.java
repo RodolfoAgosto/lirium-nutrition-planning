@@ -104,7 +104,17 @@ class NutritionPlanTest {
 
     assertThatThrownBy(() -> plan.activate(LocalDate.now()))
         .isInstanceOf(UnprocessableEntityException.class)
-        .hasMessageContaining("Only DRAFT or INACTIVE plans can be activated");
+        .hasMessageContaining("Only DRAFT plans can be activated");
+  }
+
+  @Test
+  void shouldNotReactivateInactivePlan() {
+
+    NutritionPlan plan = createActivePlan();
+    plan.close(LocalDate.now());
+
+    assertThatThrownBy(() -> plan.activate(LocalDate.now()))
+        .isInstanceOf(UnprocessableEntityException.class);
   }
 
   @Test
