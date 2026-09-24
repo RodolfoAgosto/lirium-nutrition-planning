@@ -3,8 +3,10 @@ package com.lirium.nutrition.model.entity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.lirium.nutrition.exception.PlanConflictException;
 import com.lirium.nutrition.exception.UnprocessableEntityException;
 import com.lirium.nutrition.model.enums.GoalType;
+import com.lirium.nutrition.model.enums.PlanStatus;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
@@ -28,25 +30,25 @@ class NutritionPlanTest {
   }
 
   @Test
-  void shouldCompleteBasicInformation() {
+  void shouldCompleteActivePlan() {
 
-    NutritionPlan plan =
-        NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 120, 200, 60, patient());
+    NutritionPlan plan = createActivePlan();
+    LocalDate endDate = plan.getStartDate().plusDays(30);
 
-    plan.completeBasic("Plan definición", "Plan para bajar grasa");
+    plan.complete("Plan definición", "Plan para bajar grasa", endDate);
 
+    assertThat(plan.getStatus()).isEqualTo(PlanStatus.INACTIVE);
     assertThat(plan.getName()).isEqualTo("Plan definición");
-
     assertThat(plan.getDescription()).isEqualTo("Plan para bajar grasa");
+    assertThat(plan.getEndDate()).isEqualTo(endDate);
   }
 
   @Test
   void shouldNotCompleteWithBlankName() {
 
-    NutritionPlan plan =
-        NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 120, 200, 60, patient());
+    NutritionPlan plan = createActivePlan();
 
-    assertThatThrownBy(() -> plan.completeBasic("", "description"))
+    assertThatThrownBy(() -> plan.complete("", "description", plan.getStartDate()))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
@@ -122,12 +124,22 @@ class NutritionPlanTest {
   }
 
   @Test
-  void shouldNotCompleteActivePlan() {
+  void shouldNotCompleteWithEndDateBeforeStartDate() {
 
     NutritionPlan plan = createActivePlan();
 
-    assertThatThrownBy(() -> plan.completeBasic("name", "description"))
-        .isInstanceOf(IllegalStateException.class);
+    assertThatThrownBy(() -> plan.complete("name", "description", plan.getStartDate().minusDays(1)))
+        .isInstanceOf(IllegalArgumentException.class);
+    assertThat(plan.isActive()).isTrue();
+  }
+
+  @Test
+  void shouldNotCompleteDraftPlan() {
+
+    NutritionPlan plan = createPlan();
+
+    assertThatThrownBy(() -> plan.complete("name", "description", LocalDate.now()))
+        .isInstanceOf(PlanConflictException.class);
   }
 
   @Test
@@ -230,27 +242,27 @@ class NutritionPlanTest {
   @Test
   void shouldRejectBlankDescription() {
 
-    NutritionPlan plan = createPlan();
+    NutritionPlan plan = createActivePlan();
 
-    assertThatThrownBy(() -> plan.completeBasic("Nombre", ""))
+    assertThatThrownBy(() -> plan.complete("Nombre", "", plan.getStartDate()))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   void shouldRejectNullName() {
 
-    NutritionPlan plan = createPlan();
+    NutritionPlan plan = createActivePlan();
 
-    assertThatThrownBy(() -> plan.completeBasic(null, "Descripción"))
+    assertThatThrownBy(() -> plan.complete(null, "Descripción", plan.getStartDate()))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   void shouldRejectNullDescription() {
 
-    NutritionPlan plan = createPlan();
+    NutritionPlan plan = createActivePlan();
 
-    assertThatThrownBy(() -> plan.completeBasic("Nombre", null))
+    assertThatThrownBy(() -> plan.complete("Nombre", null, plan.getStartDate()))
         .isInstanceOf(IllegalArgumentException.class);
   }
 

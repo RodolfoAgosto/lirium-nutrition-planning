@@ -51,10 +51,7 @@ public class NutritionPlanGeneratorImpl implements NutritionPlanGenerator {
                   return new PatientProfileNotFoundException(patientId);
                 });
 
-    if (nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT)) {
-      log.warn("Plan generation failed - draft already exists patientId={}", patientId);
-      throw new IllegalStateException("Patient already has an active or draft plan");
-    }
+    ensureNoDraftPlan(patientId);
 
     if (patient.getWeight() == null
         || patient.getHeight() == null
@@ -105,12 +102,7 @@ public class NutritionPlanGeneratorImpl implements NutritionPlanGenerator {
                   return new PatientProfileNotFoundException(patientId);
                 });
 
-    if (nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT)
-        || nutritionPlanRepository.existsByPatientProfileIdAndStatus(
-            patientId, PlanStatus.ACTIVE)) {
-      log.warn("Template plan generation failed - existing plan found patientId={}", patientId);
-      throw new PlanConflictException("Patient already has an active or draft plan");
-    }
+    ensureNoDraftPlan(patientId);
 
     NutritionPlanTemplate template =
         templateRepository
@@ -157,5 +149,12 @@ public class NutritionPlanGeneratorImpl implements NutritionPlanGenerator {
         templateId);
 
     return NutritionPlanMapper.toDetail(plan);
+  }
+
+  private void ensureNoDraftPlan(Long patientId) {
+    if (nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT)) {
+      log.warn("Plan generation failed - draft already exists patientId={}", patientId);
+      throw new PlanConflictException("Patient already has a draft plan");
+    }
   }
 }

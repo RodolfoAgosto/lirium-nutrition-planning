@@ -161,7 +161,7 @@ class NutritionPlanRepositoryIT {
 
     NutritionPlan plan = NutritionPlan.generate(goal, 2200, 150, 200, 70, patient);
 
-    plan.completeBasic(name, "desc");
+    plan.update(name, "desc", null, null, null, null, null, null, null);
 
     em.persist(plan);
 

@@ -27,7 +27,7 @@ public class NutritionPlanTestDataFactory {
     NutritionPlan plan =
         NutritionPlan.generate(GoalType.WEIGHT_MAINTENANCE, 2000, 120, 200, 70, patient);
 
-    plan.completeBasic("Test Plan", "Integration test plan");
+    plan.update("Test Plan", "Integration test plan", null, null, null, null, null, null, null);
 
     buildWeek(plan);
 

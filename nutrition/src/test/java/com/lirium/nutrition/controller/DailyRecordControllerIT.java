@@ -87,7 +87,7 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
     // Garantizar que el paciente principal tenga un plan activo para el reporte de adherencia
     NutritionPlan plan =
         NutritionPlan.generate(GoalType.WEIGHT_MAINTENANCE, 2000, 150, 200, 60, patientProfile);
-    plan.completeBasic("Plan Inicial", "Descripción de prueba");
+    plan.update("Plan Inicial", "Descripción de prueba", null, null, null, null, null, null, null);
     plan.activate(LocalDate.now(ARGENTINA_ZONE).minusMonths(1));
     nutritionPlanRepository.save(plan);
 

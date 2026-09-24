@@ -1,5 +1,6 @@
 package com.lirium.nutrition.model.entity;
 
+import com.lirium.nutrition.exception.PlanConflictException;
 import com.lirium.nutrition.exception.UnprocessableEntityException;
 import com.lirium.nutrition.model.enums.GoalType;
 import com.lirium.nutrition.model.enums.PlanStatus;
@@ -88,21 +89,6 @@ public class NutritionPlan extends Auditable {
     return plan;
   }
 
-  public void completeBasic(String name, String description) {
-    if (this.status != PlanStatus.DRAFT) {
-      throw new IllegalStateException("Only DRAFT plans can be completed");
-    }
-    if (name == null || name.isBlank()) {
-      throw new IllegalArgumentException("Name cannot be null or blank");
-    }
-    if (description == null || description.isBlank()) {
-      throw new IllegalArgumentException("Description cannot be null or blank");
-    }
-
-    this.name = name;
-    this.description = description;
-  }
-
   public void addDailyPlan(DailyPlan dailyPlan) {
     Objects.requireNonNull(dailyPlan);
     this.week.add(dailyPlan);
@@ -170,10 +156,34 @@ public class NutritionPlan extends Auditable {
     this.status = PlanStatus.INACTIVE;
   }
 
+  /**
+   * Completes an ACTIVE plan: records its closing summary, sets the end date and moves it to
+   * INACTIVE.
+   */
+  public void complete(String name, String description, LocalDate endDate) {
+    if (status != PlanStatus.ACTIVE) {
+      throw new PlanConflictException(
+          "Only ACTIVE plans can be completed. Current status: " + status);
+    }
+    requireNotBlank(name, "Name cannot be null or blank");
+    requireNotBlank(description, "Description cannot be null or blank");
+    validateDates(null, endDate);
+
+    this.name = name;
+    this.description = description;
+    close(endDate);
+  }
+
   public void ensureEditable() {
     if (status != PlanStatus.DRAFT) {
       throw new UnprocessableEntityException(
           "Nutrition plan is not editable in its current status");
+    }
+  }
+
+  private static void requireNotBlank(String value, String message) {
+    if (value == null || value.isBlank()) {
+      throw new IllegalArgumentException(message);
     }
   }
 

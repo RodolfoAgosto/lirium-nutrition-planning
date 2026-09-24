@@ -90,7 +90,7 @@ class NutritionPlanGeneratorImplTest {
         .thenReturn(true);
 
     // When - Then
-    assertThrows(IllegalStateException.class, () -> nutritionPlanGenerator.generate(patientId));
+    assertThrows(PlanConflictException.class, () -> nutritionPlanGenerator.generate(patientId));
 
     verify(repository).findById(patientId);
 
@@ -204,40 +204,6 @@ class NutritionPlanGeneratorImplTest {
   }
 
   @Test
-  void shouldThrowWhenActivePlanAlreadyExistsForTemplateGeneration() {
-
-    // Given
-    Long patientId = 1L;
-    Long templateId = 10L;
-
-    PatientProfile patient = mock(PatientProfile.class);
-
-    when(repository.findById(patientId)).thenReturn(Optional.of(patient));
-
-    when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT))
-        .thenReturn(false);
-
-    when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE))
-        .thenReturn(true);
-
-    // When - Then
-    assertThrows(
-        PlanConflictException.class,
-        () -> nutritionPlanGenerator.generateFromTemplate(patientId, templateId));
-
-    verify(repository).findById(patientId);
-
-    verify(nutritionPlanRepository).existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT);
-
-    verify(nutritionPlanRepository).existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE);
-
-    verifyNoInteractions(
-        templateRepository, calorieCalculator, macroDistributor, nutritionPlanAssembler);
-
-    verify(nutritionPlanRepository, never()).save(any());
-  }
-
-  @Test
   void shouldThrowWhenTemplateNotFound() {
     // Given
     Long patientId = 1L;
@@ -248,9 +214,6 @@ class NutritionPlanGeneratorImplTest {
     given(repository.findById(patientId)).willReturn(Optional.of(patient));
 
     given(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT))
-        .willReturn(false);
-
-    given(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE))
         .willReturn(false);
 
     given(templateRepository.findById(templateId)).willReturn(Optional.empty());
@@ -297,9 +260,6 @@ class NutritionPlanGeneratorImplTest {
     given(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT))
         .willReturn(false);
 
-    given(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE))
-        .willReturn(false);
-
     given(templateRepository.findById(templateId)).willReturn(Optional.of(template));
 
     given(calorieCalculator.calculate(patient)).willReturn(calories);
@@ -329,30 +289,10 @@ class NutritionPlanGeneratorImplTest {
     verify(nutritionPlanAssembler).assemble(patient, calories, macros, excludedTags);
 
     verify(nutritionPlanRepository).save(plan);
-  }
 
-  @Test
-  void shouldThrowWhenDraftOrActiveExistsInTemplateFlow() {
-
-    Long patientId = 1L;
-    Long templateId = 10L;
-
-    PatientProfile patient = mock(PatientProfile.class);
-
-    when(repository.findById(patientId)).thenReturn(Optional.of(patient));
-
-    when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT))
-        .thenReturn(false);
-
-    when(nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE))
-        .thenReturn(true);
-
-    assertThrows(
-        PlanConflictException.class,
-        () -> nutritionPlanGenerator.generateFromTemplate(patientId, templateId));
-
-    verify(nutritionPlanRepository).existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT);
-    verify(nutritionPlanRepository).existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE);
+    // An ACTIVE plan does not block generation: the new draft replaces it on activation
+    verify(nutritionPlanRepository, never())
+        .existsByPatientProfileIdAndStatus(patientId, PlanStatus.ACTIVE);
   }
 
   @Test

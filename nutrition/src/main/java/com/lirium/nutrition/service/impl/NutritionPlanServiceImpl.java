@@ -4,7 +4,6 @@ import com.lirium.nutrition.dto.request.NutritionPlanCompleteRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanSummaryDTO;
 import com.lirium.nutrition.exception.NutritionPlanNotFoundException;
-import com.lirium.nutrition.exception.PlanConflictException;
 import com.lirium.nutrition.mapper.NutritionPlanMapper;
 import com.lirium.nutrition.model.entity.NutritionPlan;
 import com.lirium.nutrition.model.enums.PlanStatus;
@@ -32,22 +31,7 @@ public class NutritionPlanServiceImpl implements NutritionPlanService {
     NutritionPlan plan =
         repository.findById(id).orElseThrow(() -> new NutritionPlanNotFoundException(id));
 
-    if (plan.getStatus() != PlanStatus.ACTIVE) {
-      throw new PlanConflictException(
-          "Only ACTIVE plans can be completed. Current status: " + plan.getStatus());
-    }
-
-    plan.update(
-        request.name(),
-        request.description(),
-        plan.getStartDate(),
-        LocalDate.now(clock),
-        plan.getTargetGoal(),
-        plan.getDailyCalories(),
-        plan.getProteinGrams(),
-        plan.getCarbGrams(),
-        plan.getFatGrams());
-    plan.deactivate();
+    plan.complete(request.name(), request.description(), LocalDate.now(clock));
 
     return NutritionPlanMapper.toDetail(plan);
   }

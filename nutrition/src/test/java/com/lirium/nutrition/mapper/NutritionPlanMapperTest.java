@@ -21,7 +21,7 @@ class NutritionPlanMapperTest {
 
     NutritionPlan plan = NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 150, 180, 60, patient);
 
-    plan.completeBasic("Weight Loss", "Description");
+    plan.update("Weight Loss", "Description", null, null, null, null, null, null, null);
 
     Food chicken = Food.of("Chicken", 200, 30, 0, 5, FoodCategory.PROTEIN, Set.of(MealType.LUNCH));
 
@@ -75,7 +75,7 @@ class NutritionPlanMapperTest {
     NutritionPlan plan =
         NutritionPlan.generate(GoalType.WEIGHT_MAINTENANCE, 2200, 160, 250, 70, patient);
 
-    plan.completeBasic("Maintenance", "Description");
+    plan.update("Maintenance", "Description", null, null, null, null, null, null, null);
 
     NutritionPlanSummaryDTO dto = NutritionPlanMapper.toSummary(plan);
 
