@@ -1,6 +1,7 @@
 package com.lirium.nutrition.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lirium.nutrition.config.PostgresTestContainer;
 import com.lirium.nutrition.infrastructure.security.JwtService;
 import com.lirium.nutrition.infrastructure.security.OAuth2LoginSuccessHandler;
 import com.lirium.nutrition.repository.*;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.testcontainers.context.ImportTestcontainers;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.test.context.ActiveProfiles;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
+@ImportTestcontainers(PostgresTestContainer.class)
 public abstract class AbstractIntegrationTest {
 
   @MockBean ClientRegistrationRepository clientRegistrationRepository;

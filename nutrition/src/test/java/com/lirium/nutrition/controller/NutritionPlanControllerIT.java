@@ -208,7 +208,9 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
                 .header("Authorization", adminToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$[0].id").value(nutritionPlanId));
+        .andExpect(jsonPath("$.length()").value(2))
+        .andExpect(jsonPath("$[0].id").value(draftNutritionPlanId))
+        .andExpect(jsonPath("$[1].id").value(nutritionPlanId));
   }
 
   @Test
@@ -221,7 +223,9 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
                 .header("Authorization", nutritionistToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$[0].id").value(nutritionPlanId));
+        .andExpect(jsonPath("$.length()").value(2))
+        .andExpect(jsonPath("$[0].id").value(draftNutritionPlanId))
+        .andExpect(jsonPath("$[1].id").value(nutritionPlanId));
   }
 
   @Test
@@ -234,7 +238,9 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
                 .header("Authorization", patientToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$[0].id").value(nutritionPlanId));
+        .andExpect(jsonPath("$.length()").value(2))
+        .andExpect(jsonPath("$[0].id").value(draftNutritionPlanId))
+        .andExpect(jsonPath("$[1].id").value(nutritionPlanId));
   }
 
   @Test

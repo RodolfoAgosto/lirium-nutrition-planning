@@ -2,17 +2,22 @@ package com.lirium.nutrition.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.lirium.nutrition.config.PostgresTestContainer;
 import com.lirium.nutrition.infrastructure.config.JpaConfig;
 import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.model.enums.Role;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.testcontainers.context.ImportTestcontainers;
 import org.springframework.context.annotation.Import;
 
 @DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ImportTestcontainers(PostgresTestContainer.class)
 @Import(JpaConfig.class)
 class UserRepositoryIT {
 
