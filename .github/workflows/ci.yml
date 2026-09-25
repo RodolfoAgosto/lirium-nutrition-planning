@@ -24,7 +24,7 @@ jobs:
           cache: 'maven'
 
       # mvn verify corre TODO en este proyecto: unit tests (Surefire),
-      # integration tests (Failsafe, H2), y los 3 reportes de JaCoCo
+      # integration tests (Failsafe, Testcontainers con PostgreSQL), y los 3 reportes de JaCoCo
       # (unit, integration, merged) -- todos enganchados a la fase verify.
       - name: Build, test and analyze
         env:
