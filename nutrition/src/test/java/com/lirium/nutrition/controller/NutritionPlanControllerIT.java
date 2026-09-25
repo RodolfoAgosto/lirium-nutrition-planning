@@ -1,40 +1,52 @@
 package com.lirium.nutrition.controller;
 
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.lirium.nutrition.dto.request.NutritionPlanCompleteRequestDTO;
 import com.lirium.nutrition.dto.response.NutritionPlanDetailDTO;
-import com.lirium.nutrition.exception.NutritionPlanNotFoundException;
+import com.lirium.nutrition.dto.response.PlanFoodPortionDetailDTO;
 import com.lirium.nutrition.model.entity.NutritionPlan;
 import com.lirium.nutrition.model.entity.NutritionPlanTemplate;
 import com.lirium.nutrition.model.entity.PatientProfile;
+import com.lirium.nutrition.model.entity.Restriction;
 import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.model.enums.ActivityLevel;
+import com.lirium.nutrition.model.enums.FoodTag;
 import com.lirium.nutrition.model.enums.GoalType;
+import com.lirium.nutrition.model.enums.MealType;
 import com.lirium.nutrition.model.enums.PlanStatus;
 import com.lirium.nutrition.model.enums.Role;
 import com.lirium.nutrition.model.valueobject.Height;
 import com.lirium.nutrition.model.valueobject.Weight;
 import com.lirium.nutrition.repository.NutritionPlanRepository;
-import com.lirium.nutrition.service.NutritionPlanGenerator;
+import com.lirium.nutrition.repository.NutritionPlanTemplateRepository;
+import com.lirium.nutrition.repository.RestrictionRepository;
 import com.lirium.nutrition.testdata.FoodTestDataFactory;
 import com.lirium.nutrition.testdata.NutritionPlanTemplateTestDataFactory;
 import com.lirium.nutrition.testdata.NutritionPlanTestDataFactory;
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.test.context.jdbc.Sql;
 
 class NutritionPlanControllerIT extends AbstractIntegrationTest {
+
+  // Demo data (V2__initial_data.sql), used by the plan generation tests
+  private static final String DEMO_DATA = "classpath:db/migration/V2__initial_data.sql";
+  private static final long ANA_ID = 1L; // demo patient with a complete profile
+  private static final long LACTOSE_FREE_RESTRICTION_ID = 2L;
+  private static final long GLUTEN_AND_LACTOSE_FREE_TEMPLATE_ID = 4L;
 
   private Long draftNutritionPlanId;
 
@@ -58,6 +70,9 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
   @Autowired private NutritionPlanTestDataFactory nutritionPlanTestDataFactory;
 
   @Autowired private NutritionPlanTemplateTestDataFactory nutritionPlanTemplateTestDataFactory;
+
+  @Autowired private RestrictionRepository restrictionRepository;
+  @Autowired private NutritionPlanTemplateRepository templateRepository;
 
   @Autowired private FoodTestDataFactory foodTestDataFactory;
 
@@ -209,6 +224,7 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
         .andExpect(jsonPath("$.length()").value(2))
+        // PostgreSQL sorts NULL start dates first in DESC order: the DRAFT plan comes first
         .andExpect(jsonPath("$[0].id").value(draftNutritionPlanId))
         .andExpect(jsonPath("$[1].id").value(nutritionPlanId));
   }
@@ -224,6 +240,7 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
         .andExpect(jsonPath("$.length()").value(2))
+        // PostgreSQL sorts NULL start dates first in DESC order: the DRAFT plan comes first
         .andExpect(jsonPath("$[0].id").value(draftNutritionPlanId))
         .andExpect(jsonPath("$[1].id").value(nutritionPlanId));
   }
@@ -239,6 +256,7 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
         .andExpect(jsonPath("$.length()").value(2))
+        // PostgreSQL sorts NULL start dates first in DESC order: the DRAFT plan comes first
         .andExpect(jsonPath("$[0].id").value(draftNutritionPlanId))
         .andExpect(jsonPath("$[1].id").value(nutritionPlanId));
   }
@@ -363,44 +381,82 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
         .andExpect(status().isNotFound());
   }
 
-  @MockBean private NutritionPlanGenerator nutritionPlanGenerator;
+  // ===================================================================
+  // Plan generation: the real generator runs the whole chain (calorie calculation,
+  // macro distribution, meal assembly and food selection) against PostgreSQL.
+  // Tests that need foods, templates and complete patients load the demo data
+  // from V2; it is rolled back with each test.
+  // ===================================================================
 
   @Test
-  @DisplayName("ADMIN puede generar un NutritionPlan para un paciente")
-  void shouldGenerateNutritionPlanWhenAdminRequests() throws Exception {
+  @Sql(DEMO_DATA)
+  @DisplayName("Genera un plan completo en DRAFT: 7 días, todas las comidas y nombre por defecto")
+  void shouldGenerateCompleteDraftPlan() throws Exception {
 
-    NutritionPlanDetailDTO mockDto =
-        new NutritionPlanDetailDTO(
-            100L,
-            "Plan Generado",
-            "Descripción del plan",
-            PlanStatus.DRAFT,
-            GoalType.WEIGHT_LOSS,
-            2000,
-            150,
-            200,
-            60,
-            Collections.emptyList());
+    NutritionPlanDetailDTO plan = generate("/api/nutrition-plans/generate/" + ANA_ID);
 
-    when(nutritionPlanGenerator.generate(emptyPatientId)).thenReturn(mockDto);
+    assertThat(plan.status()).isEqualTo(PlanStatus.DRAFT);
+    assertThat(plan.name()).isEqualTo("Weight maintenance plan");
+    assertThat(plan.dailyCalories()).isPositive();
+    assertThat(plan.week()).hasSize(7);
+    assertThat(plan.week())
+        .allSatisfy(day -> assertThat(day.meals()).hasSize(MealType.values().length));
+    assertThat(portionsOf(plan)).isNotEmpty();
+  }
+
+  @Test
+  @Sql(DEMO_DATA)
+  @DisplayName("Ningún alimento del plan tiene un tag excluido por las restricciones del paciente")
+  void shouldNeverIncludeFoodsExcludedByPatientRestrictions() throws Exception {
+
+    PatientProfile ana = patientRepository.findById(ANA_ID).orElseThrow();
+    Restriction lactoseFree =
+        restrictionRepository.findById(LACTOSE_FREE_RESTRICTION_ID).orElseThrow();
+    ana.addRestriction(lactoseFree);
+
+    NutritionPlanDetailDTO plan = generate("/api/nutrition-plans/generate/" + ANA_ID);
+
+    assertThat(portionsOf(plan)).isNotEmpty();
+    assertThat(foodTagsIn(plan)).doesNotContainAnyElementsOf(lactoseFree.getExcludedTags());
+  }
+
+  @Test
+  @Sql(DEMO_DATA)
+  @DisplayName("Desde template: el plan toma el nombre del template y excluye sus tags")
+  void shouldGenerateFromTemplateUsingItsNameAndExcludedTags() throws Exception {
+
+    NutritionPlanTemplate template =
+        templateRepository.findById(GLUTEN_AND_LACTOSE_FREE_TEMPLATE_ID).orElseThrow();
+
+    NutritionPlanDetailDTO plan =
+        generate(
+            "/api/nutrition-plans/generate-from-template/"
+                + ANA_ID
+                + "/"
+                + GLUTEN_AND_LACTOSE_FREE_TEMPLATE_ID);
+
+    assertThat(plan.name()).isEqualTo(template.getName());
+    assertThat(portionsOf(plan)).isNotEmpty();
+    assertThat(foodTagsIn(plan)).doesNotContainAnyElementsOf(template.getExcludedTags());
+  }
+
+  @Test
+  @Sql(DEMO_DATA)
+  @DisplayName("Un perfil incompleto devuelve 422 indicando qué dato falta")
+  void shouldRejectGenerationWhenProfileIsIncomplete() throws Exception {
+
+    userRepository.findById(ANA_ID).orElseThrow().setBirthDate(null);
 
     mockMvc
         .perform(
-            post("/api/nutrition-plans/generate/" + emptyPatientId)
-                .header("Authorization", adminToken)
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id").value(100))
-        .andExpect(jsonPath("$.status").value("DRAFT"))
-        .andExpect(jsonPath("$.targetGoal").value("WEIGHT_LOSS"));
+            post("/api/nutrition-plans/generate/" + ANA_ID).header("Authorization", adminToken))
+        .andExpect(status().isUnprocessableEntity())
+        .andExpect(jsonPath("$.message").value(containsString("birth date")));
   }
 
   @Test
   @DisplayName("Generar NutritionPlan para paciente inexistente devuelve 404")
   void shouldReturnNotFoundWhenGeneratingForNonExistingPatient() throws Exception {
-
-    when(nutritionPlanGenerator.generate(999999L))
-        .thenThrow(new NutritionPlanNotFoundException(999999L));
 
     mockMvc
         .perform(post("/api/nutrition-plans/generate/999999").header("Authorization", adminToken))
@@ -408,44 +464,8 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
   }
 
   @Test
-  @DisplayName("ADMIN puede generar NutritionPlan desde template")
-  void shouldGenerateNutritionPlanFromTemplate() throws Exception {
-
-    // Instanciación limpia del record con todos sus campos
-    NutritionPlanDetailDTO mockDto =
-        new NutritionPlanDetailDTO(
-            101L,
-            "Plan Base desde Template",
-            "Descripción del plan",
-            PlanStatus.DRAFT,
-            GoalType.WEIGHT_LOSS,
-            2000,
-            150,
-            200,
-            60,
-            List.of() // O Collections.emptyList()
-            );
-
-    when(nutritionPlanGenerator.generateFromTemplate(emptyPatientId, templateId))
-        .thenReturn(mockDto);
-
-    mockMvc
-        .perform(
-            post("/api/nutrition-plans/generate-from-template/" + emptyPatientId + "/" + templateId)
-                .header("Authorization", adminToken))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id").value(101))
-        .andExpect(jsonPath("$.status").value("DRAFT"))
-        .andExpect(jsonPath("$.targetGoal").value("WEIGHT_LOSS"));
-  }
-
-  @Test
   @DisplayName("Template inexistente devuelve 404")
   void shouldReturnNotFoundWhenTemplateDoesNotExist() throws Exception {
-
-    // Instruct Mockito to throw ResourceNotFoundException when template is not found
-    when(nutritionPlanGenerator.generateFromTemplate(emptyPatientId, 999999L))
-        .thenThrow(new NutritionPlanNotFoundException(999999L));
 
     mockMvc
         .perform(
@@ -472,5 +492,31 @@ class NutritionPlanControllerIT extends AbstractIntegrationTest {
     mockMvc
         .perform(patch("/api/nutrition-plans/999999/activate").header("Authorization", adminToken))
         .andExpect(status().isNotFound());
+  }
+
+  private NutritionPlanDetailDTO generate(String url) throws Exception {
+    String json =
+        mockMvc
+            .perform(post(url).header("Authorization", adminToken))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    return objectMapper.readValue(json, NutritionPlanDetailDTO.class);
+  }
+
+  private List<PlanFoodPortionDetailDTO> portionsOf(NutritionPlanDetailDTO plan) {
+    return plan.week().stream()
+        .flatMap(day -> day.meals().stream())
+        .flatMap(meal -> meal.portions().stream())
+        .toList();
+  }
+
+  private Set<FoodTag> foodTagsIn(NutritionPlanDetailDTO plan) {
+    return portionsOf(plan).stream()
+        .map(portion -> foodRepository.findByName(portion.foodName()).orElseThrow())
+        .flatMap(food -> food.getFoodTags().stream())
+        .collect(Collectors.toSet());
   }
 }
