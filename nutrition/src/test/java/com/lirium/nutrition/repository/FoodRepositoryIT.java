@@ -67,6 +67,21 @@ class FoodRepositoryIT {
     assertThat(result).containsExactly(rice);
   }
 
+  @Test
+  void shouldNotReturnInactiveFoodsAsSuitable() {
+
+    Food rice = createFood("Rice", Set.of(MealType.LUNCH), Set.of());
+
+    Food quinoa = createFood("Quinoa", Set.of(MealType.LUNCH), Set.of());
+    quinoa.deactivate();
+
+    em.flush();
+
+    List<Food> result = repository.findSuitableFoods(MealType.LUNCH, Set.of(FoodTag.GLUTEN));
+
+    assertThat(result).containsExactly(rice);
+  }
+
   private Food createFood(String name, Set<MealType> suitableFor, Set<FoodTag> tags) {
 
     Food food = Food.of(name, 100, 10, 20, 5, FoodCategory.VEGETABLE, suitableFor);

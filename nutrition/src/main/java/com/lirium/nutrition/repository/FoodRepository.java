@@ -26,13 +26,14 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
 
   @Query(
       """
-    SELECT f FROM Food f
-    WHERE :mealType MEMBER OF f.suitableFor
-    AND NOT EXISTS (
-        SELECT t FROM Food f2 JOIN f2.foodTags t
-        WHERE f2 = f AND t IN :excludedTags
-    )
-    """)
+        SELECT f FROM Food f
+        WHERE f.active = true
+        AND :mealType MEMBER OF f.suitableFor
+        AND NOT EXISTS (
+            SELECT t FROM Food f2 JOIN f2.foodTags t
+            WHERE f2 = f AND t IN :excludedTags
+        )
+        """)
   List<Food> findSuitableFoods(
       @Param("mealType") MealType mealType, @Param("excludedTags") Set<FoodTag> excludedTags);
 

@@ -19,6 +19,8 @@ import com.lirium.nutrition.service.CalorieCalculator;
 import com.lirium.nutrition.service.MacroDistributor;
 import com.lirium.nutrition.service.NutritionPlanAssembler;
 import com.lirium.nutrition.service.NutritionPlanGenerator;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -53,14 +55,7 @@ public class NutritionPlanGeneratorImpl implements NutritionPlanGenerator {
 
     ensureNoDraftPlan(patientId);
 
-    if (patient.getWeight() == null
-        || patient.getHeight() == null
-        || patient.getActivityLevel() == null
-        || patient.getPrimaryGoal() == null) {
-
-      throw new UnprocessableEntityException(
-          "Missing required physical metrics or goals for patient");
-    }
+    ensureProfileIsComplete(patient);
 
     Calories calories = calorieCalculator.calculate(patient);
 
@@ -113,14 +108,7 @@ public class NutritionPlanGeneratorImpl implements NutritionPlanGenerator {
                   return new NutritionPlanTemplateNotFoundException(templateId);
                 });
 
-    if (patient.getWeight() == null
-        || patient.getHeight() == null
-        || patient.getActivityLevel() == null
-        || patient.getPrimaryGoal() == null) {
-
-      throw new UnprocessableEntityException(
-          "Missing required physical metrics or goals for patient");
-    }
+    ensureProfileIsComplete(patient);
 
     Calories calories = calorieCalculator.calculate(patient);
 
@@ -161,6 +149,26 @@ public class NutritionPlanGeneratorImpl implements NutritionPlanGenerator {
     if (nutritionPlanRepository.existsByPatientProfileIdAndStatus(patientId, PlanStatus.DRAFT)) {
       log.warn("Plan generation failed - draft already exists patientId={}", patientId);
       throw new PlanConflictException("Patient already has a draft plan");
+    }
+  }
+
+  /**
+   * The energy requirement uses sex, weight, height, age (from the birth date), activity level and
+   * primary goal: all of them must be present before generating a plan.
+   */
+  private void ensureProfileIsComplete(PatientProfile patient) {
+    List<String> missing = new ArrayList<>();
+
+    if (patient.getSex() == null) missing.add("sex");
+    if (patient.getUser().getBirthDate() == null) missing.add("birth date");
+    if (patient.getWeight() == null) missing.add("weight");
+    if (patient.getHeight() == null) missing.add("height");
+    if (patient.getActivityLevel() == null) missing.add("activity level");
+    if (patient.getPrimaryGoal() == null) missing.add("primary goal");
+
+    if (!missing.isEmpty()) {
+      throw new UnprocessableEntityException(
+          "Patient profile is incomplete. Missing: " + String.join(", ", missing));
     }
   }
 }
