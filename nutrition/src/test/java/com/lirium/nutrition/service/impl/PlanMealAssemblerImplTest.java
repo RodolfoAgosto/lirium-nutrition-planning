@@ -71,8 +71,8 @@ class PlanMealAssemblerImplTest {
     assemble(Set.of());
 
     assertThat(dailyPlan.getMeals())
-            .extracting(PlanMeal::getType)
-            .containsExactly(MealType.values());
+        .extracting(PlanMeal::getType)
+        .containsExactly(MealType.values());
   }
 
   @Test
@@ -95,11 +95,10 @@ class PlanMealAssemblerImplTest {
 
     assertThat(requestedBudgets).hasSize(MealType.values().length);
     assertThat(requestedBudgets.stream().mapToInt(b -> b.calories().amount()).sum())
-            .isEqualTo(2000);
+        .isEqualTo(2000);
     assertThat(requestedBudgets.stream().mapToInt(b -> b.carbs().amount()).sum()).isEqualTo(250);
     assertThat(requestedBudgets.stream().mapToInt(b -> b.fat().amount()).sum()).isEqualTo(70);
-    assertThat(requestedBudgets.stream().mapToInt(b -> b.protein().grams()).sum())
-            .isEqualTo(150);
+    assertThat(requestedBudgets.stream().mapToInt(b -> b.protein().grams()).sum()).isEqualTo(150);
   }
 
   @Test
@@ -122,7 +121,7 @@ class PlanMealAssemblerImplTest {
     assemble(Set.of());
 
     assertThat(requestedBudgets.subList(1, requestedBudgets.size()))
-            .allSatisfy(b -> assertThat(b.calories().amount()).isZero());
+        .allSatisfy(b -> assertThat(b.calories().amount()).isZero());
   }
 
   @Test
@@ -135,13 +134,13 @@ class PlanMealAssemblerImplTest {
     assemble(Set.of(FoodTag.FISH));
 
     verify(planFoodPortionAssembler, times(MealType.values().length))
-            .assemble(
-                    any(),
-                    any(),
-                    eq(Set.of(FoodTag.LACTOSE, FoodTag.GLUTEN, FoodTag.FISH)),
-                    anySet(),
-                    anyMap(),
-                    anyMap());
+        .assemble(
+            any(),
+            any(),
+            eq(Set.of(FoodTag.LACTOSE, FoodTag.GLUTEN, FoodTag.FISH)),
+            anySet(),
+            anyMap(),
+            anyMap());
   }
 
   @Test
@@ -151,59 +150,59 @@ class PlanMealAssemblerImplTest {
     everyMealConsumesExactlyItsBudget();
 
     planMealAssembler.assemble(
-            dailyPlan,
-            patient,
-            DAILY_CALORIES,
-            DAILY_MACROS,
-            new HashSet<>(),
-            new HashMap<>(),
-            new HashMap<>());
+        dailyPlan,
+        patient,
+        DAILY_CALORIES,
+        DAILY_MACROS,
+        new HashSet<>(),
+        new HashMap<>(),
+        new HashMap<>());
 
     verify(planFoodPortionAssembler, times(MealType.values().length))
-            .assemble(any(), any(), eq(Set.of(FoodTag.LACTOSE)), anySet(), anyMap(), anyMap());
+        .assemble(any(), any(), eq(Set.of(FoodTag.LACTOSE)), anySet(), anyMap(), anyMap());
   }
 
   // ------------------------------------------------------------ helpers
 
   private void assemble(Set<FoodTag> additionalExcludedTags) {
     planMealAssembler.assemble(
-            dailyPlan,
-            patient,
-            DAILY_CALORIES,
-            DAILY_MACROS,
-            additionalExcludedTags,
-            new HashSet<>(),
-            new HashMap<>(),
-            new HashMap<>());
+        dailyPlan,
+        patient,
+        DAILY_CALORIES,
+        DAILY_MACROS,
+        additionalExcludedTags,
+        new HashSet<>(),
+        new HashMap<>(),
+        new HashMap<>());
   }
 
   /** Every meal consumes exactly the budget it receives, with no deviation. */
   private void everyMealConsumesExactlyItsBudget() {
     when(planFoodPortionAssembler.assemble(any(), any(), anySet(), anySet(), anyMap(), anyMap()))
-            .thenAnswer(
-                    invocation -> {
-                      NutrientBudget budget = invocation.getArgument(1);
-                      requestedBudgets.add(budget);
-                      return new MealAssemblyResult(budget, MacroDeviation.ZERO);
-                    });
+        .thenAnswer(
+            invocation -> {
+              NutrientBudget budget = invocation.getArgument(1);
+              requestedBudgets.add(budget);
+              return new MealAssemblyResult(budget, MacroDeviation.ZERO);
+            });
   }
 
   /** Every meal overshoots its calorie budget by the given amount. */
   private void mealsConsumeTheirBudgetPlus(int extraCalories, double deviationCalories) {
     when(planFoodPortionAssembler.assemble(any(), any(), anySet(), anySet(), anyMap(), anyMap()))
-            .thenAnswer(
-                    invocation -> {
-                      NutrientBudget budget = invocation.getArgument(1);
-                      requestedBudgets.add(budget);
-                      NutrientBudget consumed =
-                              new NutrientBudget(
-                                      new Calories(budget.calories().amount() + extraCalories),
-                                      budget.carbs(),
-                                      budget.fat(),
-                                      budget.protein());
-                      return new MealAssemblyResult(
-                              consumed, new MacroDeviation(deviationCalories, 0, 0, 0));
-                    });
+        .thenAnswer(
+            invocation -> {
+              NutrientBudget budget = invocation.getArgument(1);
+              requestedBudgets.add(budget);
+              NutrientBudget consumed =
+                  new NutrientBudget(
+                      new Calories(budget.calories().amount() + extraCalories),
+                      budget.carbs(),
+                      budget.fat(),
+                      budget.protein());
+              return new MealAssemblyResult(
+                  consumed, new MacroDeviation(deviationCalories, 0, 0, 0));
+            });
   }
 
   private static Restriction restriction(Long id, FoodTag excludedTag) {
@@ -212,6 +211,6 @@ class PlanMealAssemblerImplTest {
 
   private static NutrientBudget budget(int calories, int carbs, int fat, int protein) {
     return new NutrientBudget(
-            new Calories(calories), new Carbs(carbs), new Fat(fat), new Protein(protein));
+        new Calories(calories), new Carbs(carbs), new Fat(fat), new Protein(protein));
   }
 }

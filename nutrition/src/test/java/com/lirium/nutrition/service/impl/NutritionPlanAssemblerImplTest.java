@@ -36,103 +36,103 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class NutritionPlanAssemblerImplTest {
 
-    private static final Calories CALORIES = new Calories(2000);
-    private static final MacroDistribution MACROS = new MacroDistribution(150, 250, 70);
-    private static final int DAYS_IN_WEEK = DayOfWeek.values().length;
+  private static final Calories CALORIES = new Calories(2000);
+  private static final MacroDistribution MACROS = new MacroDistribution(150, 250, 70);
+  private static final int DAYS_IN_WEEK = DayOfWeek.values().length;
 
-    @Mock private PlanMealAssembler planMealAssembler;
+  @Mock private PlanMealAssembler planMealAssembler;
 
-    private NutritionPlanAssemblerImpl assembler;
-    private PatientProfile patient;
+  private NutritionPlanAssemblerImpl assembler;
+  private PatientProfile patient;
 
-    @BeforeEach
-    void setUp() {
-        assembler = new NutritionPlanAssemblerImpl(planMealAssembler);
-        patient = new PatientProfile(new User());
-        patient.updateNutritionProfile(
-                Height.of(170), Weight.of(70000), ActivityLevel.MODERATE, GoalType.WEIGHT_LOSS);
-    }
+  @BeforeEach
+  void setUp() {
+    assembler = new NutritionPlanAssemblerImpl(planMealAssembler);
+    patient = new PatientProfile(new User());
+    patient.updateNutritionProfile(
+        Height.of(170), Weight.of(70000), ActivityLevel.MODERATE, GoalType.WEIGHT_LOSS);
+  }
 
-    @Test
-    @DisplayName("Builds a DRAFT plan with the patient's goal and the given targets")
-    void shouldBuildDraftPlanWithGoalAndTargets() {
+  @Test
+  @DisplayName("Builds a DRAFT plan with the patient's goal and the given targets")
+  void shouldBuildDraftPlanWithGoalAndTargets() {
 
-        NutritionPlan plan = assembler.assemble(patient, CALORIES, MACROS);
+    NutritionPlan plan = assembler.assemble(patient, CALORIES, MACROS);
 
-        assertThat(plan.getStatus()).isEqualTo(PlanStatus.DRAFT);
-        assertThat(plan.getTargetGoal()).isEqualTo(GoalType.WEIGHT_LOSS);
-        assertThat(plan.getDailyCalories()).isEqualTo(2000);
-        assertThat(plan.getProteinGrams()).isEqualTo(150);
-        assertThat(plan.getCarbGrams()).isEqualTo(250);
-        assertThat(plan.getFatGrams()).isEqualTo(70);
-        assertThat(plan.getPatientProfile()).isSameAs(patient);
-    }
+    assertThat(plan.getStatus()).isEqualTo(PlanStatus.DRAFT);
+    assertThat(plan.getTargetGoal()).isEqualTo(GoalType.WEIGHT_LOSS);
+    assertThat(plan.getDailyCalories()).isEqualTo(2000);
+    assertThat(plan.getProteinGrams()).isEqualTo(150);
+    assertThat(plan.getCarbGrams()).isEqualTo(250);
+    assertThat(plan.getFatGrams()).isEqualTo(70);
+    assertThat(plan.getPatientProfile()).isSameAs(patient);
+  }
 
-    @Test
-    @DisplayName("Creates the seven days of the week, in order, and assembles each one")
-    void shouldAssembleEveryDayOfTheWeekInOrder() {
+  @Test
+  @DisplayName("Creates the seven days of the week, in order, and assembles each one")
+  void shouldAssembleEveryDayOfTheWeekInOrder() {
 
-        NutritionPlan plan = assembler.assemble(patient, CALORIES, MACROS);
+    NutritionPlan plan = assembler.assemble(patient, CALORIES, MACROS);
 
-        assertThat(plan.getWeek())
-                .extracting(DailyPlan::getDayOfWeek)
-                .containsExactly(DayOfWeek.values());
-        verify(planMealAssembler, times(DAYS_IN_WEEK))
-                .assemble(
-                        any(), eq(patient), eq(CALORIES), eq(MACROS), anySet(), anySet(), anyMap(), anyMap());
-    }
+    assertThat(plan.getWeek())
+        .extracting(DailyPlan::getDayOfWeek)
+        .containsExactly(DayOfWeek.values());
+    verify(planMealAssembler, times(DAYS_IN_WEEK))
+        .assemble(
+            any(), eq(patient), eq(CALORIES), eq(MACROS), anySet(), anySet(), anyMap(), anyMap());
+  }
 
-    @Test
-    @DisplayName("Weekly frequencies are shared across days; daily usage starts fresh every day")
-    @SuppressWarnings("unchecked")
-    void shouldShareWeeklyFrequencyButResetDailyUsage() {
-        ArgumentCaptor<Set<Long>> usedFoodIdsInDay = ArgumentCaptor.forClass(Set.class);
-        ArgumentCaptor<Map<Long, Integer>> foodFrequencyInWeek = ArgumentCaptor.forClass(Map.class);
-        ArgumentCaptor<Map<Long, Double>> foodGramsInDay = ArgumentCaptor.forClass(Map.class);
+  @Test
+  @DisplayName("Weekly frequencies are shared across days; daily usage starts fresh every day")
+  @SuppressWarnings("unchecked")
+  void shouldShareWeeklyFrequencyButResetDailyUsage() {
+    ArgumentCaptor<Set<Long>> usedFoodIdsInDay = ArgumentCaptor.forClass(Set.class);
+    ArgumentCaptor<Map<Long, Integer>> foodFrequencyInWeek = ArgumentCaptor.forClass(Map.class);
+    ArgumentCaptor<Map<Long, Double>> foodGramsInDay = ArgumentCaptor.forClass(Map.class);
 
-        assembler.assemble(patient, CALORIES, MACROS);
+    assembler.assemble(patient, CALORIES, MACROS);
 
-        verify(planMealAssembler, times(DAYS_IN_WEEK))
-                .assemble(
-                        any(),
-                        any(),
-                        any(),
-                        any(),
-                        anySet(),
-                        usedFoodIdsInDay.capture(),
-                        foodFrequencyInWeek.capture(),
-                        foodGramsInDay.capture());
+    verify(planMealAssembler, times(DAYS_IN_WEEK))
+        .assemble(
+            any(),
+            any(),
+            any(),
+            any(),
+            anySet(),
+            usedFoodIdsInDay.capture(),
+            foodFrequencyInWeek.capture(),
+            foodGramsInDay.capture());
 
-        List<Map<Long, Integer>> frequencies = foodFrequencyInWeek.getAllValues();
-        assertThat(frequencies).allSatisfy(map -> assertThat(map).isSameAs(frequencies.getFirst()));
+    List<Map<Long, Integer>> frequencies = foodFrequencyInWeek.getAllValues();
+    assertThat(frequencies).allSatisfy(map -> assertThat(map).isSameAs(frequencies.getFirst()));
 
-        assertThat(identityCount(usedFoodIdsInDay.getAllValues())).isEqualTo(DAYS_IN_WEEK);
-        assertThat(identityCount(foodGramsInDay.getAllValues())).isEqualTo(DAYS_IN_WEEK);
-    }
+    assertThat(identityCount(usedFoodIdsInDay.getAllValues())).isEqualTo(DAYS_IN_WEEK);
+    assertThat(identityCount(foodGramsInDay.getAllValues())).isEqualTo(DAYS_IN_WEEK);
+  }
 
-    @Test
-    @DisplayName("Passes the additional excluded tags to every day")
-    void shouldPassAdditionalExcludedTagsToEveryDay() {
-        Set<FoodTag> templateExclusions = Set.of(FoodTag.GLUTEN);
+  @Test
+  @DisplayName("Passes the additional excluded tags to every day")
+  void shouldPassAdditionalExcludedTagsToEveryDay() {
+    Set<FoodTag> templateExclusions = Set.of(FoodTag.GLUTEN);
 
-        assembler.assemble(patient, CALORIES, MACROS, templateExclusions);
+    assembler.assemble(patient, CALORIES, MACROS, templateExclusions);
 
-        verify(planMealAssembler, times(DAYS_IN_WEEK))
-                .assemble(any(), any(), any(), any(), eq(templateExclusions), anySet(), anyMap(), anyMap());
-    }
+    verify(planMealAssembler, times(DAYS_IN_WEEK))
+        .assemble(any(), any(), any(), any(), eq(templateExclusions), anySet(), anyMap(), anyMap());
+  }
 
-    @Test
-    @DisplayName("Without additional tags, every day receives an empty set")
-    void shouldPassEmptyExcludedTagsByDefault() {
+  @Test
+  @DisplayName("Without additional tags, every day receives an empty set")
+  void shouldPassEmptyExcludedTagsByDefault() {
 
-        assembler.assemble(patient, CALORIES, MACROS);
+    assembler.assemble(patient, CALORIES, MACROS);
 
-        verify(planMealAssembler, times(DAYS_IN_WEEK))
-                .assemble(any(), any(), any(), any(), eq(Set.of()), anySet(), anyMap(), anyMap());
-    }
+    verify(planMealAssembler, times(DAYS_IN_WEEK))
+        .assemble(any(), any(), any(), any(), eq(Set.of()), anySet(), anyMap(), anyMap());
+  }
 
-    /** How many distinct instances (by identity, not equality) the list contains. */
-    private static long identityCount(List<?> values) {
-        return values.stream().map(System::identityHashCode).distinct().count();
-    }
+  /** How many distinct instances (by identity, not equality) the list contains. */
+  private static long identityCount(List<?> values) {
+    return values.stream().map(System::identityHashCode).distinct().count();
+  }
 }

@@ -156,4 +156,48 @@ class JwtAuthenticationFilterTest {
 
     verify(filterChain).doFilter(request, response);
   }
+
+  @Test
+  void shouldNotAuthenticateWhenTokenWasRevokedByLogout() throws Exception {
+
+    when(request.getHeader("Authorization")).thenReturn("Bearer token");
+
+    when(jwtService.parseClaims("token")).thenReturn(claims);
+
+    when(claims.getId()).thenReturn("revoked-jti");
+
+    when(jwtService.extractUsername(claims)).thenReturn("john@test.com");
+
+    when(tokenBlacklistService.isBlacklisted("revoked-jti")).thenReturn(true);
+
+    filter.doFilterInternal(request, response, filterChain);
+
+    assertNull(SecurityContextHolder.getContext().getAuthentication());
+
+    verifyNoInteractions(userDetailsService);
+
+    verify(filterChain).doFilter(request, response);
+  }
+
+  @Test
+  void shouldNotAuthenticateWhenTokenHasNoUsername() throws Exception {
+
+    when(request.getHeader("Authorization")).thenReturn("Bearer token");
+
+    when(jwtService.parseClaims("token")).thenReturn(claims);
+
+    when(claims.getId()).thenReturn("test-jti");
+
+    when(jwtService.extractUsername(claims)).thenReturn(null);
+
+    when(tokenBlacklistService.isBlacklisted("test-jti")).thenReturn(false);
+
+    filter.doFilterInternal(request, response, filterChain);
+
+    assertNull(SecurityContextHolder.getContext().getAuthentication());
+
+    verifyNoInteractions(userDetailsService);
+
+    verify(filterChain).doFilter(request, response);
+  }
 }

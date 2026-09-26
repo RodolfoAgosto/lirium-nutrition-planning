@@ -67,7 +67,7 @@ class GlobalExceptionHandlerTest {
   void shouldHandleInvalidTag() {
 
     ResponseEntity<ApiError> response =
-            handler.handleInvalidTag(new InvalidTagException("invalid"), request());
+        handler.handleInvalidTag(new InvalidTagException("invalid"), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
   }
@@ -76,7 +76,7 @@ class GlobalExceptionHandlerTest {
   void shouldHandleFoodInUse() {
 
     ResponseEntity<ApiError> response =
-            handler.handleFoodInUse(new FoodInUseException("used", 1L), request());
+        handler.handleFoodInUse(new FoodInUseException("used", 1L), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
   }
@@ -85,7 +85,7 @@ class GlobalExceptionHandlerTest {
   void shouldHandleDuplicateFood() {
 
     ResponseEntity<ApiError> response =
-            handler.handleDuplicateFood(new DuplicateFoodException("duplicate"), request());
+        handler.handleDuplicateFood(new DuplicateFoodException("duplicate"), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
   }
@@ -94,7 +94,7 @@ class GlobalExceptionHandlerTest {
   void shouldHandleDuplicateTemplate() {
 
     ResponseEntity<ApiError> response =
-            handler.handleDuplicateTemplate(new DuplicateTemplateException("duplicate"), request());
+        handler.handleDuplicateTemplate(new DuplicateTemplateException("duplicate"), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
   }
@@ -113,7 +113,7 @@ class GlobalExceptionHandlerTest {
   void shouldHandleEmailAlreadyExists() {
 
     ResponseEntity<ApiError> response =
-            handler.handleEmailExists(new EmailAlreadyExistsException("exists"), request());
+        handler.handleEmailExists(new EmailAlreadyExistsException("exists"), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
   }
@@ -122,7 +122,7 @@ class GlobalExceptionHandlerTest {
   void shouldHandleUnauthorizedOperation() {
 
     ResponseEntity<ApiError> response =
-            handler.handleUnauthorized(new UnauthorizedOperationException("no access"), request());
+        handler.handleUnauthorized(new UnauthorizedOperationException("no access"), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
   }
@@ -131,7 +131,7 @@ class GlobalExceptionHandlerTest {
   void shouldHandleEmailNotValidated() {
 
     ResponseEntity<ApiError> response =
-            handler.handleUnauthorized(new EmailNotValidatedException("not validated"), request());
+        handler.handleUnauthorized(new EmailNotValidatedException("not validated"), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
   }
@@ -140,7 +140,7 @@ class GlobalExceptionHandlerTest {
   void shouldHandleAccountDisabled() {
 
     ResponseEntity<ApiError> response =
-            handler.handleUnauthorized(new AccountDisabledException(1L), request());
+        handler.handleUnauthorized(new AccountDisabledException(1L), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
   }
@@ -149,7 +149,7 @@ class GlobalExceptionHandlerTest {
   void shouldHandleInvalidGoal() {
 
     ResponseEntity<ApiError> response =
-            handler.handleBadRequest(new InvalidGoalException("invalid"), request());
+        handler.handleBadRequest(new InvalidGoalException("invalid"), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
   }
@@ -158,7 +158,7 @@ class GlobalExceptionHandlerTest {
   void shouldHandleInvalidMealStructure() {
 
     ResponseEntity<ApiError> response =
-            handler.handleBadRequest(new InvalidMealStructureException("invalid"), request());
+        handler.handleBadRequest(new InvalidMealStructureException("invalid"), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
   }
@@ -167,19 +167,19 @@ class GlobalExceptionHandlerTest {
   void shouldHandleGenericException() {
 
     ResponseEntity<ApiError> response =
-            handler.handleGeneric(new RuntimeException("error"), request());
+        handler.handleGeneric(new RuntimeException("error"), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
 
     assertThat(response.getBody().message())
-            .isEqualTo("An unexpected error occurred. Please contact support.");
+        .isEqualTo("An unexpected error occurred. Please contact support.");
   }
 
   @Test
   void shouldHandleBadCredentials() {
 
     ResponseEntity<ApiError> response =
-            handler.handleBadCredentials(new BadCredentialsException("bad"), request());
+        handler.handleBadCredentials(new BadCredentialsException("bad"), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
   }
@@ -200,7 +200,7 @@ class GlobalExceptionHandlerTest {
   void shouldHandleInvalidRefreshToken() {
 
     ResponseEntity<ApiError> response =
-            handler.handleInvalidRefreshToken(new InvalidRefreshTokenException("expired"), request());
+        handler.handleInvalidRefreshToken(new InvalidRefreshTokenException("expired"), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
   }
@@ -209,7 +209,7 @@ class GlobalExceptionHandlerTest {
   void shouldHandleInvalidEnumValue() {
 
     ResponseEntity<ApiError> response =
-            handler.handleInvalidEnum(new InvalidEnumValueException("invalid enum"), request());
+        handler.handleInvalidEnum(new InvalidEnumValueException("invalid enum"), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
   }
@@ -219,7 +219,7 @@ class GlobalExceptionHandlerTest {
   @Test
   void shouldHandleDniAlreadyExists() {
     ResponseEntity<ApiError> response =
-            handler.handleDNIExists(new DniAlreadyExistsException("12345678"), request());
+        handler.handleDNIExists(new DniAlreadyExistsException("12345678"), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
   }
@@ -227,8 +227,8 @@ class GlobalExceptionHandlerTest {
   @Test
   void shouldHandleRestrictionAlreadyExists() {
     ResponseEntity<ApiError> response =
-            handler.handleRestrictionAlreadyExists(
-                    new RestrictionAlreadyExistsException("GLUTEN_FREE already exists"), request());
+        handler.handleRestrictionAlreadyExists(
+            new RestrictionAlreadyExistsException("GLUTEN_FREE already exists"), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
     assertThat(response.getBody().message()).isEqualTo("GLUTEN_FREE already exists");
@@ -237,8 +237,8 @@ class GlobalExceptionHandlerTest {
   @Test
   void shouldHandlePlanConflict() {
     ResponseEntity<ApiError> response =
-            handler.handlePlanConflict(
-                    new PlanConflictException("Patient already has a draft plan"), request());
+        handler.handlePlanConflict(
+            new PlanConflictException("Patient already has a draft plan"), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
     assertThat(response.getBody().message()).isEqualTo("Patient already has a draft plan");
@@ -247,8 +247,8 @@ class GlobalExceptionHandlerTest {
   @Test
   void shouldHandleUnprocessableEntity() {
     ResponseEntity<ApiError> response =
-            handler.handleUnprocessableEntity(
-                    new UnprocessableEntityException("Patient profile is incomplete"), request());
+        handler.handleUnprocessableEntity(
+            new UnprocessableEntityException("Patient profile is incomplete"), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
   }
@@ -256,7 +256,7 @@ class GlobalExceptionHandlerTest {
   @Test
   void shouldHandleUnauthorized() {
     ResponseEntity<ApiError> response =
-            handler.handleUnauthorized(new UnauthorizedException("Invalid token"), request());
+        handler.handleUnauthorized(new UnauthorizedException("Invalid token"), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
   }
@@ -264,8 +264,8 @@ class GlobalExceptionHandlerTest {
   @Test
   void shouldHandleDomainValidationAsBadRequest() {
     ResponseEntity<ApiError> response =
-            handler.handleDomainValidationException(
-                    new IllegalArgumentException("Name cannot be blank"), request());
+        handler.handleDomainValidationException(
+            new IllegalArgumentException("Name cannot be blank"), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     assertThat(response.getBody().message()).isEqualTo("Name cannot be blank");
@@ -277,7 +277,7 @@ class GlobalExceptionHandlerTest {
   void shouldUseFallbackMessageWhenThereAreNoFieldErrors() {
     MethodArgumentNotValidException exception = mock(MethodArgumentNotValidException.class);
     when(exception.getBindingResult())
-            .thenReturn(new BeanPropertyBindingResult(new Object(), "target"));
+        .thenReturn(new BeanPropertyBindingResult(new Object(), "target"));
 
     ResponseEntity<ApiError> response = handler.handleValidation(exception, request());
 
@@ -290,8 +290,8 @@ class GlobalExceptionHandlerTest {
     when(violation.getMessage()).thenReturn("must be positive");
 
     ResponseEntity<ApiError> response =
-            handler.handleConstraintViolationException(
-                    new ConstraintViolationException(Set.of(violation)), request());
+        handler.handleConstraintViolationException(
+            new ConstraintViolationException(Set.of(violation)), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     assertThat(response.getBody().message()).isEqualTo("must be positive");
@@ -300,8 +300,8 @@ class GlobalExceptionHandlerTest {
   @Test
   void shouldUseFallbackMessageWhenThereAreNoConstraintViolations() {
     ResponseEntity<ApiError> response =
-            handler.handleConstraintViolationException(
-                    new ConstraintViolationException(Set.of()), request());
+        handler.handleConstraintViolationException(
+            new ConstraintViolationException(Set.of()), request());
 
     assertThat(response.getBody().message()).isEqualTo("Validation failed");
   }
@@ -336,40 +336,40 @@ class GlobalExceptionHandlerTest {
   @Test
   void shouldNameTheFieldWithAnInvalidValue() {
     InvalidFormatException cause =
-            InvalidFormatException.from(null, "bad value", "SOMETIMES", ActivityLevel.class);
+        InvalidFormatException.from(null, "bad value", "SOMETIMES", ActivityLevel.class);
     cause.prependPath(new Object(), "activityLevel");
 
     ResponseEntity<ApiError> response =
-            handler.handleHttpMessageNotReadable(notReadable(cause), request());
+        handler.handleHttpMessageNotReadable(notReadable(cause), request());
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     assertThat(response.getBody().message())
-            .isEqualTo("Invalid value 'SOMETIMES' for field 'activityLevel'");
+        .isEqualTo("Invalid value 'SOMETIMES' for field 'activityLevel'");
   }
 
   @Test
   void shouldNameTheFieldWithAnInvalidStructure() {
     MismatchedInputException cause =
-            MismatchedInputException.from(null, List.class, "expected an array");
+        MismatchedInputException.from(null, List.class, "expected an array");
     cause.prependPath(new Object(), "restrictionIds");
 
     ResponseEntity<ApiError> response =
-            handler.handleHttpMessageNotReadable(notReadable(cause), request());
+        handler.handleHttpMessageNotReadable(notReadable(cause), request());
 
     assertThat(response.getBody().message())
-            .isEqualTo("Invalid structure or value for field 'restrictionIds'");
+        .isEqualTo("Invalid structure or value for field 'restrictionIds'");
   }
 
   @Test
   void shouldUseGenericMessageWhenTheInvalidFieldIsUnknown() {
     InvalidFormatException cause =
-            InvalidFormatException.from(null, "bad value", "x", Integer.class);
+        InvalidFormatException.from(null, "bad value", "x", Integer.class);
 
     ResponseEntity<ApiError> response =
-            handler.handleHttpMessageNotReadable(notReadable(cause), request());
+        handler.handleHttpMessageNotReadable(notReadable(cause), request());
 
     assertThat(response.getBody().message())
-            .isEqualTo("Malformed JSON payload or invalid data format");
+        .isEqualTo("Malformed JSON payload or invalid data format");
   }
 
   @Test
@@ -377,19 +377,19 @@ class GlobalExceptionHandlerTest {
     MismatchedInputException cause = MismatchedInputException.from(null, List.class, "bad");
 
     ResponseEntity<ApiError> response =
-            handler.handleHttpMessageNotReadable(notReadable(cause), request());
+        handler.handleHttpMessageNotReadable(notReadable(cause), request());
 
     assertThat(response.getBody().message())
-            .isEqualTo("Malformed JSON payload or invalid data format");
+        .isEqualTo("Malformed JSON payload or invalid data format");
   }
 
   @Test
   void shouldUseGenericMessageForUnparseableJson() {
     ResponseEntity<ApiError> response =
-            handler.handleHttpMessageNotReadable(notReadable(null), request());
+        handler.handleHttpMessageNotReadable(notReadable(null), request());
 
     assertThat(response.getBody().message())
-            .isEqualTo("Malformed JSON payload or invalid data format");
+        .isEqualTo("Malformed JSON payload or invalid data format");
   }
 
   // ------------------------------------------------ query parameter type mismatch
@@ -403,8 +403,8 @@ class GlobalExceptionHandlerTest {
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     assertThat(response.getBody().message())
-            .isEqualTo(
-                    "Parameter 'from' has an invalid date value '25/09/2026'. Expected format: YYYY-MM-DD");
+        .isEqualTo(
+            "Parameter 'from' has an invalid date value '25/09/2026'. Expected format: YYYY-MM-DD");
   }
 
   @Test
