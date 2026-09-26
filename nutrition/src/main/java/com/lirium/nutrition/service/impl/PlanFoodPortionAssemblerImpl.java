@@ -20,6 +20,7 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
 
   private final Map<MealType, List<SlotDistribution>> distributions;
   private final FoodRepository foodRepository;
+  private final Random random = new Random();
 
   private static final double DEFAULT_MIN_SERVING_GRAMS = 10.0;
   private static final double DEFAULT_MAX_SERVING_GRAMS = 300.0;
@@ -161,7 +162,7 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
       Optional<Food> foodOpt =
           candidates.isEmpty()
               ? Optional.empty()
-              : Optional.of(candidates.get(new Random().nextInt(candidates.size())));
+              : Optional.of(candidates.get(random.nextInt(candidates.size())));
 
       // Fallback (respeta frecuencia; matchesSlotOrFallback también acepta legumbres para el slot
       // PROTEIN)
@@ -326,10 +327,10 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
 
     MacroDeviation deviation =
         new MacroDeviation(
-            finalCalories - target.calories().amount(),
-            finalCarbs - target.carbs().amount(),
-            finalFat - target.fat().amount(),
-            finalProtein - target.protein().grams());
+            (double) finalCalories - target.calories().amount(),
+            (double) finalCarbs - target.carbs().amount(),
+            (double) finalFat - target.fat().amount(),
+            (double) finalProtein - target.protein().grams());
 
     return new MealAssemblyResult(consumed, deviation);
   }
