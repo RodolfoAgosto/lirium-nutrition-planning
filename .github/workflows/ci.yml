@@ -56,8 +56,7 @@ jobs:
           path: target/site/jacoco-merged
 
   # Job opcional: valida que Flyway aplique limpio contra Postgres real
-  # (independiente de la suite de tests, que corre en H2). No depende
-  # de Testcontainers -- usa el soporte nativo de GitHub Actions para
+  # No depende de Testcontainers -- usa el soporte nativo de GitHub Actions para
   # levantar el servicio.
   flyway-check:
     runs-on: ubuntu-latest

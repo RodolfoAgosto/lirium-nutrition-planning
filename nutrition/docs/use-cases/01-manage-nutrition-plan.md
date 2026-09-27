@@ -12,7 +12,7 @@ DRAFT ──activate──▶ ACTIVE ──complete / replaced──▶ INACTIVE
 Creates a new plan for a patient, either from scratch or from a template.
 
 1. The nutritionist requests a plan for a patient (optionally based on a template).
-2. The system validates the patient profile has weight, height, activity level and primary goal.
+2. The system validates the patient profile has weight, height, activity level, sex, birthdate and primary goal.
 3. The system calculates the daily energy requirement from the patient profile: sex, weight, height,
    age, activity level, primary goal and physiological conditions.
 4. The system distributes those calories into protein, carbs and fat
