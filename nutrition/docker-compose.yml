@@ -25,8 +25,11 @@ services:
       GOOGLE_CLIENT_ID: fake-client-id-for-local-demo
       GOOGLE_CLIENT_SECRET: fake-client-secret-for-local-demo
       SPRING_PROFILES_ACTIVE: docker
+      REDIS_URL: redis://redis:6379
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   postgres:
