@@ -43,7 +43,6 @@ public class SecurityConfig {
       HttpSecurity http, OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) throws Exception {
     http.csrf(csrf -> csrf.disable())
         .cors(Customizer.withDefaults())
-        .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
         .exceptionHandling(
             exception ->
                 exception
@@ -54,8 +53,6 @@ public class SecurityConfig {
                 auth
 
                     // Public
-                    .requestMatchers("/h2-console/**")
-                    .permitAll()
                     .requestMatchers("/api/auth/logout")
                     .authenticated()
                     .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**")
