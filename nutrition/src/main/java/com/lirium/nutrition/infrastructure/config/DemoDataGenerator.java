@@ -18,11 +18,6 @@ public class DemoDataGenerator implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-
-    if (nutritionPlanService.findByPatient(1L).isEmpty()
-        || nutritionPlanService.findByPatient(2L).isEmpty()
-        || nutritionPlanService.findByPatient(3L).isEmpty()) {
       demoResetService.seedDemoData();
-    }
   }
 }
