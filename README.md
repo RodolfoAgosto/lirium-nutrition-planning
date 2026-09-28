@@ -30,24 +30,21 @@
 - 🧱 **DDD aggregates that enforce their own rules**: plan lifecycle, one meal per type per day, no duplicate foods. Services can't bypass them.
 - 🔐 **Production-grade security**: JWT access and refresh tokens, Google OAuth2, logout revocation with a Redis blacklist, ownership checks per endpoint.
 - ✅ **92% coverage / 82% branches**, 840+ tests, integration tests against **real PostgreSQL** (Testcontainers), and **ArchUnit** architecture rules. SonarCloud Quality Gate passed, with an **A** rating in Security, Reliability and Maintainability.
-- 🚀 **CI/CD**: GitHub Actions → SonarCloud → Docker Hub → Render.
-
+- 🚀 **CI/CD and deployment**: GitHub Actions → SonarCloud → Docker Hub → Render (app) · Neon (PostgreSQL) · Render Key Value (Redis).
 ## 🧰 Tech stack
 
 | | |
 |---|---|
 | **Core** | ![Java](https://img.shields.io/badge/Java_21-ED8B00?logo=openjdk&logoColor=white) ![Spring Boot](https://img.shields.io/badge/Spring_Boot_3.3-6DB33F?logo=springboot&logoColor=white) ![Spring Data JPA](https://img.shields.io/badge/Spring_Data_JPA-6DB33F?logo=spring&logoColor=white) ![Hibernate](https://img.shields.io/badge/Hibernate-59666C?logo=hibernate&logoColor=white) ![Bean Validation](https://img.shields.io/badge/Bean_Validation-6DB33F?logo=spring&logoColor=white) ![MapStruct](https://img.shields.io/badge/MapStruct-D32F2F) ![Lombok](https://img.shields.io/badge/Lombok-BC4521) |
 | **Security** | ![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?logo=springsecurity&logoColor=white) ![JWT](https://img.shields.io/badge/JWT_+_Refresh_Tokens-000000?logo=jsonwebtokens&logoColor=white) ![OAuth2](https://img.shields.io/badge/OAuth2_Google-4285F4?logo=google&logoColor=white) ![BCrypt](https://img.shields.io/badge/BCrypt-2E7D32) |
-| **Data** | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL_16-4169E1?logo=postgresql&logoColor=white) ![Flyway](https://img.shields.io/badge/Flyway-CC0200?logo=flyway&logoColor=white) ![Redis](https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white) |
+| **Data** | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL_16-4169E1?logo=postgresql&logoColor=white) ![Flyway](https://img.shields.io/badge/Flyway-CC0200?logo=flyway&logoColor=white) ![Redis](https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white) ![Neon](https://img.shields.io/badge/Neon_(serverless_Postgres)-00E599?logo=neon&logoColor=black) | 
 | **API & Ops** | ![OpenAPI](https://img.shields.io/badge/OpenAPI_/_Swagger_UI-85EA2D?logo=swagger&logoColor=black) ![Actuator](https://img.shields.io/badge/Spring_Actuator-6DB33F?logo=spring&logoColor=white) ![Logback](https://img.shields.io/badge/Logback-2E7D32) |
 | **Testing & quality** | ![JUnit 5](https://img.shields.io/badge/JUnit_5-25A162?logo=junit5&logoColor=white) ![Mockito](https://img.shields.io/badge/Mockito-78A641) ![Testcontainers](https://img.shields.io/badge/Testcontainers-2496ED?logo=testcontainers&logoColor=white) ![ArchUnit](https://img.shields.io/badge/ArchUnit-1E88E5) ![JaCoCo](https://img.shields.io/badge/JaCoCo-C21325) ![SonarCloud](https://img.shields.io/badge/SonarCloud-F3702A?logo=sonarcloud&logoColor=white) ![Spotless](https://img.shields.io/badge/Spotless_·_google--java--format-4285F4) |
 | **DevOps** | ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white) ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white) ![Render](https://img.shields.io/badge/Render-46E3B7?logo=render&logoColor=black) ![Maven](https://img.shields.io/badge/Maven-C71A36?logo=apachemaven&logoColor=white) |
 
 ## 🚀 Try it
 
-<!-- TODO: uncomment with the Render URL
-**Live API (Swagger UI):** LIVE_DEMO_URL/swagger-ui.html. The instance sleeps when idle, so the first request can take about a minute.
--->
+**Live API (Swagger UI):** LIVE_DEMO_URL/swagger-ui.html. The instance sleeps when idle, so the first request can take about a two minutes.
 
 | Role | Email | Password |
 |------|-------|----------|
