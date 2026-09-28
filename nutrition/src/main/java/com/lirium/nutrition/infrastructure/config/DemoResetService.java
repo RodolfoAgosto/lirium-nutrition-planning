@@ -18,7 +18,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Service
-@Profile("dev")
+@Profile("demo")
 @RequiredArgsConstructor
 public class DemoResetService {
 
