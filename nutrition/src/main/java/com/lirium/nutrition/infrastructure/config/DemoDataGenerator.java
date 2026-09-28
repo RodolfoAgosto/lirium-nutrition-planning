@@ -18,6 +18,6 @@ public class DemoDataGenerator implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-      demoResetService.seedDemoData();
+    demoResetService.resetDemoState();
   }
 }
