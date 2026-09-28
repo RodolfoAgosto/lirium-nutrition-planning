@@ -31,6 +31,7 @@
 - 🔐 **Production-grade security**: JWT access and refresh tokens, Google OAuth2, logout revocation with a Redis blacklist, ownership checks per endpoint.
 - ✅ **92% coverage / 82% branches**, 840+ tests, integration tests against **real PostgreSQL** (Testcontainers), and **ArchUnit** architecture rules. SonarCloud Quality Gate passed, with an **A** rating in Security, Reliability and Maintainability.
 - 🚀 **CI/CD and deployment**: GitHub Actions → SonarCloud → Docker Hub → Render (app) · Neon (PostgreSQL) · Render Key Value (Redis).
+
 ## 🧰 Tech stack
 
 | | |
@@ -44,7 +45,7 @@
 
 ## 🚀 Try it
 
-**Live API (Swagger UI):** LIVE_DEMO_URL/swagger-ui.html. The instance sleeps when idle, so the first request can take about a two minutes.
+**Live API (Swagger UI):** https://lirium-nutrition-planning.onrender.com.  Available with instant response Monday to Friday. On weekends the free instance sleeps, and the first request can take up to 4 minutes while it starts.
 
 | Role | Email | Password |
 |------|-------|----------|
