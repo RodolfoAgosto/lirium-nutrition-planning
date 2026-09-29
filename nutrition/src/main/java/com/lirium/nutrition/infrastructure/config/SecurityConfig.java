@@ -62,7 +62,7 @@ public class SecurityConfig {
                     .requestMatchers(
                         "/", "/images/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
                     .permitAll()
-                    .requestMatchers("/actuator/health")
+                    .requestMatchers("/actuator/health", "/actuator/health/**")
                     .permitAll()
 
                     // Specific GET permissions (Allows PATIENT access before blocking write

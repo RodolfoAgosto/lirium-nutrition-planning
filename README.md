@@ -45,7 +45,7 @@
 
 ## 🚀 Try it
 
-**Live API (Swagger UI):** https://lirium-nutrition-planning.onrender.com.  Available with instant response Monday to Friday. On weekends the free instance sleeps, and the first request can take up to 4 minutes while it starts.
+**Live API (Swagger UI):** https://lirium-nutrition-planning.onrender.com .  Available with instant response Monday to Friday. On weekends the free instance sleeps, and the first request can take up to 4 minutes while it starts.
 
 | Role | Email | Password |
 |------|-------|----------|
