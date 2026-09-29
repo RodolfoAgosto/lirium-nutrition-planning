@@ -16,6 +16,13 @@ Measures how consistently the patient records their meals.
 Compares, day by day, the nutrients actually consumed against the active plan's targets
 (calories, protein, carbs and fat).
 
+- Daily targets are the same every day: they come from the active plan.
+- Adherence per day is calorie-based: 100% when consumption matches the target, decreasing
+  equally for under- and over-eating.
+- Each day carries `hasRecord`. A day the patient never opened has `hasRecord = false` and zero
+  consumption, meaning *no data*, not *ate nothing*. Consumers should exclude it from nutritional
+  averages; logging consistency is what the adherence report measures.
+
 ## Business rules
 
 - `from` must be on or before `to`.

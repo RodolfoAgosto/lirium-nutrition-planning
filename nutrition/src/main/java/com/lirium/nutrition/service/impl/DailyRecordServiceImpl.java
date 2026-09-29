@@ -326,7 +326,8 @@ public class DailyRecordServiceImpl implements DailyRecordService {
         consumed.carbs(),
         activePlan.getFatGrams(),
         consumed.fat(),
-        Math.round(adherence * 10.0) / 10.0);
+        Math.round(adherence * 10.0) / 10.0,
+        record.isPresent());
   }
 
   private record NutritionTotals(int calories, int protein, int carbs, int fat) {}

@@ -12,4 +12,5 @@ public record DailyNutritionComparisonDTO(
     int consumedCarbs,
     int targetFat,
     int consumedFat,
-    double adherencePercentage) {}
+    double adherencePercentage,
+    boolean hasRecord) {}

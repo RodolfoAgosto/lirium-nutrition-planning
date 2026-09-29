@@ -787,7 +787,8 @@ class DailyRecordServiceImplTest {
     assertAll(
         () -> assertEquals(2000, day.targetCalories()),
         () -> assertEquals(0, day.consumedCalories()),
-        () -> assertEquals(0.0, day.adherencePercentage()));
+        () -> assertEquals(0.0, day.adherencePercentage()),
+        () -> assertFalse(day.hasRecord()));
   }
 
   @Test
@@ -812,7 +813,8 @@ class DailyRecordServiceImplTest {
         () -> assertEquals(300, day.consumedCalories()),
         () -> assertEquals(30, day.consumedProtein()),
         () -> assertEquals(50, day.consumedCarbs()),
-        () -> assertEquals(15, day.consumedFat()));
+        () -> assertEquals(15, day.consumedFat()),
+        () -> assertTrue(day.hasRecord()));
   }
 
   @Test

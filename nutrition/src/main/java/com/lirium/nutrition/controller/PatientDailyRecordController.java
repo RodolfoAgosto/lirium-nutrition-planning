@@ -193,7 +193,9 @@ public class PatientDailyRecordController {
       operationId = "getPatientAdherence",
       summary = "Get patient adherence report",
       description =
-          "Calculates meal adherence percentage and daily breakdown for a patient within a date range.")
+          "For each day in the range, how many planned meals the patient was expected to log"
+              + " and how many were followed as planned (not modified)."
+              + " Days the patient never opened have hasRecord=false.")
   @ApiResponses(
       value = {
         @ApiResponse(
@@ -270,7 +272,10 @@ public class PatientDailyRecordController {
       operationId = "getNutritionComparison",
       summary = "Get nutrition comparison report",
       description =
-          "Compares consumed nutrition against the active plan targets for a patient within a date range.")
+          "For each day in the range, calories and macros consumed vs. the active plan's daily"
+              + " targets. adherencePercentage is calorie-based and penalizes both under- and"
+              + " over-eating. Days with no record have hasRecord=false and zero consumption: they"
+              + " mean 'no data', not 'ate nothing'.")
   @ApiResponses(
       value = {
         @ApiResponse(
