@@ -315,12 +315,23 @@ public class PatientDailyRecordController {
                     schema = @Schema(implementation = ApiError.class)))
       })
   public ResponseEntity<NutritionComparisonReportDTO> getNutritionComparisonReport(
-      @PathVariable("patientId")
+      @Parameter(description = "ID of the patient", example = "1")
           @NotNull(message = "Patient ID is required")
-          @Positive(message = "Patient ID must be positive")
+          @Positive(message = "Patient ID must be a positive number")
+          @PathVariable("patientId")
           Long patientId,
-      @RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-      @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+      @Parameter(description = "Start date (YYYY-MM-DD)", example = "2026-08-01")
+          @RequestParam("from")
+          @PastOrPresent(message = "Start date cannot be in the future")
+          @NotNull(message = "Start date ('from') is required")
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate from,
+      @Parameter(description = "End date (YYYY-MM-DD)", example = "2026-08-25")
+          @RequestParam("to")
+          @PastOrPresent(message = "End date cannot be in the future")
+          @NotNull(message = "End date ('to') is required")
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate to) {
 
     log.info("Generating nutrition comparison for patientId={} from={} to={}", patientId, from, to);
     NutritionComparisonReportDTO response =

@@ -146,4 +146,22 @@ class PatientDailyRecordControllerTest {
 
     verify(dailyRecordService).getNutritionComparison(patientId, from, to);
   }
+
+  @Test
+  @WithMockUser
+  void shouldRejectNutritionComparisonWhenToIsInTheFuture() throws Exception {
+
+    Long patientId = 1L;
+    LocalDate from = LocalDate.now().minusDays(7);
+    LocalDate to = LocalDate.now().plusDays(1);
+
+    mvc.perform(
+            get("/api/patients/{patientId}/daily-records/nutrition-comparison", patientId)
+                .param("from", from.toString())
+                .param("to", to.toString())
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isBadRequest());
+
+    verify(dailyRecordService, never()).getNutritionComparison(any(), any(), any());
+  }
 }
