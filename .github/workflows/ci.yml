@@ -119,3 +119,5 @@ jobs:
           context: ./nutrition
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/lirium-nutrition-planning:latest
+      - name: Trigger Render deploy
+        run: curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"

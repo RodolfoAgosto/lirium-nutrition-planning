@@ -45,7 +45,7 @@
 
 ## 🚀 Try it
 
-**Live API (Swagger UI):** https://lirium-nutrition-planning.onrender.com .  Available with instant response Monday to Friday. On weekends the free instance sleeps, and the first request can take up to 4 minutes while it starts.
+**Live API (Swagger UI):** https://lirium-nutrition-planning-api.onrender.com .  Available with instant response Monday to Friday. On weekends the free instance sleeps, and the first request can take up to 4 minutes while it starts.
 
 | Role | Email | Password |
 |------|-------|----------|
@@ -121,6 +121,7 @@ flowchart LR
 - One record per patient per date, pre-filled from the active plan. No future dates, and no dates before the plan started.
 - Meals can be marked as *overridden* (not eaten as planned). Recorded intake is independent of later plan edits.
 - Adherence = meals followed as planned / expected meals (5 per day), plus a day-by-day comparison of calories and macros against plan targets. Days with no record are flagged (`hasRecord`) so they read as missing data, not as zero intake.
+
 </details>
 
 ## 🏗️ Architecture
@@ -223,7 +224,7 @@ flowchart LR
     G[push / PR] --> B[build-and-test<br/>mvn verify · unit + IT<br/>JaCoCo · SonarCloud]
     G --> F[flyway-check<br/>spotless:check<br/>migrations on PostgreSQL]
     B -->|main only| D[docker-publish<br/>Docker Hub :latest]
-    D --> R[Render<br/>live demo]
+    D -->|deploy hook| R[Render<br/>pulls the image]
     D --> L[docker compose<br/>local run]
     classDef ci fill:#E3F2FD,stroke:#1E88E5,color:#0D47A1
     classDef out fill:#2E7D32,stroke:#1B2F21,color:#fff

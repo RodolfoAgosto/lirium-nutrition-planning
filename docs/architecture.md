@@ -267,3 +267,8 @@ classDiagram
 | `Role` | `PATIENT`, `NUTRITIONIST`, `ADMIN` |
 
 A `Restriction` excludes a set of `FoodTag`s. The generator never selects a `Food` carrying any of them.
+
+## Deployment
+
+- CI builds and tests the code once, publishes the image to Docker Hub, and then triggers a Render deploy hook. Render never builds from source: it pulls the tested image (build once, deploy many).
+- A cron-job.org job pings `/actuator/health` every 10 minutes, Monday to Friday, to keep the free instance warm.
