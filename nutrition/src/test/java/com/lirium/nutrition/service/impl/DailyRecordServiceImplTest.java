@@ -247,7 +247,7 @@ class DailyRecordServiceImplTest {
 
     NutritionComparisonReportDTO result = service.getNutritionComparison(patientId, from, to);
 
-    assertEquals(61.7, result.days().getFirst().adherencePercentage());
+    assertEquals(61.7, result.days().getFirst().score().calories());
   }
 
   @Test
@@ -785,10 +785,10 @@ class DailyRecordServiceImplTest {
     DailyNutritionComparisonDTO day = result.days().get(0);
 
     assertAll(
-        () -> assertEquals(2000, day.targetCalories()),
-        () -> assertEquals(0, day.consumedCalories()),
-        () -> assertEquals(0.0, day.adherencePercentage()),
-        () -> assertFalse(day.hasRecord()));
+        () -> assertEquals(2000, result.targets().calories()),
+        () -> assertFalse(day.hasRecord()),
+        () -> assertNull(day.consumed()),
+        () -> assertNull(day.score()));
   }
 
   @Test
@@ -810,28 +810,29 @@ class DailyRecordServiceImplTest {
     DailyNutritionComparisonDTO day = result.days().get(0);
 
     assertAll(
-        () -> assertEquals(300, day.consumedCalories()),
-        () -> assertEquals(30, day.consumedProtein()),
-        () -> assertEquals(50, day.consumedCarbs()),
-        () -> assertEquals(15, day.consumedFat()),
+        () -> assertEquals(300, day.consumed().calories()),
+        () -> assertEquals(30, day.consumed().protein()),
+        () -> assertEquals(50, day.consumed().carbs()),
+        () -> assertEquals(15, day.consumed().fat()),
         () -> assertTrue(day.hasRecord()));
   }
 
   @Test
-  void shouldReturnZeroAdherenceWhenTargetCaloriesAreZero() {
+  void shouldReturnNullScoreWhenNothingIsPlanned() {
 
     NutritionPlan plan = createPlan(0, 0, 0, 0);
+    DailyRecord record = createRecordWithPortions();
 
     when(patientProfileRepository.existsById(1L)).thenReturn(true);
-
     when(nutritionPlanService.findActivePlan(1L)).thenReturn(Optional.of(plan));
-
     when(dailyRecordRepository.findByPatient_IdAndDateBetween(1L, START, END))
-        .thenReturn(List.of());
+        .thenReturn(List.of(record));
 
     NutritionComparisonReportDTO result = service.getNutritionComparison(1L, START, END);
 
-    assertEquals(0.0, result.days().get(0).adherencePercentage());
+    assertAll(
+        () -> assertTrue(result.days().get(0).hasRecord()),
+        () -> assertNull(result.days().get(0).score()));
   }
 
   @Test
@@ -848,7 +849,7 @@ class DailyRecordServiceImplTest {
 
     NutritionComparisonReportDTO result = service.getNutritionComparison(1L, START, END);
 
-    assertEquals(0.0, result.days().get(0).adherencePercentage());
+    assertEquals(0.0, result.days().get(0).score().calories());
   }
 
   @Test
@@ -1234,13 +1235,14 @@ class DailyRecordServiceImplTest {
     when(dailyRecordRepository.findByPatient_IdAndDateBetween(1L, START, END))
         .thenReturn(List.of(record));
 
-    DailyNutritionComparisonDTO day = service.getNutritionComparison(1L, START, END).days().get(0);
+    NutritionComparisonReportDTO result = service.getNutritionComparison(1L, START, END);
+    DailyNutritionComparisonDTO day = result.days().get(0);
 
     assertAll(
-        () -> assertEquals(2000, day.targetCalories()),
-        () -> assertEquals(300, day.plannedCalories()),
-        () -> assertEquals(300, day.consumedCalories()),
-        () -> assertEquals(100.0, day.adherencePercentage()));
+        () -> assertEquals(2000, result.targets().calories()),
+        () -> assertEquals(300, day.planned().calories()),
+        () -> assertEquals(300, day.consumed().calories()),
+        () -> assertEquals(100.0, day.score().overall()));
   }
 
   private DailyRecord createRecordWith5000Calories() {
