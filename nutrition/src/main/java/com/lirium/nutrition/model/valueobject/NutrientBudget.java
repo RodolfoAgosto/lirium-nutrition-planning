@@ -2,6 +2,18 @@ package com.lirium.nutrition.model.valueobject;
 
 public record NutrientBudget(Calories calories, Carbs carbs, Fat fat, Protein protein) {
 
+  public static final NutrientBudget ZERO =
+      new NutrientBudget(new Calories(0), new Carbs(0), new Fat(0), new Protein(0));
+
+  public NutrientBudget add(NutrientBudget other) {
+    java.util.Objects.requireNonNull(other, "NutrientBudget to add cannot be null");
+    return new NutrientBudget(
+        this.calories.add(other.calories()),
+        this.carbs.add(other.carbs()),
+        this.fat.add(other.fat()),
+        this.protein.add(other.protein()));
+  }
+
   public NutrientBudget subtract(NutrientBudget consumed) {
     return new NutrientBudget(
         this.calories.subtract(consumed.calories()),

@@ -1,10 +1,7 @@
 package com.lirium.nutrition.model.entity;
 
 import com.lirium.nutrition.model.enums.MeasureUnit;
-import com.lirium.nutrition.model.valueobject.Calories;
-import com.lirium.nutrition.model.valueobject.Carbs;
-import com.lirium.nutrition.model.valueobject.Fat;
-import com.lirium.nutrition.model.valueobject.Protein;
+import com.lirium.nutrition.model.valueobject.*;
 import jakarta.persistence.*;
 import java.util.Objects;
 import lombok.Getter;
@@ -72,6 +69,10 @@ public abstract class AbstractFoodPortion {
             (food.getProteinPer100g()
                 * food.toGrams(this.getQuantity(), this.getMeasureUnit())
                 / 100));
+  }
+
+  public NutrientBudget nutrients() {
+    return new NutrientBudget(calories(), carbs(), fat(), protein());
   }
 
   public MeasureUnit getUnit() {

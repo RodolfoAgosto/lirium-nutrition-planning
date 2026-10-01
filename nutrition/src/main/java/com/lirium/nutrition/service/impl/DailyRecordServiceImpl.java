@@ -10,6 +10,7 @@ import com.lirium.nutrition.exception.*;
 import com.lirium.nutrition.mapper.DailyRecordMapper;
 import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.model.enums.MealType;
+import com.lirium.nutrition.model.valueobject.NutrientBudget;
 import com.lirium.nutrition.repository.DailyRecordRepository;
 import com.lirium.nutrition.repository.MealRecordRepository;
 import com.lirium.nutrition.repository.PatientProfileRepository;
@@ -18,9 +19,12 @@ import com.lirium.nutrition.service.FoodService;
 import com.lirium.nutrition.service.NutritionPlanService;
 import com.lirium.nutrition.service.PatientProfileService;
 import java.time.Clock;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -248,10 +252,18 @@ public class DailyRecordServiceImpl implements DailyRecordService {
     List<DailyRecord> records =
         dailyRecordRepository.findByPatient_IdAndDateBetween(patientId, effectiveFrom, to);
 
+    Map<DayOfWeek, NutrientBudget> plannedByDay = new EnumMap<>(DayOfWeek.class);
+    for (DayOfWeek day : DayOfWeek.values()) {
+      plannedByDay.put(day, activePlan.plannedNutrientsFor(day).orElse(NutrientBudget.ZERO));
+    }
+
     List<DailyNutritionComparisonDTO> days =
         effectiveFrom
             .datesUntil(to.plusDays(1))
-            .map(date -> buildDailyComparison(date, records, activePlan))
+            .map(
+                date ->
+                    buildDailyComparison(
+                        date, records, activePlan, plannedByDay.get(date.getDayOfWeek())))
             .toList();
 
     return new NutritionComparisonReportDTO(effectiveFrom, to, days);
@@ -306,60 +318,50 @@ public class DailyRecordServiceImpl implements DailyRecordService {
   }
 
   private DailyNutritionComparisonDTO buildDailyComparison(
-      LocalDate date, List<DailyRecord> records, NutritionPlan activePlan) {
+      LocalDate date, List<DailyRecord> records, NutritionPlan activePlan, NutrientBudget planned) {
 
     Optional<DailyRecord> record =
         records.stream().filter(r -> r.getDate().equals(date)).findFirst();
 
-    NutritionTotals consumed = calculateConsumedNutrition(record);
+    NutrientBudget consumed = calculateConsumedNutrition(record);
 
-    int targetCal = activePlan.getDailyCalories();
-    double adherence = calculateAdherence(targetCal, consumed.calories());
+    double adherence =
+        calculateAdherence(planned.calories().amount(), consumed.calories().amount());
 
     return new DailyNutritionComparisonDTO(
         date,
-        targetCal,
-        consumed.calories(),
+        activePlan.getDailyCalories(),
+        planned.calories().amount(),
+        consumed.calories().amount(),
         activePlan.getProteinGrams(),
-        consumed.protein(),
+        planned.protein().grams(),
+        consumed.protein().grams(),
         activePlan.getCarbGrams(),
-        consumed.carbs(),
+        planned.carbs().amount(),
+        consumed.carbs().amount(),
         activePlan.getFatGrams(),
-        consumed.fat(),
+        planned.fat().amount(),
+        consumed.fat().amount(),
         Math.round(adherence * 10.0) / 10.0,
         record.isPresent());
   }
 
-  private record NutritionTotals(int calories, int protein, int carbs, int fat) {}
-
-  private NutritionTotals calculateConsumedNutrition(Optional<DailyRecord> record) {
-
-    if (record.isEmpty()) {
-      return new NutritionTotals(0, 0, 0, 0);
-    }
-
-    int calories = 0;
-    int protein = 0;
-    int carbs = 0;
-    int fat = 0;
-
-    for (MealRecord meal : record.get().getMeals()) {
-      for (FoodPortionRecord portion : meal.getFoodPortions()) {
-        calories += portion.calories().amount();
-        protein += portion.protein().grams();
-        carbs += portion.carbs().amount();
-        fat += portion.fat().amount();
-      }
-    }
-
-    return new NutritionTotals(calories, protein, carbs, fat);
+  private NutrientBudget calculateConsumedNutrition(Optional<DailyRecord> record) {
+    return record.stream()
+        .flatMap(r -> r.getMeals().stream())
+        .flatMap(meal -> meal.getFoodPortions().stream())
+        .map(
+            portion ->
+                new NutrientBudget(
+                    portion.calories(), portion.carbs(), portion.fat(), portion.protein()))
+        .reduce(NutrientBudget.ZERO, NutrientBudget::add);
   }
 
-  private double calculateAdherence(int targetCalories, int consumedCalories) {
-    if (targetCalories <= 0) {
+  private double calculateAdherence(int plannedCalories, int consumedCalories) {
+    if (plannedCalories <= 0) {
       return 0.0;
     }
-    double ratio = consumedCalories * 100.0 / targetCalories;
+    double ratio = consumedCalories * 100.0 / plannedCalories;
     return Math.max(0.0, 100.0 - Math.abs(100.0 - ratio));
   }
 }

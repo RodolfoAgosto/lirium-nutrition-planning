@@ -1,6 +1,7 @@
 package com.lirium.nutrition.model.entity;
 
 import com.lirium.nutrition.exception.PlanConflictException;
+import com.lirium.nutrition.model.valueobject.NutrientBudget;
 import jakarta.persistence.*;
 import java.time.DayOfWeek;
 import java.util.ArrayList;
@@ -86,5 +87,12 @@ public class DailyPlan {
 
   public List<PlanMeal> getMeals() {
     return Collections.unmodifiableList(meals);
+  }
+
+  public NutrientBudget plannedNutrients() {
+    return meals.stream()
+        .flatMap(meal -> meal.getFoodPortions().stream())
+        .map(AbstractFoodPortion::nutrients)
+        .reduce(NutrientBudget.ZERO, NutrientBudget::add);
   }
 }

@@ -7,6 +7,7 @@ import com.lirium.nutrition.exception.PlanConflictException;
 import com.lirium.nutrition.exception.UnprocessableEntityException;
 import com.lirium.nutrition.model.enums.GoalType;
 import com.lirium.nutrition.model.enums.PlanStatus;
+import com.lirium.nutrition.model.valueobject.NutrientBudget;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
@@ -339,6 +340,16 @@ class NutritionPlanTest {
     NutritionPlan plan = createPlan();
 
     assertThatThrownBy(() -> plan.addDailyPlan(null)).isInstanceOf(NullPointerException.class);
+  }
+
+  @Test
+  void shouldReturnPlannedNutrientsOnlyForExistingDays() {
+
+    NutritionPlan plan = NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 150, 200, 70, null);
+    plan.addDailyPlan(DailyPlan.of(DayOfWeek.MONDAY, plan));
+
+    assertThat(plan.plannedNutrientsFor(DayOfWeek.MONDAY)).contains(NutrientBudget.ZERO);
+    assertThat(plan.plannedNutrientsFor(DayOfWeek.TUESDAY)).isEmpty();
   }
 
   private NutritionPlan createActivePlan() {

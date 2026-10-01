@@ -1217,6 +1217,32 @@ class DailyRecordServiceImplTest {
     verify(patientProfileRepository).existsById(1L);
   }
 
+  @Test
+  void shouldScoreAgainstPlannedIntakeNotTheoreticalTargets() {
+
+    NutritionPlan plan = createPlan(2000, 150, 200, 70);
+    when(plan.plannedNutrientsFor(any()))
+        .thenReturn(
+            Optional.of(
+                new NutrientBudget(
+                    new Calories(300), new Carbs(50), new Fat(15), new Protein(30))));
+
+    DailyRecord record = createRecordWithPortions(); // consumed: 300 kcal
+
+    when(patientProfileRepository.existsById(1L)).thenReturn(true);
+    when(nutritionPlanService.findActivePlan(1L)).thenReturn(Optional.of(plan));
+    when(dailyRecordRepository.findByPatient_IdAndDateBetween(1L, START, END))
+        .thenReturn(List.of(record));
+
+    DailyNutritionComparisonDTO day = service.getNutritionComparison(1L, START, END).days().get(0);
+
+    assertAll(
+        () -> assertEquals(2000, day.targetCalories()),
+        () -> assertEquals(300, day.plannedCalories()),
+        () -> assertEquals(300, day.consumedCalories()),
+        () -> assertEquals(100.0, day.adherencePercentage()));
+  }
+
   private DailyRecord createRecordWith5000Calories() {
 
     FoodPortionRecord portion = mock(FoodPortionRecord.class);
@@ -1286,6 +1312,12 @@ class DailyRecordServiceImplTest {
     when(plan.getProteinGrams()).thenReturn(protein);
     when(plan.getCarbGrams()).thenReturn(carbs);
     when(plan.getFatGrams()).thenReturn(fat);
+    lenient()
+        .when(plan.plannedNutrientsFor(any()))
+        .thenReturn(
+            Optional.of(
+                new NutrientBudget(
+                    new Calories(calories), new Carbs(carbs), new Fat(fat), new Protein(protein))));
 
     return plan;
   }

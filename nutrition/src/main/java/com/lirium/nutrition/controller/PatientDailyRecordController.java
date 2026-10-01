@@ -272,10 +272,12 @@ public class PatientDailyRecordController {
       operationId = "getNutritionComparison",
       summary = "Get nutrition comparison report",
       description =
-          "For each day in the range, calories and macros consumed vs. the active plan's daily"
-              + " targets. adherencePercentage is calorie-based and penalizes both under- and"
-              + " over-eating. Days with no record have hasRecord=false and zero consumption: they"
-              + " mean 'no data', not 'ate nothing'.")
+          "For each day in the range, calories and macros consumed vs. what the active plan"
+              + " prescribes for that day of the week (planned*), with the plan's daily targets"
+              + " as reference (target*). adherencePercentage is calorie-based, measured against"
+              + " the planned intake, and penalizes both under- and over-eating. Days with no"
+              + " record have hasRecord=false and zero consumption: they mean 'no data', not"
+              + " 'ate nothing'.")
   @ApiResponses(
       value = {
         @ApiResponse(

@@ -4,11 +4,13 @@ import com.lirium.nutrition.exception.PlanConflictException;
 import com.lirium.nutrition.exception.UnprocessableEntityException;
 import com.lirium.nutrition.model.enums.GoalType;
 import com.lirium.nutrition.model.enums.PlanStatus;
+import com.lirium.nutrition.model.valueobject.NutrientBudget;
 import jakarta.persistence.*;
 import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.*;
 
 /**
@@ -102,6 +104,13 @@ public class NutritionPlan extends Auditable {
   public void addDailyPlan(DailyPlan dailyPlan) {
     Objects.requireNonNull(dailyPlan);
     this.week.add(dailyPlan);
+  }
+
+  public Optional<NutrientBudget> plannedNutrientsFor(DayOfWeek day) {
+    return week.stream()
+        .filter(dailyPlan -> dailyPlan.getDayOfWeek() == day)
+        .findFirst()
+        .map(DailyPlan::plannedNutrients);
   }
 
   public void update(
