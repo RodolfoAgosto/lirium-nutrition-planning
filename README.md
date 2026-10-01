@@ -120,7 +120,8 @@ flowchart LR
 **Daily records and adherence**
 - One record per patient per date, pre-filled from the active plan. No future dates, and no dates before the plan started.
 - Meals can be marked as *overridden* (not eaten as planned). Recorded intake is independent of later plan edits.
-- Adherence = meals followed as planned / expected meals (5 per day), plus a day-by-day comparison of calories and macros against plan targets. Days with no record are flagged (`hasRecord`) so they read as missing data, not as zero intake.
+- Meal adherence = meals followed as planned / expected meals (5 per day).
+- Nutrition comparison: each nutrient is scored 0-100 against what the plan prescribed for that day, not against the theoretical targets, so the patient isn't blamed for the generator's approximation. Days without a record return `null`, never zero, and the summary averages recorded days only.
 
 </details>
 
