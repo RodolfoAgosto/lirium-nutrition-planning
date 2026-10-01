@@ -1,5 +1,9 @@
 package com.lirium.nutrition.model.valueobject;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.function.ToIntFunction;
+
 public record NutrientBudget(Calories calories, Carbs carbs, Fat fat, Protein protein) {
 
   public static final NutrientBudget ZERO =
@@ -12,6 +16,24 @@ public record NutrientBudget(Calories calories, Carbs carbs, Fat fat, Protein pr
         this.carbs.add(other.carbs()),
         this.fat.add(other.fat()),
         this.protein.add(other.protein()));
+  }
+
+  /** Average of the given budgets, each nutrient rounded to the nearest unit. */
+  public static Optional<NutrientBudget> average(List<NutrientBudget> budgets) {
+    if (budgets.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.of(
+        new NutrientBudget(
+            new Calories(roundedAverage(budgets, b -> b.calories().amount())),
+            new Carbs(roundedAverage(budgets, b -> b.carbs().amount())),
+            new Fat(roundedAverage(budgets, b -> b.fat().amount())),
+            new Protein(roundedAverage(budgets, b -> b.protein().grams()))));
+  }
+
+  private static int roundedAverage(
+      List<NutrientBudget> budgets, ToIntFunction<NutrientBudget> nutrient) {
+    return (int) Math.round(budgets.stream().mapToInt(nutrient).average().orElse(0));
   }
 
   public NutrientBudget subtract(NutrientBudget consumed) {

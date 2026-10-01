@@ -21,10 +21,7 @@ import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -246,7 +243,11 @@ public class DailyRecordServiceImpl implements DailyRecordService {
 
     if (effectiveFrom.isAfter(to)) {
       return new NutritionComparisonReportDTO(
-          from, to, NutritionComparisonMapper.targetsOf(activePlan), List.of());
+          from,
+          to,
+          NutritionComparisonMapper.targetsOf(activePlan),
+          new NutritionComparisonSummaryDTO(0, 0, null, null),
+          List.of());
     }
 
     List<DailyRecord> records =
@@ -257,13 +258,18 @@ public class DailyRecordServiceImpl implements DailyRecordService {
       plannedByDay.put(day, activePlan.plannedNutrientsFor(day).orElse(NutrientBudget.ZERO));
     }
 
-    List<DailyNutritionComparisonDTO> days =
+    List<DailyComparison> comparisons =
         effectiveFrom
             .datesUntil(to.plusDays(1))
-            .map(date -> buildDailyComparison(date, records, plannedByDay.get(date.getDayOfWeek())))
+            .map(date -> compareDay(date, records, plannedByDay.get(date.getDayOfWeek())))
             .toList();
+
     return new NutritionComparisonReportDTO(
-        effectiveFrom, to, NutritionComparisonMapper.targetsOf(activePlan), days);
+        effectiveFrom,
+        to,
+        NutritionComparisonMapper.targetsOf(activePlan),
+        summarize(comparisons),
+        comparisons.stream().map(DailyRecordServiceImpl::toDayDto).toList());
   }
 
   @Override
@@ -314,29 +320,48 @@ public class DailyRecordServiceImpl implements DailyRecordService {
     return from;
   }
 
-  private DailyNutritionComparisonDTO buildDailyComparison(
+  private DailyComparison compareDay(
       LocalDate date, List<DailyRecord> records, NutrientBudget planned) {
 
     Optional<DailyRecord> record =
         records.stream().filter(r -> r.getDate().equals(date)).findFirst();
 
     if (record.isEmpty()) {
-      return new DailyNutritionComparisonDTO(
-          date, false, NutritionComparisonMapper.toNutrients(planned), null, null);
+      return new DailyComparison(date, planned, null, null);
     }
 
     NutrientBudget consumed = calculateConsumedNutrition(record.get());
-
-    NutritionScoreDTO score =
-        NutritionScore.of(planned, consumed).map(NutritionComparisonMapper::toScore).orElse(null);
-
-    return new DailyNutritionComparisonDTO(
-        date,
-        true,
-        NutritionComparisonMapper.toNutrients(planned),
-        NutritionComparisonMapper.toNutrients(consumed),
-        score);
+    return new DailyComparison(
+        date, planned, consumed, NutritionScore.of(planned, consumed).orElse(null));
   }
+
+  private NutritionComparisonSummaryDTO summarize(List<DailyComparison> days) {
+
+    List<NutrientBudget> consumed =
+        days.stream().map(DailyComparison::consumed).filter(Objects::nonNull).toList();
+
+    List<NutritionScore> scores =
+        days.stream().map(DailyComparison::score).filter(Objects::nonNull).toList();
+
+    return new NutritionComparisonSummaryDTO(
+        days.size(),
+        consumed.size(),
+        NutritionScore.average(scores).map(NutritionComparisonMapper::toScore).orElse(null),
+        NutrientBudget.average(consumed).map(NutritionComparisonMapper::toNutrients).orElse(null));
+  }
+
+  private static DailyNutritionComparisonDTO toDayDto(DailyComparison day) {
+    return new DailyNutritionComparisonDTO(
+        day.date(),
+        day.consumed() != null,
+        NutritionComparisonMapper.toNutrients(day.planned()),
+        day.consumed() == null ? null : NutritionComparisonMapper.toNutrients(day.consumed()),
+        day.score() == null ? null : NutritionComparisonMapper.toScore(day.score()));
+  }
+
+  /** One day of the report in domain terms: consumed and score are null when there is no data. */
+  private record DailyComparison(
+      LocalDate date, NutrientBudget planned, NutrientBudget consumed, NutritionScore score) {}
 
   private NutrientBudget calculateConsumedNutrition(DailyRecord record) {
     return record.getMeals().stream()

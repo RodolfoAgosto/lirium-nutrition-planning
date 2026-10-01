@@ -1,7 +1,9 @@
 package com.lirium.nutrition.model.valueobject;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.ToDoubleFunction;
 
 /**
  * How close a day's intake was to what the plan prescribed, from 0 to 100 per nutrient. 100 is an
@@ -32,6 +34,25 @@ public record NutritionScore(
     return Optional.of(
         new NutritionScore(
             round(calories), round(protein), round(carbs), round(fat), round(overall)));
+  }
+
+  /** Average of the given daily scores, each component rounded to one decimal. */
+  public static Optional<NutritionScore> average(List<NutritionScore> scores) {
+    if (scores.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.of(
+        new NutritionScore(
+            roundedAverage(scores, NutritionScore::calories),
+            roundedAverage(scores, NutritionScore::protein),
+            roundedAverage(scores, NutritionScore::carbs),
+            roundedAverage(scores, NutritionScore::fat),
+            roundedAverage(scores, NutritionScore::overall)));
+  }
+
+  private static double roundedAverage(
+      List<NutritionScore> scores, ToDoubleFunction<NutritionScore> component) {
+    return round(scores.stream().mapToDouble(component).average().orElse(0));
   }
 
   static double closeness(int planned, int consumed) {

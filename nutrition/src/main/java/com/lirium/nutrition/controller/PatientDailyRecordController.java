@@ -277,7 +277,9 @@ public class PatientDailyRecordController {
               + " nutrient plus a weighted overall (calories 40%, each macro 20%). The plan's"
               + " daily targets are returned once as reference. Days with no record have"
               + " hasRecord=false and consumed/score null: no data, not zero intake. score is"
-              + " also null when nothing was planned for that day.")
+              + " also null when nothing was planned for that day."
+              + " summary averages consumption over recorded days and scores over scored days;"
+              + " days without data are excluded, and averages are null when there are none.")
   @ApiResponses(
       value = {
         @ApiResponse(

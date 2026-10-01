@@ -4,4 +4,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record NutritionComparisonReportDTO(
-    LocalDate from, LocalDate to, NutrientsDTO targets, List<DailyNutritionComparisonDTO> days) {}
+    LocalDate from,
+    LocalDate to,
+    NutrientsDTO targets,
+    NutritionComparisonSummaryDTO summary,
+    List<DailyNutritionComparisonDTO> days) {}

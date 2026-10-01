@@ -4,10 +4,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.lirium.nutrition.dto.response.AdherenceReportDTO;
-import com.lirium.nutrition.dto.response.DailyRecordResponseDTO;
-import com.lirium.nutrition.dto.response.NutrientsDTO;
-import com.lirium.nutrition.dto.response.NutritionComparisonReportDTO;
+import com.lirium.nutrition.dto.response.*;
 import com.lirium.nutrition.infrastructure.security.JwtService;
 import com.lirium.nutrition.infrastructure.security.TokenBlacklistService;
 import com.lirium.nutrition.infrastructure.security.UserDetailsServiceImpl;
@@ -133,7 +130,12 @@ class PatientDailyRecordControllerTest {
     LocalDate to = LocalDate.of(2025, 1, 7);
 
     NutritionComparisonReportDTO response =
-        new NutritionComparisonReportDTO(from, to, new NutrientsDTO(2000, 150, 200, 70), List.of());
+        new NutritionComparisonReportDTO(
+            from,
+            to,
+            new NutrientsDTO(2000, 150, 200, 70),
+            new NutritionComparisonSummaryDTO(0, 0, null, null),
+            List.of());
 
     when(dailyRecordService.getNutritionComparison(patientId, from, to)).thenReturn(response);
 

@@ -2,6 +2,7 @@ package com.lirium.nutrition.model.valueobject;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class NutritionScoreTest {
@@ -53,5 +54,23 @@ class NutritionScoreTest {
         NutritionScore.of(budget(1000, 50, 100, 0), budget(1000, 50, 100, 0)).orElseThrow();
 
     assertEquals(100.0, score.fat());
+  }
+
+  @Test
+  void shouldAverageDailyScores() {
+    NutritionScore perfect =
+        NutritionScore.of(budget(2000, 150, 200, 70), budget(2000, 150, 200, 70)).orElseThrow();
+    NutritionScore halfProtein =
+        NutritionScore.of(budget(2000, 150, 200, 70), budget(2000, 75, 200, 70)).orElseThrow();
+
+    NutritionScore average = NutritionScore.average(List.of(perfect, halfProtein)).orElseThrow();
+
+    assertAll(
+        () -> assertEquals(75.0, average.protein()), () -> assertEquals(95.0, average.overall()));
+  }
+
+  @Test
+  void shouldHaveNoAverageWithoutScores() {
+    assertTrue(NutritionScore.average(List.of()).isEmpty());
   }
 }

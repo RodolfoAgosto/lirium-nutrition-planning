@@ -9,6 +9,7 @@ import com.lirium.nutrition.dto.request.MealRecordUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.DailyNutritionComparisonDTO;
 import com.lirium.nutrition.dto.response.DailyRecordResponseDTO;
 import com.lirium.nutrition.dto.response.NutritionComparisonReportDTO;
+import com.lirium.nutrition.dto.response.NutritionComparisonSummaryDTO;
 import com.lirium.nutrition.exception.*;
 import com.lirium.nutrition.model.entity.*;
 import com.lirium.nutrition.model.enums.*;
@@ -1243,6 +1244,46 @@ class DailyRecordServiceImplTest {
         () -> assertEquals(300, day.planned().calories()),
         () -> assertEquals(300, day.consumed().calories()),
         () -> assertEquals(100.0, day.score().overall()));
+  }
+
+  @Test
+  void shouldSummarizeOnlyRecordedDays() {
+
+    NutritionPlan plan = createPlan(2000, 150, 200, 70);
+    DailyRecord record = createRecordWithPortions(); // START only: 300 kcal
+
+    when(patientProfileRepository.existsById(1L)).thenReturn(true);
+    when(nutritionPlanService.findActivePlan(1L)).thenReturn(Optional.of(plan));
+    when(dailyRecordRepository.findByPatient_IdAndDateBetween(1L, START, END))
+        .thenReturn(List.of(record));
+
+    NutritionComparisonSummaryDTO summary =
+        service.getNutritionComparison(1L, START, END).summary();
+
+    assertAll(
+        () -> assertEquals(3, summary.totalDays()),
+        () -> assertEquals(1, summary.recordedDays()),
+        () -> assertEquals(300, summary.averageConsumed().calories()),
+        () -> assertEquals(15.0, summary.averageScore().calories()));
+  }
+
+  @Test
+  void shouldHaveNullAveragesWhenNoDayIsRecorded() {
+
+    NutritionPlan plan = createPlan(2000, 150, 200, 70);
+
+    when(patientProfileRepository.existsById(1L)).thenReturn(true);
+    when(nutritionPlanService.findActivePlan(1L)).thenReturn(Optional.of(plan));
+    when(dailyRecordRepository.findByPatient_IdAndDateBetween(1L, START, END))
+        .thenReturn(List.of());
+
+    NutritionComparisonSummaryDTO summary =
+        service.getNutritionComparison(1L, START, END).summary();
+
+    assertAll(
+        () -> assertEquals(0, summary.recordedDays()),
+        () -> assertNull(summary.averageConsumed()),
+        () -> assertNull(summary.averageScore()));
   }
 
   private DailyRecord createRecordWith5000Calories() {
