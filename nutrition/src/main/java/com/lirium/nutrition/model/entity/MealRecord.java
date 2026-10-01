@@ -156,6 +156,10 @@ public class MealRecord extends DateAuditable {
     this.notes = null;
   }
 
+  public boolean followsPlan() {
+    return !overridden;
+  }
+
   private static void requireText(String s, String msg) {
     if (s == null || s.isBlank()) throw new IllegalArgumentException(msg);
   }

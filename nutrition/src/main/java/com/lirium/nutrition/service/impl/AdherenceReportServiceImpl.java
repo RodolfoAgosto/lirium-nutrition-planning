@@ -1,9 +1,11 @@
 package com.lirium.nutrition.service.impl;
 
 import com.lirium.nutrition.dto.response.AdherenceReportDTO;
+import com.lirium.nutrition.dto.response.AdherenceSummaryDTO;
 import com.lirium.nutrition.dto.response.DailyAdherenceDTO;
 import com.lirium.nutrition.exception.PatientProfileNotFoundException;
 import com.lirium.nutrition.model.entity.DailyRecord;
+import com.lirium.nutrition.model.entity.MealRecord;
 import com.lirium.nutrition.model.entity.NutritionPlan;
 import com.lirium.nutrition.model.enums.MealType;
 import com.lirium.nutrition.repository.DailyRecordRepository;
@@ -11,7 +13,6 @@ import com.lirium.nutrition.repository.NutritionPlanRepository;
 import com.lirium.nutrition.repository.PatientProfileRepository;
 import com.lirium.nutrition.service.AdherenceReportService;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -61,36 +62,47 @@ public class AdherenceReportServiceImpl implements AdherenceReportService {
             .collect(
                 Collectors.toMap(
                     DailyRecord::getDate, r -> r, (existing, replacement) -> existing));
-
-    long totalDays = ChronoUnit.DAYS.between(from, to) + 1;
     int expectedMealsPerDay = MealType.values().length; // 5
-    int totalExpected = (int) (totalDays * expectedMealsPerDay);
 
-    // Generation of the daily breakdown
-    List<DailyAdherenceDTO> daily =
+    List<DailyAdherenceDTO> days =
         from.datesUntil(to.plusDays(1))
-            .map(
-                date -> {
-                  DailyRecord record = recordByDate.get(date);
-
-                  int recorded = 0;
-                  boolean present = false;
-
-                  if (record != null) {
-                    present = true;
-                    recorded =
-                        (int) record.getMeals().stream().filter(mr -> !mr.isOverridden()).count();
-                  }
-
-                  return new DailyAdherenceDTO(date, expectedMealsPerDay, recorded, present);
-                })
+            .map(date -> measureDay(date, recordByDate.get(date), expectedMealsPerDay))
             .toList();
 
-    int totalRecorded = daily.stream().mapToInt(DailyAdherenceDTO::recordedMeals).sum();
+    return new AdherenceReportDTO(from, to, summarize(days), days);
+  }
 
-    double adherence = totalExpected > 0 ? (totalRecorded * 100.0 / totalExpected) : 0.0;
+  private DailyAdherenceDTO measureDay(LocalDate date, DailyRecord record, int expectedMeals) {
+    if (record == null) {
+      return new DailyAdherenceDTO(date, false, expectedMeals, null, null);
+    }
 
-    return new AdherenceReportDTO(
-        from, to, totalExpected, totalRecorded, Math.round(adherence * 10.0) / 10.0, daily);
+    int followed = (int) record.getMeals().stream().filter(MealRecord::followsPlan).count();
+    int modified = record.getMeals().size() - followed;
+
+    return new DailyAdherenceDTO(date, true, expectedMeals, followed, modified);
+  }
+
+  private AdherenceSummaryDTO summarize(List<DailyAdherenceDTO> days) {
+    int expected = days.stream().mapToInt(DailyAdherenceDTO::expectedMeals).sum();
+
+    List<DailyAdherenceDTO> recorded = days.stream().filter(DailyAdherenceDTO::hasRecord).toList();
+    int followed = recorded.stream().mapToInt(DailyAdherenceDTO::followedMeals).sum();
+    int expectedOnRecorded = recorded.stream().mapToInt(DailyAdherenceDTO::expectedMeals).sum();
+
+    Double adherenceOnRecordedDays =
+        expectedOnRecorded > 0 ? percent(followed, expectedOnRecorded) : null;
+
+    return new AdherenceSummaryDTO(
+        days.size(),
+        recorded.size(),
+        expected,
+        followed,
+        expected > 0 ? percent(followed, expected) : 0.0,
+        adherenceOnRecordedDays);
+  }
+
+  private static double percent(int part, int total) {
+    return Math.round(part * 1000.0 / total) / 10.0;
   }
 }

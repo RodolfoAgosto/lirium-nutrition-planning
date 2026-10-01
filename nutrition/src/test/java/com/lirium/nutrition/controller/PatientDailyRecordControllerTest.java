@@ -101,7 +101,9 @@ class PatientDailyRecordControllerTest {
     LocalDate from = LocalDate.of(2025, 1, 1);
     LocalDate to = LocalDate.of(2025, 1, 7);
 
-    AdherenceReportDTO response = new AdherenceReportDTO(from, to, 21, 18, 85.7, List.of());
+    AdherenceReportDTO response =
+        new AdherenceReportDTO(
+            from, to, new AdherenceSummaryDTO(7, 6, 21, 18, 85.7, 100.0), List.of());
 
     when(adherenceReportService.getAdherence(patientId, from, to)).thenReturn(response);
 
@@ -114,9 +116,9 @@ class PatientDailyRecordControllerTest {
         .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.from").value(from.toString()))
         .andExpect(jsonPath("$.to").value(to.toString()))
-        .andExpect(jsonPath("$.totalExpectedMeals").value(21))
-        .andExpect(jsonPath("$.totalRecordedMeals").value(18))
-        .andExpect(jsonPath("$.adherencePercentage").value(85.7));
+        .andExpect(jsonPath("$.summary.expectedMeals").value(21))
+        .andExpect(jsonPath("$.summary.followedMeals").value(18))
+        .andExpect(jsonPath("$.summary.adherence").value(85.7));
 
     verify(adherenceReportService).getAdherence(patientId, from, to);
   }

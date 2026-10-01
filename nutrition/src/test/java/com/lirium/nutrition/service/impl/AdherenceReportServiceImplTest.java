@@ -65,10 +65,10 @@ class AdherenceReportServiceImplTest {
 
     // Then
     assertAll(
-        () -> assertEquals(15, result.totalExpectedMeals()),
-        () -> assertEquals(15, result.totalRecordedMeals()),
-        () -> assertEquals(100.0, result.adherencePercentage()),
-        () -> assertEquals(3, result.daily().size()));
+        () -> assertEquals(15, result.summary().expectedMeals()),
+        () -> assertEquals(15, result.summary().followedMeals()),
+        () -> assertEquals(100.0, result.summary().adherence()),
+        () -> assertEquals(3, result.days().size()));
 
     verify(dailyRecordRepository)
         .findByPatient_IdAndDateBetweenWithMeals(profile.getId(), START, END);
@@ -93,10 +93,10 @@ class AdherenceReportServiceImplTest {
 
     // Then
     assertAll(
-        () -> assertEquals(15, result.totalExpectedMeals()),
-        () -> assertEquals(13, result.totalRecordedMeals()),
-        () -> assertEquals(86.7, result.adherencePercentage()),
-        () -> assertEquals(3, result.daily().size()));
+        () -> assertEquals(15, result.summary().expectedMeals()),
+        () -> assertEquals(13, result.summary().followedMeals()),
+        () -> assertEquals(86.7, result.summary().adherence()),
+        () -> assertEquals(3, result.days().size()));
 
     verify(dailyRecordRepository)
         .findByPatient_IdAndDateBetweenWithMeals(profile.getId(), START, END);
@@ -119,10 +119,10 @@ class AdherenceReportServiceImplTest {
 
     // Then
     assertAll(
-        () -> assertEquals(15, result.totalExpectedMeals()),
-        () -> assertEquals(10, result.totalRecordedMeals()),
-        () -> assertEquals(66.7, result.adherencePercentage()),
-        () -> assertEquals(3, result.daily().size()));
+        () -> assertEquals(15, result.summary().expectedMeals()),
+        () -> assertEquals(10, result.summary().followedMeals()),
+        () -> assertEquals(66.7, result.summary().adherence()),
+        () -> assertEquals(3, result.days().size()));
 
     verify(dailyRecordRepository)
         .findByPatient_IdAndDateBetweenWithMeals(profile.getId(), START, END);
@@ -141,10 +141,10 @@ class AdherenceReportServiceImplTest {
 
     // Then
     assertAll(
-        () -> assertEquals(15, result.totalExpectedMeals()),
-        () -> assertEquals(0, result.totalRecordedMeals()),
-        () -> assertEquals(0.0, result.adherencePercentage()),
-        () -> assertEquals(3, result.daily().size()));
+        () -> assertEquals(15, result.summary().expectedMeals()),
+        () -> assertEquals(0, result.summary().followedMeals()),
+        () -> assertEquals(0.0, result.summary().adherence()),
+        () -> assertEquals(3, result.days().size()));
 
     verify(dailyRecordRepository)
         .findByPatient_IdAndDateBetweenWithMeals(profile.getId(), START, END);
@@ -164,10 +164,10 @@ class AdherenceReportServiceImplTest {
 
     // Then
     assertAll(
-        () -> assertEquals(5, result.totalExpectedMeals()),
-        () -> assertEquals(0, result.totalRecordedMeals()),
-        () -> assertEquals(0.0, result.adherencePercentage()),
-        () -> assertEquals(1, result.daily().size()));
+        () -> assertEquals(5, result.summary().expectedMeals()),
+        () -> assertEquals(0, result.summary().followedMeals()),
+        () -> assertEquals(0.0, result.summary().adherence()),
+        () -> assertEquals(1, result.days().size()));
   }
 
   @Test
@@ -202,6 +202,26 @@ class AdherenceReportServiceImplTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> service.getAdherence(patientId, fromPriorToPlan, END));
+  }
+
+  @Test
+  void shouldSeparateLoggingConsistencyFromCompliance() {
+    PatientProfile profile = patientProfile();
+
+    when(dailyRecordRepository.findByPatient_IdAndDateBetweenWithMeals(profile.getId(), START, END))
+        .thenReturn(
+            List.of(
+                fullDay(LocalDate.of(2026, 1, 1), profile),
+                fullDay(LocalDate.of(2026, 1, 3), profile)));
+
+    AdherenceReportDTO result = service.getAdherence(profile.getId(), START, END);
+
+    assertAll(
+        () -> assertEquals(2, result.summary().recordedDays()),
+        () -> assertEquals(66.7, result.summary().adherence()),
+        () -> assertEquals(100.0, result.summary().adherenceOnRecordedDays()),
+        () -> assertFalse(result.days().get(1).hasRecord()),
+        () -> assertNull(result.days().get(1).followedMeals()));
   }
 
   private DailyRecord fullDay(LocalDate date, PatientProfile profile) {

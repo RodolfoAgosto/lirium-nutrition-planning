@@ -134,6 +134,17 @@ class MealRecordTest {
     assertNull(meal.getNotes());
   }
 
+  @Test
+  void shouldFollowPlanUntilModified() {
+    MealRecord meal = MealRecord.of(MealType.LUNCH, todayAtNoon(), createDailyRecord());
+
+    assertTrue(meal.followsPlan());
+
+    meal.markAsOverridden();
+
+    assertFalse(meal.followsPlan());
+  }
+
   private LocalDateTime todayAtNoon() {
     return LocalDate.now(ARGENTINA_ZONE).atTime(12, 0);
   }
