@@ -5,11 +5,17 @@ Available to the **patient** for their own data, and to nutritionists and admins
 
 ## Adherence report
 
-Measures how consistently the patient records their meals.
+Measures how many of the planned meals the patient followed, day by day.
 
-- Expected meals: 5 per day (one per meal type) across the whole range.
-- Recorded meals: meals present in the daily records, excluding those marked as overridden.
-- Adherence: recorded / expected, as a percentage, with a day-by-day breakdown.
+- **Expected meals** come from the plan in effect on each date: the meals its daily plan prescribes
+  for that day of the week, or 0 when no plan applied.
+- **Followed meals** are meals eaten as planned, without changes (`MealRecord.followsPlan()`).
+  Modified meals are counted separately.
+- **No data is not zero.** Days without a record have `hasRecord = false` and `followedMeals` /
+  `modifiedMeals` set to `null`.
+- **Summary.** `adherence` is followed / expected over the whole range, so it mixes logging
+  consistency and compliance. `adherenceOnRecordedDays` uses recorded days only: how well the
+  patient follows the plan when they do log. Compare it with `recordedDays` / `totalDays`.
 
 ## Nutrition comparison report
 
@@ -33,9 +39,10 @@ day of the week (calories, protein, carbs and fat).
 ## Business rules
 
 - `from` must be on or before `to`.
-- The adherence range can't start before the patient's first plan start date.
-- The nutrition comparison requires an `ACTIVE` plan. If the range starts before the plan, it is
-  trimmed to the plan's start date and the effective `from` is returned.
+- Both reports trim a range that starts before the relevant plan and return the effective `from`:
+  the patient's first plan for adherence, the `ACTIVE` plan for the nutrition comparison. A range
+  that ends before it returns an empty report.
+- The nutrition comparison requires an `ACTIVE` plan.
 - Reports are calculated on demand and never modify plans or records.
 
 ## Endpoints

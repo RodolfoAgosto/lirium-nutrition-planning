@@ -245,6 +245,8 @@ flowchart LR
 
 **Errors are part of the API.** A global exception handler maps every failure to a consistent `ApiError` body with the right status: `404` not found, `409` conflicts (duplicate draft, duplicate meal type), `422` domain rule violations, and validation messages that name the offending field.
 
+**Reports measure the patient against the plan, not the theory.** The nutrition score compares what the patient ate with what their plan prescribed that day, not with the theoretical targets, so the patient isn't penalized for the generator's approximation. Missing days return `null`, never zero, and summaries average days with data only. The score is symmetric and has no tolerance band on purpose: both would need clinical parameters, and the formula lives in one method. Details in [ADR 0001](docs/adr/0001-report-redesign.md).
+
 ## 🔐 Security
 
 - Stateless **JWT** access tokens (8 h) with **refresh tokens** (7 days), revoked on logout.
