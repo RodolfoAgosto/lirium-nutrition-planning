@@ -231,15 +231,32 @@ class AdherenceReportServiceImplTest {
   }
 
   @Test
-  void shouldThrowExceptionWhenFromIsBeforeEarliestStartDate() {
-    // Given
+  void shouldTrimRangeStartingBeforeTheFirstPlan() {
     Long patientId = 1L;
-    LocalDate fromPriorToPlan = LocalDate.of(2024, 12, 31); // El plan empieza el 2025-01-01
+    LocalDate planStart = LocalDate.of(2025, 1, 1); // see mockNutritionPlan()
+    LocalDate to = LocalDate.of(2025, 1, 2);
 
-    // When & Then
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> service.getAdherence(patientId, fromPriorToPlan, END));
+    when(dailyRecordRepository.findByPatient_IdAndDateBetweenWithMeals(patientId, planStart, to))
+        .thenReturn(List.of());
+
+    AdherenceReportDTO result = service.getAdherence(patientId, LocalDate.of(2024, 12, 30), to);
+
+    assertAll(
+        () -> assertEquals(planStart, result.from()), () -> assertEquals(2, result.days().size()));
+  }
+
+  @Test
+  void shouldReturnEmptyReportWhenRangeEndsBeforeTheFirstPlan() {
+    AdherenceReportDTO result =
+        service.getAdherence(1L, LocalDate.of(2024, 12, 1), LocalDate.of(2024, 12, 31));
+
+    assertAll(
+        () -> assertTrue(result.days().isEmpty()),
+        () -> assertEquals(0, result.summary().totalDays()),
+        () -> assertNull(result.summary().adherenceOnRecordedDays()));
+
+    verify(dailyRecordRepository, never())
+        .findByPatient_IdAndDateBetweenWithMeals(any(), any(), any());
   }
 
   @Test

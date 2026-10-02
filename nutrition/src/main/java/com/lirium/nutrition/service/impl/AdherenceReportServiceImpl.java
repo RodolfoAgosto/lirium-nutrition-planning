@@ -45,31 +45,32 @@ public class AdherenceReportServiceImpl implements AdherenceReportService {
             .map(NutritionPlan::getStartDate)
             .orElseThrow(() -> new IllegalStateException("Patient has no nutrition plan history"));
 
-    if (from.isBefore(earliestStartDate)) {
-      throw new IllegalArgumentException(
-          "Requested start date ('from') cannot be prior to the patient's first plan start date ("
-              + earliestStartDate
-              + ")");
+    LocalDate effectiveFrom = from.isBefore(earliestStartDate) ? earliestStartDate : from;
+
+    if (effectiveFrom.isAfter(to)) {
+      return new AdherenceReportDTO(
+          from, to, new AdherenceSummaryDTO(0, 0, 0, 0, 0.0, null), List.of());
     }
 
-    // Retrieve records and map to Map<LocalDate, DailyRecord> O(1)
     List<DailyRecord> records =
-        dailyRecordRepository.findByPatient_IdAndDateBetweenWithMeals(patientId, from, to);
+        dailyRecordRepository.findByPatient_IdAndDateBetweenWithMeals(patientId, effectiveFrom, to);
 
     Map<LocalDate, DailyRecord> recordByDate =
         records.stream()
             .collect(
                 Collectors.toMap(
                     DailyRecord::getDate, r -> r, (existing, replacement) -> existing));
+
     List<NutritionPlan> plans =
         nutritionPlanRepository.findByPatientProfileIdOrderByStartDateDesc(patientId);
 
     List<DailyAdherenceDTO> days =
-        from.datesUntil(to.plusDays(1))
+        effectiveFrom
+            .datesUntil(to.plusDays(1))
             .map(date -> measureDay(date, recordByDate.get(date), expectedMealsOn(date, plans)))
             .toList();
 
-    return new AdherenceReportDTO(from, to, summarize(days), days);
+    return new AdherenceReportDTO(effectiveFrom, to, summarize(days), days);
   }
 
   private int expectedMealsOn(LocalDate date, List<NutritionPlan> plans) {
