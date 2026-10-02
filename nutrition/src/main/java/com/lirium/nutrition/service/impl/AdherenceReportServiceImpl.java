@@ -7,7 +7,6 @@ import com.lirium.nutrition.exception.PatientProfileNotFoundException;
 import com.lirium.nutrition.model.entity.DailyRecord;
 import com.lirium.nutrition.model.entity.MealRecord;
 import com.lirium.nutrition.model.entity.NutritionPlan;
-import com.lirium.nutrition.model.enums.MealType;
 import com.lirium.nutrition.repository.DailyRecordRepository;
 import com.lirium.nutrition.repository.NutritionPlanRepository;
 import com.lirium.nutrition.repository.PatientProfileRepository;
@@ -62,14 +61,23 @@ public class AdherenceReportServiceImpl implements AdherenceReportService {
             .collect(
                 Collectors.toMap(
                     DailyRecord::getDate, r -> r, (existing, replacement) -> existing));
-    int expectedMealsPerDay = MealType.values().length; // 5
+    List<NutritionPlan> plans =
+        nutritionPlanRepository.findByPatientProfileIdOrderByStartDateDesc(patientId);
 
     List<DailyAdherenceDTO> days =
         from.datesUntil(to.plusDays(1))
-            .map(date -> measureDay(date, recordByDate.get(date), expectedMealsPerDay))
+            .map(date -> measureDay(date, recordByDate.get(date), expectedMealsOn(date, plans)))
             .toList();
 
     return new AdherenceReportDTO(from, to, summarize(days), days);
+  }
+
+  private int expectedMealsOn(LocalDate date, List<NutritionPlan> plans) {
+    return plans.stream()
+        .filter(plan -> plan.isInEffectOn(date))
+        .findFirst()
+        .map(plan -> plan.plannedMealCountFor(date.getDayOfWeek()))
+        .orElse(0);
   }
 
   private DailyAdherenceDTO measureDay(LocalDate date, DailyRecord record, int expectedMeals) {

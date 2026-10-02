@@ -113,6 +113,24 @@ public class NutritionPlan extends Auditable {
         .map(DailyPlan::plannedNutrients);
   }
 
+  /** Whether the plan applied on the given date: activated, started and not yet ended. */
+  public boolean isInEffectOn(LocalDate date) {
+    Objects.requireNonNull(date, "Date cannot be null");
+    return status != PlanStatus.DRAFT
+        && startDate != null
+        && !date.isBefore(startDate)
+        && (endDate == null || !date.isAfter(endDate));
+  }
+
+  /** Number of meals the plan prescribes for the given day of the week; 0 if the day is missing. */
+  public int plannedMealCountFor(DayOfWeek day) {
+    return week.stream()
+        .filter(dailyPlan -> dailyPlan.getDayOfWeek() == day)
+        .findFirst()
+        .map(dailyPlan -> dailyPlan.getMeals().size())
+        .orElse(0);
+  }
+
   public void update(
       String name,
       String description,
@@ -175,10 +193,6 @@ public class NutritionPlan extends Auditable {
     this.status = PlanStatus.INACTIVE;
   }
 
-  /**
-   * Completes an ACTIVE plan: records its closing summary, sets the end date and moves it to
-   * INACTIVE.
-   */
   public void complete(String name, String description, LocalDate endDate) {
     if (status != PlanStatus.ACTIVE) {
       throw new PlanConflictException(

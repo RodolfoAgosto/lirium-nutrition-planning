@@ -44,6 +44,44 @@ class AdherenceReportServiceImplTest {
     lenient()
         .when(nutritionPlanRepository.findFirstByPatientProfile_IdOrderByStartDateAsc(any()))
         .thenReturn(Optional.of(mockNutritionPlan()));
+
+    NutritionPlan planWithFiveMeals = planInEffectWithMealsPerDay(5);
+    lenient()
+        .when(nutritionPlanRepository.findByPatientProfileIdOrderByStartDateDesc(any()))
+        .thenReturn(List.of(planWithFiveMeals));
+  }
+
+  @Test
+  void shouldExpectOnlyTheMealsPrescribedByThePlanInEffect() {
+    PatientProfile profile = patientProfile();
+
+    NutritionPlan planWithThreeMeals = planInEffectWithMealsPerDay(3);
+    when(nutritionPlanRepository.findByPatientProfileIdOrderByStartDateDesc(any()))
+        .thenReturn(List.of(planWithThreeMeals));
+    when(dailyRecordRepository.findByPatient_IdAndDateBetweenWithMeals(profile.getId(), START, END))
+        .thenReturn(List.of());
+
+    AdherenceReportDTO result = service.getAdherence(profile.getId(), START, END);
+
+    assertAll(
+        () -> assertEquals(3, result.days().get(0).expectedMeals()),
+        () -> assertEquals(9, result.summary().expectedMeals()));
+  }
+
+  @Test
+  void shouldExpectNoMealsOnDaysWithoutAPlanInEffect() {
+    PatientProfile profile = patientProfile();
+    NutritionPlan ended = planInEffectWithMealsPerDay(5);
+    when(ended.isInEffectOn(any())).thenReturn(false);
+
+    when(nutritionPlanRepository.findByPatientProfileIdOrderByStartDateDesc(any()))
+        .thenReturn(List.of(ended));
+    when(dailyRecordRepository.findByPatient_IdAndDateBetweenWithMeals(profile.getId(), START, END))
+        .thenReturn(List.of());
+
+    AdherenceReportDTO result = service.getAdherence(profile.getId(), START, END);
+
+    assertEquals(0, result.summary().expectedMeals());
   }
 
   @Test
@@ -275,6 +313,13 @@ class AdherenceReportServiceImplTest {
     ReflectionTestUtils.setField(plan, "id", 1L);
     plan.activate(LocalDate.of(2025, 1, 1));
 
+    return plan;
+  }
+
+  private NutritionPlan planInEffectWithMealsPerDay(int meals) {
+    NutritionPlan plan = mock(NutritionPlan.class);
+    lenient().when(plan.isInEffectOn(any())).thenReturn(true);
+    lenient().when(plan.plannedMealCountFor(any())).thenReturn(meals);
     return plan;
   }
 }

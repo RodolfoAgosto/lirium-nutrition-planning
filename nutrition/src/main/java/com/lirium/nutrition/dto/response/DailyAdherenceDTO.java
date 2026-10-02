@@ -7,7 +7,10 @@ import java.time.LocalDate;
 public record DailyAdherenceDTO(
     @Schema(description = "Day being measured", example = "2026-09-20") LocalDate date,
     @Schema(description = "Whether the patient recorded anything that day") boolean hasRecord,
-    @Schema(description = "Meals the patient was expected to log", example = "5") int expectedMeals,
+    @Schema(
+            description = "Meals prescribed by the plan in effect that day; 0 when no plan applied",
+            example = "5")
+        int expectedMeals,
     @Schema(
             description = "Meals eaten as planned, without changes. Null when hasRecord is false.",
             example = "4",

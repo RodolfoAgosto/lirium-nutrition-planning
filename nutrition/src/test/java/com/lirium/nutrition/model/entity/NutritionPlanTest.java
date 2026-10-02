@@ -6,11 +6,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.lirium.nutrition.exception.PlanConflictException;
 import com.lirium.nutrition.exception.UnprocessableEntityException;
 import com.lirium.nutrition.model.enums.GoalType;
+import com.lirium.nutrition.model.enums.MealType;
 import com.lirium.nutrition.model.enums.PlanStatus;
 import com.lirium.nutrition.model.valueobject.NutrientBudget;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class NutritionPlanTest {
 
@@ -350,6 +352,34 @@ class NutritionPlanTest {
 
     assertThat(plan.plannedNutrientsFor(DayOfWeek.MONDAY)).contains(NutrientBudget.ZERO);
     assertThat(plan.plannedNutrientsFor(DayOfWeek.TUESDAY)).isEmpty();
+  }
+
+  @Test
+  void shouldBeInEffectOnlyBetweenStartAndEndDates() {
+    NutritionPlan plan = NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 150, 200, 70, null);
+    LocalDate start = LocalDate.of(2026, 1, 10);
+
+    assertThat(plan.isInEffectOn(start)).isFalse(); // DRAFT
+
+    plan.activate(start);
+    ReflectionTestUtils.setField(plan, "endDate", start.plusDays(5));
+
+    assertThat(plan.isInEffectOn(start.minusDays(1))).isFalse();
+    assertThat(plan.isInEffectOn(start)).isTrue();
+    assertThat(plan.isInEffectOn(start.plusDays(5))).isTrue();
+    assertThat(plan.isInEffectOn(start.plusDays(6))).isFalse();
+  }
+
+  @Test
+  void shouldCountPlannedMealsPerDayOfWeek() {
+    NutritionPlan plan = NutritionPlan.generate(GoalType.WEIGHT_LOSS, 2000, 150, 200, 70, null);
+    DailyPlan monday = DailyPlan.of(DayOfWeek.MONDAY, plan);
+    monday.addMeal(PlanMeal.of(MealType.BREAKFAST, monday));
+    monday.addMeal(PlanMeal.of(MealType.LUNCH, monday));
+    plan.addDailyPlan(monday);
+
+    assertThat(plan.plannedMealCountFor(DayOfWeek.MONDAY)).isEqualTo(2);
+    assertThat(plan.plannedMealCountFor(DayOfWeek.TUESDAY)).isZero();
   }
 
   private NutritionPlan createActivePlan() {
