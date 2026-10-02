@@ -190,7 +190,7 @@ public class PatientDailyRecordController {
   }
 
   @Operation(
-      operationId = "getPatientAdherence",
+      operationId = "getMealAdherence",
       summary = "Get patient adherence report",
       description =
           "For each day in the range, how many planned meals the patient was expected to log"
@@ -234,7 +234,7 @@ public class PatientDailyRecordController {
                     mediaType = "application/json",
                     schema = @Schema(implementation = ApiError.class)))
       })
-  @GetMapping("/adherence")
+  @GetMapping("/meal-adherence")
   @PreAuthorize(
       "hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#patientId, authentication)")
   public ResponseEntity<AdherenceReportDTO> getAdherenceReport(

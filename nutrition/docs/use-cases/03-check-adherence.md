@@ -40,5 +40,5 @@ day of the week (calories, protein, carbs and fat).
 
 ## Endpoints
 
-- `GET /api/patients/{patientId}/daily-records/adherence?from=&to=` — adherence report
+- `GET /api/patients/{patientId}/daily-records/meal-adherence?from=&to=` — meal adherence report
 - `GET /api/patients/{patientId}/daily-records/nutrition-comparison?from=&to=` — nutrition comparison

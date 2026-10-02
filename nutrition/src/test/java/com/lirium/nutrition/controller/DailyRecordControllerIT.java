@@ -300,7 +300,7 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            get("/api/patients/" + patientId + "/daily-records/adherence")
+            get("/api/patients/" + patientId + "/daily-records/meal-adherence")
                 .param("from", LocalDate.now().minusDays(7).toString())
                 .param("to", LocalDate.now().toString())
                 .header("Authorization", adminToken))
@@ -313,7 +313,7 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            get("/api/patients/" + patientId + "/daily-records/adherence")
+            get("/api/patients/" + patientId + "/daily-records/meal-adherence")
                 .param("from", LocalDate.now(ARGENTINA_ZONE).minusDays(7).toString())
                 .param("to", LocalDate.now(ARGENTINA_ZONE).toString())
                 .header("Authorization", patientToken))
@@ -326,7 +326,7 @@ class DailyRecordControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            get("/api/patients/" + otherPatientId + "/daily-records/adherence")
+            get("/api/patients/" + otherPatientId + "/daily-records/meal-adherence")
                 .param("from", LocalDate.now().minusDays(7).toString())
                 .param("to", LocalDate.now().toString())
                 .header("Authorization", patientToken))

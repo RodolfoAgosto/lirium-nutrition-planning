@@ -121,7 +121,7 @@ public class PatientDailyRecordControllerSecurityTest {
     when(principal.getAuthorities()).thenReturn(Collections.emptyList());
 
     mvc.perform(
-            get("/api/patients/{patientId}/daily-records/adherence", targetPatientId)
+            get("/api/patients/{patientId}/daily-records/meal-adherence", targetPatientId)
                 .param("from", "2025-01-01")
                 .param("to", "2025-01-07")
                 .with(user(principal)))
@@ -202,7 +202,7 @@ public class PatientDailyRecordControllerSecurityTest {
     when(principal.getUsername()).thenReturn("test@test.com");
 
     mvc.perform(
-            get("/api/patients/{patientId}/daily-records/adherence", targetPatientId)
+            get("/api/patients/{patientId}/daily-records/meal-adherence", targetPatientId)
                 .param("from", "2025-01-01")
                 .param("to", "2025-01-07")
                 .with(user(principal)))

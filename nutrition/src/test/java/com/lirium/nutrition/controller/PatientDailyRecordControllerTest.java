@@ -108,7 +108,7 @@ class PatientDailyRecordControllerTest {
     when(adherenceReportService.getAdherence(patientId, from, to)).thenReturn(response);
 
     mvc.perform(
-            get("/api/patients/{patientId}/daily-records/adherence", patientId)
+            get("/api/patients/{patientId}/daily-records/meal-adherence", patientId)
                 .param("from", from.toString())
                 .param("to", to.toString())
                 .accept(MediaType.APPLICATION_JSON))
