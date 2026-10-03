@@ -74,19 +74,19 @@ public class ArchitectureTest {
 
   @ArchTest
   static final ArchRule modelShouldNotDependOnOtherLayers =
-          noClasses()
-                  .that()
-                  .resideInAPackage("com.lirium.nutrition.model..")
-                  .should()
-                  .dependOnClassesThat()
-                  .resideInAnyPackage(
-                          "com.lirium.nutrition.controller..",
-                          "com.lirium.nutrition.service..",
-                          "com.lirium.nutrition.repository..",
-                          "com.lirium.nutrition.dto..",
-                          "com.lirium.nutrition.mapper..",
-                          "com.lirium.nutrition.infrastructure..")
-                  .because("the domain model is the core and must not depend on outer layers");
+      noClasses()
+          .that()
+          .resideInAPackage("com.lirium.nutrition.model..")
+          .should()
+          .dependOnClassesThat()
+          .resideInAnyPackage(
+              "com.lirium.nutrition.controller..",
+              "com.lirium.nutrition.service..",
+              "com.lirium.nutrition.repository..",
+              "com.lirium.nutrition.dto..",
+              "com.lirium.nutrition.mapper..",
+              "com.lirium.nutrition.infrastructure..")
+          .because("the domain model is the core and must not depend on outer layers");
 
   // =========================
   // Convention Rules
