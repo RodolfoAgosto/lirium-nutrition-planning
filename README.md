@@ -132,7 +132,7 @@ Layered Spring Boot application with a **DDD-style domain model**: aggregates ow
 ```mermaid
 flowchart TD
     C[controller] --> S[service]
-    C --> DTO[dto]
+    C --> DTO[dto<br/>request · response]
     S --> R[repository]
     S --> MAP[mapper]
     S --> M[model<br/>entities · value objects · enums]
@@ -141,17 +141,20 @@ flowchart TD
     R --> M
     I[infrastructure<br/>security · config] --> R
     I --> S
+    X[exception<br/>used by all layers]
     classDef web fill:#E3F2FD,stroke:#1E88E5,color:#0D47A1
     classDef app fill:#E8F5E9,stroke:#2E7D32,color:#1B2F21
     classDef domain fill:#2E7D32,stroke:#1B2F21,color:#fff
     classDef infra fill:#FFF3E0,stroke:#EF6C00,color:#E65100
+    classDef shared fill:#F5F5F5,stroke:#9E9E9E,color:#424242,stroke-dasharray:4 3
     class C,DTO web
     class S,MAP,R app
     class M domain
     class I infra
+    class X shared
 ```
 
-These dependency rules are **enforced by [ArchUnit](nutrition/src/test/java/com/lirium/nutrition/ArchitectureTest.java)**: nothing depends on controllers, and the service and repository layers can only be reached from the allowed layers. Security beans don't depend on services, and naming and packaging conventions are checked on every build.
+The diagram shows the main dependencies. These rules are **enforced by [ArchUnit](nutrition/src/test/java/com/lirium/nutrition/ArchitectureTest.java)**: nothing depends on controllers, the service and repository layers can only be reached from the allowed layers, and the domain model doesn't depend on any outer layer. Security beans don't depend on services, and naming and packaging conventions are checked on every build.
 
 ### Domain model
 
