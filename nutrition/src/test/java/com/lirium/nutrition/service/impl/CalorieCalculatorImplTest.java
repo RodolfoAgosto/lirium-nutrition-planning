@@ -158,14 +158,14 @@ class CalorieCalculatorImplTest {
     PatientProfile patient = user.getPatientProfile();
 
     patient.update(
-            Sex.MALE,
-            ActivityLevel.SEDENTARY,
-            Weight.of(80_000),
-            Height.of(180),
-            null,
-            Set.of(),
-            List.of(),
-            GoalType.WEIGHT_MAINTENANCE);
+        Sex.MALE,
+        ActivityLevel.SEDENTARY,
+        Weight.of(80_000),
+        Height.of(180),
+        null,
+        Set.of(),
+        List.of(),
+        GoalType.WEIGHT_MAINTENANCE);
 
     assertEquals(2142, calculator.calculate(patient).amount());
   }

@@ -28,18 +28,18 @@ public class CalorieCalculatorImpl implements CalorieCalculator {
     double heightCm = patient.getHeight().cm();
 
     log.info(
-            "Calculating calories for patientId={} sex={} age={}",
-            patient.getUser().getId(),
-            patient.getSex(),
-            age);
+        "Calculating calories for patientId={} sex={} age={}",
+        patient.getUser().getId(),
+        patient.getSex(),
+        age);
 
     log.debug(
-            "Base data weightKg={} heightCm={} activityFactor={} goal={} conditionsCount={}",
-            weightKg,
-            heightCm,
-            patient.getActivityLevel().getFactor(),
-            patient.getPrimaryGoal(),
-            patient.getPhysiologicalConditions().size());
+        "Base data weightKg={} heightCm={} activityFactor={} goal={} conditionsCount={}",
+        weightKg,
+        heightCm,
+        patient.getActivityLevel().getFactor(),
+        patient.getPrimaryGoal(),
+        patient.getPhysiologicalConditions().size());
 
     int caloriesValue;
 
@@ -57,15 +57,15 @@ public class CalorieCalculatorImpl implements CalorieCalculator {
     caloriesValue *= patient.getActivityLevel().getFactor();
 
     log.debug(
-            "After activity adjustment calories={} (factor={})",
-            caloriesValue,
-            patient.getActivityLevel().getFactor());
+        "After activity adjustment calories={} (factor={})",
+        caloriesValue,
+        patient.getActivityLevel().getFactor());
 
     // Adjust by goal
     caloriesValue = (int) patient.getPrimaryGoal().adjust(caloriesValue);
 
     log.debug(
-            "After goal adjustment calories={} (goal={})", caloriesValue, patient.getPrimaryGoal());
+        "After goal adjustment calories={} (goal={})", caloriesValue, patient.getPrimaryGoal());
 
     // Adjust by PhysiologicalCondition
     for (PhysiologicalCondition condition : patient.getPhysiologicalConditions()) {
@@ -76,9 +76,9 @@ public class CalorieCalculatorImpl implements CalorieCalculator {
     }
 
     log.info(
-            "Calories calculated successfully patientId={} resultCalories={}",
-            patient.getUser().getId(),
-            caloriesValue);
+        "Calories calculated successfully patientId={} resultCalories={}",
+        patient.getUser().getId(),
+        caloriesValue);
 
     return new Calories(caloriesValue);
   }
