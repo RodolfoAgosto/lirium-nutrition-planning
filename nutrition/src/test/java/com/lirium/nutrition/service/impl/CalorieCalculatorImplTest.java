@@ -147,6 +147,29 @@ class CalorieCalculatorImplTest {
     assertEquals(2736, result.amount());
   }
 
+  @Test
+  void shouldComputeAgeWithTheInjectedClock() {
+
+    User user = new User("john@test.com", "hash", "John", "Doe", Role.PATIENT);
+
+    // Turns 30 the day after the fixed date: still 29 according to the clock.
+    user.setBirthDate(FIXED_TODAY.minusYears(30).plusDays(1));
+
+    PatientProfile patient = user.getPatientProfile();
+
+    patient.update(
+            Sex.MALE,
+            ActivityLevel.SEDENTARY,
+            Weight.of(80_000),
+            Height.of(180),
+            null,
+            Set.of(),
+            List.of(),
+            GoalType.WEIGHT_MAINTENANCE);
+
+    assertEquals(2142, calculator.calculate(patient).amount());
+  }
+
   private PatientProfile createPatient(
       Sex sex,
       ActivityLevel activityLevel,

@@ -8,51 +8,38 @@ import com.lirium.nutrition.service.CalorieCalculator;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.Period;
-import java.time.ZoneId;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class CalorieCalculatorImpl implements CalorieCalculator {
 
-  private static final ZoneId ARGENTINA_ZONE = ZoneId.of("America/Argentina/Buenos_Aires");
-
   private final Clock clock;
-
-  public CalorieCalculatorImpl() {
-    this(Clock.system(ARGENTINA_ZONE));
-  }
-
-  CalorieCalculatorImpl(Clock clock) {
-    this.clock = clock;
-  }
 
   @Override
   public Calories calculate(PatientProfile patient) {
 
     // Calculate calorie expenditure
-    int age =
-        Period.between(
-                patient.getUser().getBirthDate(),
-                LocalDate.now(ZoneId.of("America/Argentina/Buenos_Aires")))
-            .getYears();
+    int age = Period.between(patient.getUser().getBirthDate(), LocalDate.now(clock)).getYears();
     double weightKg = patient.getWeight().grams() / 1000.0;
     double heightCm = patient.getHeight().cm();
 
     log.info(
-        "Calculating calories for patientId={} sex={} age={}",
-        patient.getUser().getId(),
-        patient.getSex(),
-        age);
+            "Calculating calories for patientId={} sex={} age={}",
+            patient.getUser().getId(),
+            patient.getSex(),
+            age);
 
     log.debug(
-        "Base data weightKg={} heightCm={} activityFactor={} goal={} conditionsCount={}",
-        weightKg,
-        heightCm,
-        patient.getActivityLevel().getFactor(),
-        patient.getPrimaryGoal(),
-        patient.getPhysiologicalConditions().size());
+            "Base data weightKg={} heightCm={} activityFactor={} goal={} conditionsCount={}",
+            weightKg,
+            heightCm,
+            patient.getActivityLevel().getFactor(),
+            patient.getPrimaryGoal(),
+            patient.getPhysiologicalConditions().size());
 
     int caloriesValue;
 
@@ -70,15 +57,15 @@ public class CalorieCalculatorImpl implements CalorieCalculator {
     caloriesValue *= patient.getActivityLevel().getFactor();
 
     log.debug(
-        "After activity adjustment calories={} (factor={})",
-        caloriesValue,
-        patient.getActivityLevel().getFactor());
+            "After activity adjustment calories={} (factor={})",
+            caloriesValue,
+            patient.getActivityLevel().getFactor());
 
     // Adjust by goal
     caloriesValue = (int) patient.getPrimaryGoal().adjust(caloriesValue);
 
     log.debug(
-        "After goal adjustment calories={} (goal={})", caloriesValue, patient.getPrimaryGoal());
+            "After goal adjustment calories={} (goal={})", caloriesValue, patient.getPrimaryGoal());
 
     // Adjust by PhysiologicalCondition
     for (PhysiologicalCondition condition : patient.getPhysiologicalConditions()) {
@@ -89,9 +76,9 @@ public class CalorieCalculatorImpl implements CalorieCalculator {
     }
 
     log.info(
-        "Calories calculated successfully patientId={} resultCalories={}",
-        patient.getUser().getId(),
-        caloriesValue);
+            "Calories calculated successfully patientId={} resultCalories={}",
+            patient.getUser().getId(),
+            caloriesValue);
 
     return new Calories(caloriesValue);
   }
