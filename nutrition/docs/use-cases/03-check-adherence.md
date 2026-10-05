@@ -38,6 +38,8 @@ day of the week (calories, protein, carbs and fat).
 
 ## Business rules
 
+- `from` and `to` are optional: `to` defaults to today and `from` to 29 days before `to`, so a
+  request without dates returns the last 30 days.
 - `from` must be on or before `to`.
 - Both reports trim a range that starts before the relevant plan and return the effective `from`:
   the patient's first plan for adherence, the `ACTIVE` plan for the nutrition comparison. A range

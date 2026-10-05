@@ -48,6 +48,15 @@ import org.springframework.web.bind.annotation.*;
     description = "Endpoints for managing and tracking a patient's daily nutrition records")
 public class PatientDailyRecordController {
 
+  /** Reports without explicit dates cover this many days, ending today. */
+  private static final int DEFAULT_REPORT_DAYS = 30;
+
+  private static final String PATIENT_ID_DESCRIPTION =
+      "ID of the patient. In the demo data, patient 2 has recorded days.";
+  private static final String FROM_DESCRIPTION =
+      "Start date (YYYY-MM-DD). Defaults to 29 days before 'to' (a 30-day range).";
+  private static final String TO_DESCRIPTION = "End date (YYYY-MM-DD). Defaults to today.";
+
   private final DailyRecordService dailyRecordService;
   private final AdherenceReportService adherenceReportService;
   private final Clock clock;
@@ -57,11 +66,11 @@ public class PatientDailyRecordController {
       summary = "Ensure/Fetch daily record for a patient (Get-or-Create)",
       description =
           """
-                      Fetches or creates the daily record (`DailyRecord`) for the specified date.
-                      - If it **already exists**, returns the existing record (`200 OK`).
-                      - If it **does not exist**, generates the daily record automatically based on the prescribed meals in the patient's active nutrition plan (`201 Created`).
-                      - If the `date` parameter is omitted, it defaults to today's date (`LocalDate.now()`).
-                      """)
+                                Fetches or creates the daily record (`DailyRecord`) for the specified date.
+                                - If it **already exists**, returns the existing record (`200 OK`).
+                                - If it **does not exist**, generates the daily record automatically based on the prescribed meals in the patient's active nutrition plan (`201 Created`).
+                                - If the `date` parameter is omitted, it defaults to today's date (`LocalDate.now()`).
+                                """)
   @ApiResponses(
       value = {
         @ApiResponse(
@@ -120,14 +129,13 @@ public class PatientDailyRecordController {
   @PreAuthorize(
       "hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#patientId, authentication)")
   public ResponseEntity<DailyRecordResponseDTO> ensureDailyRecord(
-      @Parameter(description = "ID of the patient profile", example = "5", required = true)
+      @Parameter(description = "ID of the patient profile", example = "2", required = true)
           @PathVariable
           @Positive
           Long patientId,
       @Parameter(
               description =
-                  "Date for the daily record (ISO Format: YYYY-MM-DD). Defaults to TODAY if omitted.",
-              example = "2026-08-24")
+                  "Date for the daily record (ISO Format: YYYY-MM-DD). Defaults to TODAY if omitted.")
           @RequestParam(required = false)
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
           LocalDate date) {
@@ -195,7 +203,8 @@ public class PatientDailyRecordController {
       description =
           "For each day in the range, how many planned meals the patient was expected to log"
               + " and how many were followed as planned (not modified)."
-              + " Days the patient never opened have hasRecord=false.")
+              + " Days the patient never opened have hasRecord=false."
+              + " Without from/to, the report covers the last 30 days up to today.")
   @ApiResponses(
       value = {
         @ApiResponse(
@@ -207,7 +216,7 @@ public class PatientDailyRecordController {
                     schema = @Schema(implementation = AdherenceReportDTO.class))),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid date range or missing parameters",
+            description = "Invalid date range",
             content =
                 @Content(
                     mediaType = "application/json",
@@ -238,30 +247,35 @@ public class PatientDailyRecordController {
   @PreAuthorize(
       "hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#patientId, authentication)")
   public ResponseEntity<AdherenceReportDTO> getAdherenceReport(
-      @Parameter(description = "ID of the patient", example = "1")
+      @Parameter(description = PATIENT_ID_DESCRIPTION, example = "2")
           @NotNull(message = "Patient ID is required")
           @Positive(message = "Patient ID must be a positive number")
           @PathVariable("patientId")
           Long patientId,
-      @Parameter(description = "Start date (YYYY-MM-DD)", example = "2026-08-01")
-          @RequestParam
+      @Parameter(description = FROM_DESCRIPTION)
+          @RequestParam(required = false)
           @PastOrPresent(message = "Start date cannot be in the future")
-          @NotNull(message = "Start date ('from') is required")
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
           LocalDate from,
-      @Parameter(description = "End date (YYYY-MM-DD)", example = "2026-08-25")
-          @RequestParam
+      @Parameter(description = TO_DESCRIPTION)
+          @RequestParam(required = false)
           @PastOrPresent(message = "End date cannot be in the future")
-          @NotNull(message = "End date ('to') is required")
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
           LocalDate to) {
 
-    if (from.isAfter(to)) {
+    DateRange range = resolveRange(from, to);
+
+    if (range.from().isAfter(range.to())) {
       throw new IllegalArgumentException("The 'from' date cannot be after 'to' date");
     }
 
-    log.info("Generating adherence report for patientId={} from={} to={}", patientId, from, to);
-    AdherenceReportDTO response = adherenceReportService.getAdherence(patientId, from, to);
+    log.info(
+        "Generating adherence report for patientId={} from={} to={}",
+        patientId,
+        range.from(),
+        range.to());
+    AdherenceReportDTO response =
+        adherenceReportService.getAdherence(patientId, range.from(), range.to());
     return ResponseEntity.ok(response);
   }
 
@@ -279,7 +293,8 @@ public class PatientDailyRecordController {
               + " hasRecord=false and consumed/score null: no data, not zero intake. score is"
               + " also null when nothing was planned for that day."
               + " summary averages consumption over recorded days and scores over scored days;"
-              + " days without data are excluded, and averages are null when there are none.")
+              + " days without data are excluded, and averages are null when there are none."
+              + " Without from/to, the report covers the last 30 days up to today.")
   @ApiResponses(
       value = {
         @ApiResponse(
@@ -319,28 +334,41 @@ public class PatientDailyRecordController {
                     schema = @Schema(implementation = ApiError.class)))
       })
   public ResponseEntity<NutritionComparisonReportDTO> getNutritionComparisonReport(
-      @Parameter(description = "ID of the patient", example = "1")
+      @Parameter(description = PATIENT_ID_DESCRIPTION, example = "2")
           @NotNull(message = "Patient ID is required")
           @Positive(message = "Patient ID must be a positive number")
           @PathVariable("patientId")
           Long patientId,
-      @Parameter(description = "Start date (YYYY-MM-DD)", example = "2026-08-01")
-          @RequestParam("from")
+      @Parameter(description = FROM_DESCRIPTION)
+          @RequestParam(name = "from", required = false)
           @PastOrPresent(message = "Start date cannot be in the future")
-          @NotNull(message = "Start date ('from') is required")
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
           LocalDate from,
-      @Parameter(description = "End date (YYYY-MM-DD)", example = "2026-08-25")
-          @RequestParam("to")
+      @Parameter(description = TO_DESCRIPTION)
+          @RequestParam(name = "to", required = false)
           @PastOrPresent(message = "End date cannot be in the future")
-          @NotNull(message = "End date ('to') is required")
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
           LocalDate to) {
 
-    log.info("Generating nutrition comparison for patientId={} from={} to={}", patientId, from, to);
+    DateRange range = resolveRange(from, to);
+
+    log.info(
+        "Generating nutrition comparison for patientId={} from={} to={}",
+        patientId,
+        range.from(),
+        range.to());
     NutritionComparisonReportDTO response =
-        dailyRecordService.getNutritionComparison(patientId, from, to);
+        dailyRecordService.getNutritionComparison(patientId, range.from(), range.to());
     log.info("Nutrition comparison generated for patientId={}", patientId);
     return ResponseEntity.ok(response);
   }
+
+  /** Fills in missing report dates: 'to' defaults to today, 'from' to 29 days before 'to'. */
+  private DateRange resolveRange(LocalDate from, LocalDate to) {
+    LocalDate end = (to != null) ? to : LocalDate.now(clock);
+    LocalDate start = (from != null) ? from : end.minusDays(DEFAULT_REPORT_DAYS - 1L);
+    return new DateRange(start, end);
+  }
+
+  private record DateRange(LocalDate from, LocalDate to) {}
 }

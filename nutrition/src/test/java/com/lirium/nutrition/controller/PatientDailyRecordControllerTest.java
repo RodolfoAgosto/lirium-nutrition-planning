@@ -12,6 +12,7 @@ import com.lirium.nutrition.service.AdherenceReportService;
 import com.lirium.nutrition.service.DailyRecordService;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,15 @@ class PatientDailyRecordControllerTest {
   @MockBean UserDetailsServiceImpl userDetailsService;
 
   @Autowired MockMvc mvc;
+
+  private static final ZoneId ARGENTINA_ZONE = ZoneId.of("America/Argentina/Buenos_Aires");
+
+  private static final LocalDate TODAY = LocalDate.of(2026, 10, 5);
+
+  private void fixClockAt(LocalDate today) {
+    when(clock.getZone()).thenReturn(ARGENTINA_ZONE);
+    when(clock.instant()).thenReturn(today.atTime(12, 0).atZone(ARGENTINA_ZONE).toInstant());
+  }
 
   @Test
   @WithMockUser(roles = "ADMIN")
@@ -169,5 +179,51 @@ class PatientDailyRecordControllerTest {
         .andExpect(status().isBadRequest());
 
     verify(dailyRecordService, never()).getNutritionComparison(any(), any(), any());
+  }
+
+  // default report range
+  @Test
+  @WithMockUser
+  void shouldDefaultAdherenceToTheLast30DaysWhenNoDatesAreGiven() throws Exception {
+
+    fixClockAt(TODAY);
+
+    mvc.perform(
+            get("/api/patients/{patientId}/daily-records/meal-adherence", 1L)
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    verify(adherenceReportService).getAdherence(1L, LocalDate.of(2026, 9, 6), TODAY);
+  }
+
+  @Test
+  @WithMockUser
+  void shouldDefaultToToTodayWhenOnlyFromIsGiven() throws Exception {
+
+    fixClockAt(TODAY);
+    LocalDate from = LocalDate.of(2026, 9, 20);
+
+    mvc.perform(
+            get("/api/patients/{patientId}/daily-records/nutrition-comparison", 1L)
+                .param("from", from.toString())
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    verify(dailyRecordService).getNutritionComparison(1L, from, TODAY);
+  }
+
+  @Test
+  @WithMockUser
+  void shouldDefaultFromTo29DaysBeforeToWhenOnlyToIsGiven() throws Exception {
+
+    LocalDate to = LocalDate.of(2026, 9, 30);
+
+    mvc.perform(
+            get("/api/patients/{patientId}/daily-records/nutrition-comparison", 1L)
+                .param("to", to.toString())
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    verify(dailyRecordService).getNutritionComparison(1L, LocalDate.of(2026, 9, 1), to);
   }
 }
