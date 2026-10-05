@@ -11,9 +11,7 @@ public record DailyNutritionComparisonDTO(
         NutrientsDTO planned,
     @Schema(
             description =
-                "What the patient recorded. Null when hasRecord is false: no data, not zero"
-                    + " intake.",
-            nullable = true)
+                "What the patient recorded. Null when hasRecord is false: no data, not zero intake.")
         NutrientsDTO consumed,
     @Schema(
             description =

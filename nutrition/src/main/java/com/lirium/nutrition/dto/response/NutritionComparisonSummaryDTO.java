@@ -10,7 +10,5 @@ public record NutritionComparisonSummaryDTO(
             description = "Average daily score over scored days. Null when no day has a score.",
             nullable = true)
         NutritionScoreDTO averageScore,
-    @Schema(
-            description = "Average daily intake over recorded days. Null when no day was recorded.",
-            nullable = true)
-        NutrientsDTO averageConsumed) {}
+    @Schema(description = "Average daily intake over recorded days. Null when no day was recorded.")
+    NutrientsDTO averageConsumed) {}
