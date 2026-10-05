@@ -47,10 +47,12 @@
 
 **Live API (Swagger UI):** https://lirium-nutrition-planning-api.onrender.com .  Available with instant response Monday to Friday. On weekends the free instance sleeps, and the first request can take up to 4 minutes while it starts.
 
-| Role | Email | Password |
-|------|-------|----------|
-| Nutritionist | `ivana.medina@lirium.com` | `1234` |
-| Patient | `ana@test.com` · `juan@test.com` · `maria@test.com` | `1234` |
+| Role | Email | Password | Demo data |
+|------|-------|----------|-----------|
+| Nutritionist | `ivana.medina@lirium.com` | `1234` | Access to every patient |
+| Patient 1 | `ana@test.com` | `1234` | Plan activated today, plus a draft: use it to generate and activate plans |
+| Patient 2 | `juan@test.com` | `1234` | Plan in progress with two weeks of records: use it for the reports |
+| Patient 3 | `maria@test.com` | `1234` | Completed plan |
 
 Log in with `POST /api/auth/login`, paste the access token into **Authorize**, and follow the flow: generate a plan → activate it → record a day → check adherence.
 
