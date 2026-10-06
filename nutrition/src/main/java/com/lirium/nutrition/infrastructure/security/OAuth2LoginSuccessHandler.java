@@ -34,6 +34,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     String email = oAuth2User.getAttribute("email");
     String firstName = oAuth2User.getAttribute("given_name");
     String lastName = oAuth2User.getAttribute("family_name");
+    boolean emailVerifiedByGoogle = Boolean.TRUE.equals(oAuth2User.getAttribute("email_verified"));
 
     // Buscar o crear usuario
     User user =
@@ -49,6 +50,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                           lastName,
                           Role.PATIENT // rol por defecto para nuevos usuarios
                           );
+                  // Only brand-new accounts: Google already proved ownership of this email.
+                  // Existing accounts are left untouched on purpose (see account pre-hijacking).
+                  newUser.setEmailValidated(emailVerifiedByGoogle);
                   return userRepository.save(newUser);
                 });
 

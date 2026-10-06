@@ -62,6 +62,16 @@ class OAuth2LoginSuccessHandlerTest {
     return new DefaultOAuth2User(Collections.singletonList(() -> "ROLE_USER"), attributes, "email");
   }
 
+  private OAuth2User createOAuth2User(String email, boolean emailVerified) {
+    Map<String, Object> attributes = new HashMap<>();
+    attributes.put("email", email);
+    attributes.put("given_name", FIRST_NAME);
+    attributes.put("family_name", LAST_NAME);
+    attributes.put("email_verified", emailVerified);
+
+    return new DefaultOAuth2User(Collections.singletonList(() -> "ROLE_USER"), attributes, "email");
+  }
+
   private User createUser(String email, String firstName, String lastName) {
     return new User(email, "", firstName, lastName, Role.PATIENT);
   }
@@ -126,6 +136,49 @@ class OAuth2LoginSuccessHandlerTest {
 
     assertTrue(response.getContentType().contains("text/html"));
     assertTrue(response.getContentAsString().contains(TOKEN));
+  }
+
+  @Test
+  void shouldMarkNewUserEmailAsValidated_WhenGoogleVerifiedTheEmail() throws IOException {
+    mockAuthenticationPrincipal(createOAuth2User(EMAIL, true));
+    User newUser = createUser(EMAIL, FIRST_NAME, LAST_NAME);
+    when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
+    when(userRepository.save(any(User.class))).thenReturn(newUser);
+    when(jwtService.generateToken(newUser)).thenReturn(TOKEN);
+
+    handler.onAuthenticationSuccess(request, response, authentication);
+
+    ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+    verify(userRepository).save(userCaptor.capture());
+    assertTrue(userCaptor.getValue().getEmailValidated());
+  }
+
+  @Test
+  void shouldNotMarkNewUserEmailAsValidated_WhenGoogleDoesNotConfirmIt() throws IOException {
+    mockAuthenticationPrincipal(createOAuth2User(EMAIL, FIRST_NAME, LAST_NAME));
+    User newUser = createUser(EMAIL, FIRST_NAME, LAST_NAME);
+    when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
+    when(userRepository.save(any(User.class))).thenReturn(newUser);
+    when(jwtService.generateToken(newUser)).thenReturn(TOKEN);
+
+    handler.onAuthenticationSuccess(request, response, authentication);
+
+    ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+    verify(userRepository).save(userCaptor.capture());
+    assertFalse(userCaptor.getValue().getEmailValidated());
+  }
+
+  @Test
+  void shouldLeaveExistingUserEmailValidationUntouched() throws IOException {
+    mockAuthenticationPrincipal(createOAuth2User(EMAIL, true));
+    User existingUser = createUser(EMAIL, FIRST_NAME, LAST_NAME);
+    when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(existingUser));
+    when(jwtService.generateToken(any(User.class))).thenReturn(TOKEN);
+
+    handler.onAuthenticationSuccess(request, response, authentication);
+
+    assertFalse(existingUser.getEmailValidated());
+    verify(userRepository, never()).save(any(User.class));
   }
 
   @Test
