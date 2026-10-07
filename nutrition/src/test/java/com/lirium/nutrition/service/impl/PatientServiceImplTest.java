@@ -289,6 +289,70 @@ class PatientServiceImplTest {
     verify(restrictionMapper).toDTOSet(any());
   }
 
+  @Test
+  void shouldKeepEmailValidatedWhenEmailDoesNotChange() {
+
+    User user = generateUser();
+    user.setEmailValidated(true);
+
+    when(patientProfileService.findByUserId(1L)).thenReturn(user.getPatientProfile());
+    when(restrictionMapper.toDTOSet(any())).thenReturn(Set.of());
+
+    PatientUpdateRequestDTO request =
+        new PatientUpdateRequestDTO(
+            null,
+            null,
+            "JOHN@test.com",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null);
+
+    patientService.updatePatient(1L, request);
+
+    assertTrue(user.getEmailValidated());
+    assertEquals("john@test.com", user.getEmail());
+  }
+
+  @Test
+  void shouldResetEmailValidatedWhenEmailChanges() {
+
+    User user = generateUser();
+    user.setEmailValidated(true);
+
+    when(patientProfileService.findByUserId(1L)).thenReturn(user.getPatientProfile());
+    when(restrictionMapper.toDTOSet(any())).thenReturn(Set.of());
+
+    PatientUpdateRequestDTO request =
+        new PatientUpdateRequestDTO(
+            null,
+            null,
+            "new@test.com",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null);
+
+    patientService.updatePatient(1L, request);
+
+    assertFalse(user.getEmailValidated());
+    assertEquals("new@test.com", user.getEmail());
+  }
+
   private User generateUser() {
 
     User user = new User("john@test.com", "hash", "John", "Doe", Role.PATIENT);

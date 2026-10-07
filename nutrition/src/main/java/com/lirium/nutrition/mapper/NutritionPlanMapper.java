@@ -28,12 +28,15 @@ public class NutritionPlanMapper {
 
   private static DailyPlanDetailDTO toDailyPlanDetail(DailyPlan dailyPlan) {
     return new DailyPlanDetailDTO(
+        dailyPlan.getId(),
         dailyPlan.getDayOfWeek(),
+        NutritionComparisonMapper.toNutrients(dailyPlan.plannedNutrients()),
         dailyPlan.getMeals().stream().map(NutritionPlanMapper::toPlanMealDetail).toList());
   }
 
   private static PlanMealDetailDTO toPlanMealDetail(PlanMeal meal) {
     return new PlanMealDetailDTO(
+        meal.getId(),
         meal.getType(),
         meal.getFoodPortions().stream().map(NutritionPlanMapper::toPlanFoodPortionDetail).toList());
   }
@@ -41,6 +44,7 @@ public class NutritionPlanMapper {
   private static PlanFoodPortionDetailDTO toPlanFoodPortionDetail(PlanFoodPortion portion) {
     double grams = portion.getFood().toGrams(portion.getQuantity(), portion.getMeasureUnit());
     return new PlanFoodPortionDetailDTO(
+        portion.getId(),
         portion.getFood().getName(),
         portion.getQuantity(),
         portion.getMeasureUnit(),

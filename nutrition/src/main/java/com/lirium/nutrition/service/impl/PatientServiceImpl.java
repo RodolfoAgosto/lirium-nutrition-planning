@@ -111,7 +111,7 @@ public class PatientServiceImpl implements PatientService {
       user.setLastName(request.lastName());
     }
 
-    if (request.email() != null) {
+    if (request.email() != null && !request.email().equalsIgnoreCase(user.getEmail())) {
       user.setEmail(request.email());
       user.setEmailValidated(false);
     }

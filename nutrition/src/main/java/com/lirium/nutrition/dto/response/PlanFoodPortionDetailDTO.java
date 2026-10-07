@@ -3,6 +3,7 @@ package com.lirium.nutrition.dto.response;
 import com.lirium.nutrition.model.enums.MeasureUnit;
 
 public record PlanFoodPortionDetailDTO(
+    Long id,
     String foodName,
     Double quantity,
     MeasureUnit unit,

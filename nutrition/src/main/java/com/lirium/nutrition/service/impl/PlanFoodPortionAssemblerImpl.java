@@ -497,11 +497,11 @@ public class PlanFoodPortionAssemblerImpl implements PlanFoodPortionAssembler {
   }
 
   private int getMaxFrequency(Food food) {
-    // Podés hacerlo más fino por categoría o por food específico
+    // Máximo de apariciones de un alimento en la semana (el mapa foodFrequencyInWeek es semanal)
     if (food.getCategory() == FoodCategory.DAIRY) {
-      return 2; // máximo 2 veces por día (o por semana si el mapa es semanal)
+      return 2; // lácteos: hasta 2 veces por semana
     }
-    return 4; // resto de alimentos
+    return 4; // resto de alimentos: hasta 4 veces por semana
   }
 
   private double estimateGrams(

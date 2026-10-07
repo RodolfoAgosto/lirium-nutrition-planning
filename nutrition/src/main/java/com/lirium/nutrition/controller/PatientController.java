@@ -98,9 +98,9 @@ public class PatientController {
   @CommonAuthResponses
   @Operation(
       operationId = "updatePatientProfile",
-      summary = "Update patient profile",
+      summary = "Partially update patient profile",
       description =
-          "Updates personal details of an existing patient. Accessible by ADMIN, NUTRITIONIST, or the owner PATIENT.")
+          "Partially updates an existing patient: only the fields sent are changed (omitted or null fields are kept). Accessible by ADMIN, NUTRITIONIST, or the owner PATIENT.")
   @ApiResponses(
       value = {
         @ApiResponse(
@@ -111,7 +111,7 @@ public class PatientController {
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = PatientDetailDTO.class)))
       })
-  @PutMapping("/{id}")
+  @PatchMapping("/{id}")
   @PreAuthorize(
       "hasAnyRole('ADMIN','NUTRITIONIST') or @patientSecurity.isOwner(#id, authentication)")
   public ResponseEntity<PatientDetailDTO> updateProfile(

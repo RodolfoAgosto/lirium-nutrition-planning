@@ -13,15 +13,15 @@ import java.util.Set;
 
 public record PatientUpdateRequestDTO(
     @Schema(example = "Ana Juana")
-        @NotBlank(message = "First name is required")
+        @Pattern(regexp = ".*\\S.*", message = "First name must not be blank")
         @Size(max = 50, message = "First name must not exceed 50 characters")
         String firstName,
     @Schema(example = "López")
-        @NotBlank(message = "Last name is required")
+        @Pattern(regexp = ".*\\S.*", message = "Last name must not be blank")
         @Size(max = 50, message = "Last name must not exceed 50 characters")
         String lastName,
     @Schema(example = "ana.lopez@example.com")
-        @NotBlank(message = "Email is required")
+        @Pattern(regexp = ".*\\S.*", message = "Email must not be blank")
         @Email(message = "Invalid email format")
         String email,
     @Schema(example = "38123456")

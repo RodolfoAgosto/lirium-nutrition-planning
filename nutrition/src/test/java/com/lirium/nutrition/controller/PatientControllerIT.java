@@ -1,7 +1,7 @@
 package com.lirium.nutrition.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -138,7 +138,7 @@ class PatientControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            put("/api/patients/{id}", patient.getId())
+            patch("/api/patients/{id}", patient.getId())
                 .header("Authorization", patientToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
@@ -160,7 +160,7 @@ class PatientControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            put("/api/patients/{id}", otherPatient.getId())
+            patch("/api/patients/{id}", otherPatient.getId())
                 .header("Authorization", patientToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
@@ -180,7 +180,7 @@ class PatientControllerIT extends AbstractIntegrationTest {
 
     mockMvc
         .perform(
-            put("/api/patients/{id}", patient.getId())
+            patch("/api/patients/{id}", patient.getId())
                 .header("Authorization", adminToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
@@ -193,5 +193,43 @@ class PatientControllerIT extends AbstractIntegrationTest {
                         """))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.firstName").value("Admin Update"));
+  }
+
+  @Test
+  @DisplayName("PATCH acepta un body parcial sin nombre, apellido ni email")
+  void shouldAcceptPartialUpdate() throws Exception {
+
+    mockMvc
+        .perform(
+            patch("/api/patients/{id}", patient.getId())
+                .header("Authorization", adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                        {
+                            "medicalNotes": "Solo actualizo notas"
+                        }
+                        """))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.medicalNotes").value("Solo actualizo notas"))
+        .andExpect(jsonPath("$.firstName").value("Juan"));
+  }
+
+  @Test
+  @DisplayName("PATCH rechaza un nombre en blanco")
+  void shouldRejectBlankFirstName() throws Exception {
+
+    mockMvc
+        .perform(
+            patch("/api/patients/{id}", patient.getId())
+                .header("Authorization", adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                        {
+                            "firstName": "   "
+                        }
+                        """))
+        .andExpect(status().isBadRequest());
   }
 }

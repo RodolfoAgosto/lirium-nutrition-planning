@@ -46,6 +46,9 @@ class NutritionPlanMapperTest {
 
     DailyPlanDetailDTO day = dto.week().getFirst();
     assertThat(day.dayOfWeek()).isEqualTo(DayOfWeek.MONDAY);
+    assertThat(day.totals().calories()).isEqualTo(300);
+    assertThat(day.totals().protein()).isEqualTo(45);
+    assertThat(day.totals().fat()).isEqualTo(7);
 
     assertThat(day.meals()).hasSize(1);
 
