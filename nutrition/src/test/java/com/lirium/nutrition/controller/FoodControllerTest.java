@@ -16,6 +16,7 @@ import com.lirium.nutrition.infrastructure.security.UserDetailsServiceImpl;
 import com.lirium.nutrition.model.enums.FoodCategory;
 import com.lirium.nutrition.model.enums.FoodTag;
 import com.lirium.nutrition.model.enums.MealType;
+import com.lirium.nutrition.model.enums.MeasureUnit;
 import com.lirium.nutrition.service.FoodService;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -46,11 +47,15 @@ class FoodControllerTest {
   @Test
   void shouldFindAllFoods() throws Exception {
 
-    Set<FoodSummaryDTO> response = Set.of(new FoodSummaryDTO(1L, "Chicken Breast"));
+    Set<FoodSummaryDTO> response =
+        Set.of(new FoodSummaryDTO(1L, "Chicken Breast", MeasureUnit.GRAM));
 
     when(foodService.findAll()).thenReturn(response);
 
-    mockMvc.perform(get("/api/foods")).andExpect(status().isOk());
+    mockMvc
+        .perform(get("/api/foods"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].defaultUnit").value("GRAM"));
 
     verify(foodService).findAll();
   }
@@ -87,7 +92,7 @@ class FoodControllerTest {
             Set.of(MealType.LUNCH),
             Set.of(FoodTag.MEAT));
 
-    FoodSummaryDTO response = new FoodSummaryDTO(1L, "Chicken Breast");
+    FoodSummaryDTO response = new FoodSummaryDTO(1L, "Chicken Breast", MeasureUnit.GRAM);
 
     when(foodService.create(any(FoodCreateRequestDTO.class))).thenReturn(response);
 
@@ -109,7 +114,7 @@ class FoodControllerTest {
     FoodUpdateRequestDTO dto =
         new FoodUpdateRequestDTO("Chicken", 100, 20, 0, 5, Set.of(FoodTag.GLUTEN));
 
-    FoodSummaryDTO response = new FoodSummaryDTO(1L, "Updated Chicken");
+    FoodSummaryDTO response = new FoodSummaryDTO(1L, "Updated Chicken", MeasureUnit.GRAM);
 
     when(foodService.update(eq(1L), any(FoodUpdateRequestDTO.class))).thenReturn(response);
 

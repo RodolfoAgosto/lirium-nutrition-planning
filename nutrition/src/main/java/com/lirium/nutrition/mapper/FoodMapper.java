@@ -31,7 +31,7 @@ public class FoodMapper {
   }
 
   public static FoodSummaryDTO toSummary(Food entity) {
-    return new FoodSummaryDTO(entity.getId(), entity.getName());
+    return new FoodSummaryDTO(entity.getId(), entity.getName(), entity.getDefaultUnit());
   }
 
   /* ========= CREATE DTO -> ENTITY ========= */

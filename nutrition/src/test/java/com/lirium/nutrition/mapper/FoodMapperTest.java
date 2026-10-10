@@ -10,6 +10,7 @@ import com.lirium.nutrition.model.entity.Food;
 import com.lirium.nutrition.model.enums.FoodCategory;
 import com.lirium.nutrition.model.enums.FoodTag;
 import com.lirium.nutrition.model.enums.MealType;
+import com.lirium.nutrition.model.enums.MeasureUnit;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
@@ -44,6 +45,19 @@ class FoodMapperTest {
 
     assertThat(dto.id()).isNull();
     assertThat(dto.name()).isEqualTo("Apple");
+    assertThat(dto.defaultUnit()).isEqualTo(MeasureUnit.GRAM);
+  }
+
+  @Test
+  void shouldExposeTheDefaultUnitOfLiquidAndUnitFoods() {
+
+    Food milk =
+        Food.ofLiquid("Milk", 60, 3, 5, 3, FoodCategory.DAIRY, Set.of(MealType.BREAKFAST), 1.03);
+    Food egg =
+        Food.ofUnit("Egg", 155, 13, 1, 11, FoodCategory.PROTEIN, Set.of(MealType.BREAKFAST), 50.0);
+
+    assertThat(FoodMapper.toSummary(milk).defaultUnit()).isEqualTo(MeasureUnit.MILLILITER);
+    assertThat(FoodMapper.toSummary(egg).defaultUnit()).isEqualTo(MeasureUnit.UNIT);
   }
 
   @Test
