@@ -96,6 +96,7 @@ public class PatientController {
     return ResponseEntity.ok(patientService.getPatientDetail(user.getId()));
   }
 
+  @CommonAuthResponses
   @Operation(
       operationId = "getPatientById",
       summary = "Get patient by ID",
