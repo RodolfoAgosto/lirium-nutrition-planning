@@ -4,6 +4,7 @@ import com.lirium.nutrition.dto.request.PatientUpdateRequestDTO;
 import com.lirium.nutrition.dto.response.PatientDetailDTO;
 import com.lirium.nutrition.dto.response.PatientSummaryDTO;
 import com.lirium.nutrition.infrastructure.config.CommonAuthResponses;
+import com.lirium.nutrition.model.entity.User;
 import com.lirium.nutrition.service.PatientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -21,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -73,6 +75,27 @@ public class PatientController {
   }
 
   @CommonAuthResponses
+  @Operation(
+      operationId = "getMyPatientProfile",
+      summary = "Get the signed-in patient's own profile",
+      description =
+          "Returns the profile of the signed-in patient, including the patient id that the other patient endpoints require. The access token does not carry that id, so this is how a patient client learns it. Accessible by PATIENT only.")
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Patient profile retrieved successfully",
+            content =
+                @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = PatientDetailDTO.class)))
+      })
+  @GetMapping("/me")
+  @PreAuthorize("hasRole('PATIENT')")
+  public ResponseEntity<PatientDetailDTO> getMyProfile(@AuthenticationPrincipal User user) {
+    return ResponseEntity.ok(patientService.getPatientDetail(user.getId()));
+  }
+
   @Operation(
       operationId = "getPatientById",
       summary = "Get patient by ID",

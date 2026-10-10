@@ -104,6 +104,26 @@ class PatientControllerIT extends AbstractIntegrationTest {
   }
 
   @Test
+  @DisplayName("Paciente obtiene su propio perfil, con su id, sin conocerlo de antemano")
+  void shouldGetMyProfile() throws Exception {
+
+    mockMvc
+        .perform(get("/api/patients/me").header("Authorization", patientToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.patientId").value(patient.getId().intValue()))
+        .andExpect(jsonPath("$.email").value("patient@test.com"));
+  }
+
+  @Test
+  @DisplayName("NUTRITIONIST no tiene perfil de paciente: /me responde 403")
+  void shouldRejectMyProfileForNutritionist() throws Exception {
+
+    mockMvc
+        .perform(get("/api/patients/me").header("Authorization", nutritionistToken))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
   @DisplayName("ADMIN debe poder obtener cualquier paciente")
   void shouldAllowAdminToGetPatientDetail() throws Exception {
 
